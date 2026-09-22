@@ -49,6 +49,7 @@ export default function PropertyDetailPage() {
   const [visitOpen, setVisitOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>(property?.coverImage || '');
   const [copied, setCopied] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const favorite = property ? isSaved(property.id) : false;
 
@@ -95,7 +96,6 @@ export default function PropertyDetailPage() {
 
   const allImages = [property.coverImage, ...(property.images || [])].filter(Boolean);
   const activeImage = selectedImage || property.coverImage;
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   // Price breakdown calculations
   const stampDuty = Math.round(property.price * 0.06); // 6% Maharashtra
@@ -516,7 +516,7 @@ export default function PropertyDetailPage() {
               {formatIndianPrice(property.price)}
             </span>
             <span className="text-[10px] text-neutral-500 block leading-none">
-              ₹{property.pricePerSqFt?.toLocaleString('en-IN') || '14,200'}/sq.ft
+              ₹{property.pricePerSqft?.toLocaleString('en-IN') || '14,200'}/sq.ft
             </span>
           </div>
 

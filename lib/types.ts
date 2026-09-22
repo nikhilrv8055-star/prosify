@@ -155,6 +155,9 @@ export interface Project {
   reraNumber: string;
   description: string;
   coverImage?: string;
+  images?: string[];
+  image?: string;
+  bannerImage?: string;
   gallery?: string[];
   galleryImages?: string[];
   amenities: string[];
@@ -179,10 +182,13 @@ export interface Property {
   slug: string;
   listingType: ListingType;
   propertyType: PropertyType;
+  type?: string;
   price: number; // in INR (e.g. 12500000 = 1.25 Cr)
   pricePerSqft: number;
+  pricePerSqFt?: number;
   bhk: string;
   carpetArea: number;
+  areaSqFt?: number;
   builtUpArea: number;
   floorNumber?: number;
   totalFloors?: number;

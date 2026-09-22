@@ -23,7 +23,7 @@ import {
   Percent,
   CheckCircle2,
 } from 'lucide-react';
-import { Property, Project, Developer } from '@/types/marketplace';
+import { Property, Project, Developer } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
 
@@ -474,7 +474,7 @@ export function MobileHomePage({
                       <span>Verified</span>
                     </span>
                     <span className="px-2 py-0.5 rounded-md bg-[#D4A017] text-neutral-950 text-[10px] font-bold">
-                      {prop.type}
+                      {prop.propertyType || prop.type}
                     </span>
                   </div>
 
@@ -497,7 +497,7 @@ export function MobileHomePage({
                       {formatPrice(prop.price)}
                     </span>
                     <span className="text-[10px] font-semibold text-neutral-200">
-                      ₹{prop.pricePerSqFt?.toLocaleString('en-IN') || '14,200'}/sq.ft
+                      ₹{prop.pricePerSqft?.toLocaleString('en-IN') || '14,200'}/sq.ft
                     </span>
                   </div>
                 </div>
@@ -520,7 +520,7 @@ export function MobileHomePage({
                       </div>
                       <div>
                         <span className="text-neutral-400 block text-[9px] uppercase font-semibold">Carpet Area</span>
-                        <strong className="text-neutral-900 font-bold">{prop.areaSqFt} sq.ft</strong>
+                        <strong className="text-neutral-900 font-bold">{prop.carpetArea || (prop as any).areaSqFt} sq.ft</strong>
                       </div>
                     </div>
                   </div>
@@ -565,7 +565,7 @@ export function MobileHomePage({
             >
               <div className="relative aspect-[16/10] bg-neutral-100">
                 <Image
-                  src={proj.images[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80'}
+                  src={proj.images?.[0] || proj.coverImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80'}
                   alt={proj.name}
                   fill
                   className="object-cover"
@@ -584,7 +584,7 @@ export function MobileHomePage({
                 <div className="absolute bottom-2 left-2.5 right-2.5">
                   <span className="text-[10px] text-neutral-300 block">Starting from</span>
                   <span className="text-sm font-extrabold text-white">
-                    {formatPrice(proj.startingPrice)}
+                    {proj.startingPrice ? formatPrice(proj.startingPrice) : 'On Request'}
                   </span>
                 </div>
               </div>

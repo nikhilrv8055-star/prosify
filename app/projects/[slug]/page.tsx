@@ -45,7 +45,7 @@ export default function ProjectDetailPage() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const projectImages = [
-    project?.coverImage || project?.image,
+    project?.coverImage || (project as any)?.image,
     'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',

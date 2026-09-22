@@ -6,11 +6,13 @@ import { formatIndianPrice } from '@/lib/utils';
 
 interface EMICalculatorProps {
   initialPrice?: number;
+  propertyPrice?: number;
 }
 
-export function EMICalculator({ initialPrice = 7500000 }: EMICalculatorProps) {
+export function EMICalculator({ initialPrice, propertyPrice }: EMICalculatorProps) {
+  const basePrice = propertyPrice || initialPrice || 7500000;
   // Down payment default 20%
-  const [loanAmount, setLoanAmount] = useState(Math.round(initialPrice * 0.8));
+  const [loanAmount, setLoanAmount] = useState(Math.round(basePrice * 0.8));
   const [interestRate, setInterestRate] = useState(8.5);
   const [tenureYears, setTenureYears] = useState(20);
 
