@@ -7,7 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "clean": "next clean"
+    "clean": "next clean",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "deploy:cloudflare": "opennextjs-cloudflare deploy",
+    "preview:cloudflare": "opennextjs-cloudflare preview",
+    "d1:create": "wrangler d1 create prosify_production",
+    "d1:migrate:local": "wrangler d1 execute prosify_production --local --file=./migrations/0001_initial_schema.sql",
+    "d1:migrate:remote": "wrangler d1 execute prosify_production --remote --file=./migrations/0001_initial_schema.sql",
+    "d1:seed:local": "wrangler d1 execute prosify_production --local --file=./migrations/0002_seed_data.sql",
+    "d1:seed:remote": "wrangler d1 execute prosify_production --remote --file=./migrations/0002_seed_data.sql",
+    "r2:create": "wrangler r2 bucket create prosify-uploads && wrangler r2 bucket create prosify-cache"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -25,6 +34,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.6",
     "@tailwindcss/postcss": "4.1.11",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20",
@@ -35,6 +45,7 @@
     "firebase-tools": "^15.0.0",
     "tailwindcss": "4.1.11",
     "tw-animate-css": "^1.4.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "wrangler": "^4.136.2"
   }
 }
