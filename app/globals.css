@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold-300: #FDE047;
+  --color-gold-400: #F4C430;
+  --color-gold-500: #D4A017;
+  --color-gold-600: #B8860B;
+  --color-gold-700: #8E680E;
+  --color-estate-dark: #171717;
+  --color-estate-darker: #0F0F0F;
+  --color-estate-light: #F8F8F6;
+  --color-estate-muted: #737373;
+}
+
+/* Hide Next.js dev badge / symbol */
+nextjs-portal,
+#next-build-watcher,
+[data-next-badge],
+[data-nextjs-toast],
+div[data-nextjs-route-announcer] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Custom mobile touch & scroll utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area inset helpers for modern mobile devices (iOS / Android) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 16px);
+}

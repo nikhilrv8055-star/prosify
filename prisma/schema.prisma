@@ -1,0 +1,676 @@
+// Prisma Schema for SwarnaEstate Real Estate & Channel Partner Platform
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  SALES_MANAGER
+  SALES_EXECUTIVE
+  DEVELOPER
+  CHANNEL_PARTNER
+  CUSTOMER
+}
+
+enum PropertyType {
+  APARTMENT
+  VILLA
+  PLOT
+  PENTHOUSE
+  OFFICE
+  SHOP
+  COMMERCIAL
+  WAREHOUSE
+}
+
+enum ListingType {
+  BUY
+  RENT
+  COMMERCIAL
+  PROJECT
+}
+
+enum PossessionStatus {
+  READY_TO_MOVE
+  UNDER_CONSTRUCTION
+  NEW_LAUNCH
+}
+
+enum UnitStatus {
+  AVAILABLE
+  HOLD
+  BOOKED
+  SOLD
+  BLOCKED
+}
+
+enum PartnerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  SITE_VISIT
+  NEGOTIATION
+  BOOKED
+  LOST
+  CLOSED
+}
+
+enum LeadSourceType {
+  WEBSITE
+  CHANNEL_PARTNER
+  FACEBOOK
+  GOOGLE
+  NINETY_NINE_ACRES
+  MAGICBRICKS
+  HOUSING
+  API
+  MANUAL
+  OTHER
+}
+
+enum SiteVisitStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  PAID
+  CANCELLED
+}
+
+enum SyncSourceType {
+  API
+  CSV_UPLOAD
+  EXCEL
+  WEBHOOK
+  MANUAL
+}
+
+enum SyncStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+  RUNNING
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  phone         String?
+  name          String
+  passwordHash  String
+  role          UserRole       @default(CUSTOMER)
+  avatarUrl     String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  sessions      Session[]
+  partner       ChannelPartner?
+  developer     Developer?
+  assignedLeads LeadAssignment[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  savedProps    SavedProperty[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model State {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  code      String     @unique
+  districts District[]
+}
+
+model District {
+  id       String   @id @default(cuid())
+  name     String
+  stateId  String
+  state    State    @relation(fields: [stateId], references: [id])
+  cities   City[]
+}
+
+model City {
+  id         String     @id @default(cuid())
+  name       String
+  districtId String
+  district   District   @relation(fields: [districtId], references: [id])
+  zones      Zone[]
+  properties Property[]
+  projects   Project[]
+}
+
+model Zone {
+  id          String      @id @default(cuid())
+  name        String
+  cityId      String
+  city        City        @relation(fields: [cityId], references: [id])
+  localities  Locality[]
+}
+
+model Locality {
+  id          String      @id @default(cuid())
+  name        String
+  pincode     String?
+  zoneId      String
+  zone        Zone        @relation(fields: [zoneId], references: [id])
+  properties  Property[]
+  projects    Project[]
+}
+
+model Developer {
+  id             String              @id @default(cuid())
+  name           String
+  slug           String              @unique
+  logoUrl        String?
+  about          String?
+  establishedYr  Int?
+  website        String?
+  contactEmail   String?
+  contactPhone   String?
+  isVerified     Boolean             @default(false)
+  userId         String?             @unique
+  user           User?               @relation(fields: [userId], references: [id])
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  projects       Project[]
+  properties     Property[]
+  documents      DeveloperDocument[]
+  syncSources    DeveloperSyncSource[]
+}
+
+model DeveloperDocument {
+  id          String    @id @default(cuid())
+  developerId String
+  developer   Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  docType     String
+  fileUrl     String
+  fileName    String
+  uploadedAt  DateTime  @default(now())
+}
+
+model DeveloperSyncSource {
+  id             String         @id @default(cuid())
+  developerId    String
+  developer      Developer      @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  sourceType     SyncSourceType
+  apiUrl         String?
+  apiKeyEncrypted String?
+  syncFrequency  String         @default("HOURLY")
+  lastSyncAt     DateTime?
+  status         SyncStatus     @default(SUCCESS)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  syncJobs       SyncJob[]
+}
+
+model SyncJob {
+  id              String              @id @default(cuid())
+  syncSourceId    String
+  syncSource      DeveloperSyncSource @relation(fields: [syncSourceId], references: [id], onDelete: Cascade)
+  recordsReceived Int                 @default(0)
+  recordsCreated  Int                 @default(0)
+  recordsUpdated  Int                 @default(0)
+  recordsFailed   Int                 @default(0)
+  status          SyncStatus
+  durationMs      Int                 @default(0)
+  errorLog        String?
+  createdAt       DateTime            @default(now())
+}
+
+model Project {
+  id               String           @id @default(cuid())
+  name             String
+  slug             String           @unique
+  developerId      String
+  developer        Developer        @relation(fields: [developerId], references: [id])
+  cityId           String
+  city             City             @relation(fields: [cityId], references: [id])
+  localityId       String
+  locality         Locality         @relation(fields: [localityId], references: [id])
+  address          String
+  latitude         Float?
+  longitude        Float?
+  startingPrice    Float
+  priceRange       String
+  configurations   String
+  totalUnits       Int
+  availableUnits   Int
+  possessionDate   String
+  constructionStatus PossessionStatus
+  reraNumber       String
+  description      String
+  brochureUrl      String?
+  isFeatured       Boolean          @default(false)
+  isPublished      Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  towers           Tower[]
+  floorPlans       FloorPlan[]
+  media            ProjectMedia[]
+  amenities        ProjectAmenity[]
+  properties       Property[]
+  leads            Lead[]
+  siteVisits       SiteVisit[]
+  bookings         Booking[]
+  commissionRules  CommissionRule[]
+}
+
+model ProjectMedia {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaType  String   // IMAGE, VIDEO, VIRTUAL_TOUR
+  url        String
+  caption    String?
+  sortOrder  Int      @default(0)
+}
+
+model ProjectAmenity {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name       String
+  icon       String?
+}
+
+model FloorPlan {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title      String
+  bhk        String
+  carpetArea Float
+  price      Float
+  imageUrl   String
+}
+
+model Tower {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name       String
+  totalFloors Int
+  floors     Floor[]
+}
+
+model Floor {
+  id         String   @id @default(cuid())
+  towerId    String
+  tower      Tower    @relation(fields: [towerId], references: [id], onDelete: Cascade)
+  floorNumber Int
+  units      Unit[]
+}
+
+model Unit {
+  id           String     @id @default(cuid())
+  floorId      String
+  floor        Floor      @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  unitNumber   String
+  bhk          String
+  configuration String
+  carpetArea   Float
+  builtUpArea  Float
+  balconyArea  Float?
+  price        Float
+  parking      String?
+  facing       String?
+  status       UnitStatus @default(AVAILABLE)
+  possession   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  booking      Booking?
+}
+
+model Property {
+  id               String           @id @default(cuid())
+  title            String
+  slug             String           @unique
+  listingType      ListingType      @default(BUY)
+  propertyType     PropertyType     @default(APARTMENT)
+  price            Float
+  pricePerSqft     Float
+  bhk              String
+  carpetArea       Float
+  builtUpArea      Float
+  floorNumber      Int?
+  totalFloors      Int?
+  facing           String?
+  furnishingStatus String?          // UNFURNISHED, SEMI_FURNISHED, FULLY_FURNISHED
+  possessionStatus PossessionStatus @default(READY_TO_MOVE)
+  possessionDate   String?
+  isVerified       Boolean          @default(true)
+  isFeatured       Boolean          @default(false)
+  isPublished      Boolean          @default(true)
+  reraNumber       String?
+  cityId           String
+  city             City             @relation(fields: [cityId], references: [id])
+  localityId       String
+  locality         Locality         @relation(fields: [localityId], references: [id])
+  developerId      String?
+  developer        Developer?       @relation(fields: [developerId], references: [id])
+  projectId        String?
+  project          Project?         @relation(fields: [projectId], references: [id])
+  description      String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  media            PropertyMedia[]
+  amenities        PropertyAmenity[]
+  leads            Lead[]
+  siteVisits       SiteVisit[]
+  bookings         Booking[]
+  savedBy          SavedProperty[]
+}
+
+model PropertyMedia {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url        String
+  mediaType  String   @default("IMAGE")
+  isFeatured Boolean  @default(false)
+}
+
+model PropertyAmenity {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name       String
+}
+
+model SavedProperty {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+}
+
+model ChannelPartner {
+  id             String          @id @default(cuid())
+  code           String          @unique // e.g. CP101
+  companyName    String
+  partnerName    String
+  email          String          @unique
+  phone          String
+  address        String?
+  gstNumber      String?
+  panNumber      String
+  reraNumber     String?
+  bankName       String?
+  accountNumber  String?
+  ifscCode       String?
+  status         PartnerStatus   @default(PENDING)
+  userId         String?         @unique
+  user           User?           @relation(fields: [userId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  trackingLinks  TrackingLink[]
+  leads          Lead[]
+  siteVisits     SiteVisit[]
+  bookings       Booking[]
+  commissions    Commission[]
+  payouts        Payout[]
+  documents      PartnerDocument[]
+}
+
+model PartnerDocument {
+  id         String         @id @default(cuid())
+  partnerId  String
+  partner    ChannelPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  docType    String
+  fileUrl    String
+  fileName   String
+  uploadedAt DateTime       @default(now())
+}
+
+model TrackingLink {
+  id          String          @id @default(cuid())
+  partnerId   String
+  partner     ChannelPartner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  code        String          @unique
+  targetUrl   String
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  clicks      Int             @default(0)
+  createdAt   DateTime        @default(now())
+
+  events      TrackingEvent[]
+}
+
+model TrackingEvent {
+  id             String       @id @default(cuid())
+  trackingLinkId String
+  trackingLink   TrackingLink @relation(fields: [trackingLinkId], references: [id], onDelete: Cascade)
+  eventType      String       // CLICK, PROPERTY_VIEW, PROJECT_VIEW, ENQUIRY
+  ipAddress      String?
+  userAgent      String?
+  referrer       String?
+  createdAt      DateTime     @default(now())
+}
+
+model Lead {
+  id           String         @id @default(cuid())
+  name         String
+  phone        String
+  email        String?
+  source       LeadSourceType @default(WEBSITE)
+  propertyId   String?
+  property     Property?      @relation(fields: [propertyId], references: [id])
+  projectId    String?
+  project      Project?       @relation(fields: [projectId], references: [id])
+  partnerId    String?
+  partner      ChannelPartner? @relation(fields: [partnerId], references: [id])
+  budget       String?
+  requirement  String?
+  location     String?
+  status       LeadStatus     @default(NEW)
+  notes        String?
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  firstTouch   String?
+  lastTouch    String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  assignments  LeadAssignment[]
+  activities   LeadActivity[]
+  siteVisits   SiteVisit[]
+  bookings     Booking[]
+}
+
+model LeadAssignment {
+  id         String   @id @default(cuid())
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  assignedAt DateTime @default(now())
+}
+
+model LeadActivity {
+  id         String   @id @default(cuid())
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  activity   String
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model SiteVisit {
+  id              String          @id @default(cuid())
+  leadId          String
+  lead            Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  propertyId      String?
+  property        Property?       @relation(fields: [propertyId], references: [id])
+  projectId       String?
+  project         Project?        @relation(fields: [projectId], references: [id])
+  partnerId       String?
+  partner         ChannelPartner? @relation(fields: [partnerId], references: [id])
+  salesExecutive  String?
+  visitDate       String
+  visitTime       String
+  status          SiteVisitStatus @default(SCHEDULED)
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Booking {
+  id            String          @id @default(cuid())
+  leadId        String
+  lead          Lead            @relation(fields: [leadId], references: [id])
+  propertyId    String?
+  property      Property?       @relation(fields: [propertyId], references: [id])
+  projectId     String?
+  project       Project?        @relation(fields: [projectId], references: [id])
+  unitId        String?         @unique
+  unit          Unit?           @relation(fields: [unitId], references: [id])
+  partnerId     String?
+  partner       ChannelPartner? @relation(fields: [partnerId], references: [id])
+  customerName  String
+  customerPhone String
+  bookingDate   DateTime        @default(now())
+  bookingAmount Float
+  totalAgreementValue Float
+  commissionAmt Float           @default(0)
+  status        String          @default("CONFIRMED")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  commissions   Commission[]
+}
+
+model CommissionRule {
+  id          String   @id @default(cuid())
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  ruleType    String   // PERCENTAGE, FIXED
+  rate        Float    // e.g. 2.0% or 50000
+  effectiveFrom DateTime @default(now())
+}
+
+model Commission {
+  id          String           @id @default(cuid())
+  partnerId   String
+  partner     ChannelPartner   @relation(fields: [partnerId], references: [id])
+  bookingId   String
+  booking     Booking          @relation(fields: [bookingId], references: [id])
+  amount      Float
+  ratePercent Float?
+  status      CommissionStatus @default(PENDING)
+  approvedAt  DateTime?
+  paidAt      DateTime?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Payout {
+  id            String         @id @default(cuid())
+  partnerId     String
+  partner       ChannelPartner @relation(fields: [partnerId], references: [id])
+  amount        Float
+  utrNumber     String?
+  paymentMethod String         @default("NEFT")
+  paidAt        DateTime       @default(now())
+  notes         String?
+}
+
+model Integration {
+  id          String    @id @default(cuid())
+  provider    String    @unique // META, GOOGLE, 99ACRES, MAGICBRICKS, HOUSING, CRM
+  displayName String
+  isConnected Boolean   @default(false)
+  apiKey      String?
+  webhookUrl  String?
+  lastSyncAt  DateTime?
+  statusText  String    @default("Pending Provider API Access")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  signature   String?
+  payload     String
+  isProcessed Boolean  @default(false)
+  error       String?
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   // LEAD, VISIT, BOOKING, COMMISSION, SYNC
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entity     String
+  entityId   String?
+  ipAddress  String?
+  metadata   String?
+  createdAt  DateTime @default(now())
+}
+
+model SeoMetadata {
+  id          String   @id @default(cuid())
+  path        String   @unique
+  title       String
+  description String
+  canonical   String?
+  ogImage     String?
+  keywords    String?
+}
