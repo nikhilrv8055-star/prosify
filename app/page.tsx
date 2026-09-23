@@ -40,7 +40,7 @@ export default function HomePage() {
   const { toast } = useToast();
 
   // Search form state
-  const [searchTab, setSearchTab] = useState<'BUY' | 'RENT' | 'PROJECTS' | 'COMMERCIAL'>('BUY');
+  const [searchTab, setSearchTab] = useState<'BUY' | 'PROJECTS' | 'COMMERCIAL'>('BUY');
   const [city, setCity] = useState('All');
   const [propertyType, setPropertyType] = useState('ALL');
   const [budget, setBudget] = useState('ALL');
@@ -158,7 +158,6 @@ export default function HomePage() {
             <div className="flex items-center gap-2 border-b border-neutral-100 pb-4 mb-4 overflow-x-auto">
               {[
                 { key: 'BUY', label: 'Buy Property' },
-                { key: 'RENT', label: 'Rent' },
                 { key: 'PROJECTS', label: 'New Projects' },
                 { key: 'COMMERCIAL', label: 'Commercial' },
               ].map((tab) => (

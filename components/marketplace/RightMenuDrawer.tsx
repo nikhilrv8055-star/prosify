@@ -7,10 +7,10 @@ import { brandConfig } from '@/src/config/brand';
 interface RightMenuDrawerProps {
   onClose: () => void;
   onOpenPostProperty: () => void;
-  onOpenRentalAgreement: () => void;
+  onOpenRentalAgreement?: () => void;
   onOpenServices: () => void;
   onOpenReferEarn: () => void;
-  onOpenRentReceipts: () => void;
+  onOpenRentReceipts?: () => void;
   onOpenPlan: (type: 'tenant' | 'owner' | 'buyer' | 'seller' | 'commercial') => void;
   onOpenCareers: () => void;
   onOpenCorporateEnquiry: () => void;
@@ -79,19 +79,7 @@ export function RightMenuDrawer({
             <span>Post Your Property</span>
           </button>
 
-          {/* 2. Rental Agreement */}
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onOpenRentalAgreement();
-            }}
-            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#FD3752] hover:bg-neutral-50/70 transition-colors cursor-pointer"
-          >
-            <span>Rental Agreement</span>
-          </button>
-
-          {/* 3. Painting & Cleaning */}
+          {/* 2. Painting & Cleaning */}
           <button
             type="button"
             onClick={() => {
@@ -103,7 +91,7 @@ export function RightMenuDrawer({
             <span>Painting & Cleaning</span>
           </button>
 
-          {/* 4. Packers and Movers */}
+          {/* 3. Packers and Movers */}
           <button
             type="button"
             onClick={() => {
@@ -115,7 +103,7 @@ export function RightMenuDrawer({
             <span>Packers and Movers</span>
           </button>
 
-          {/* 5. Refer & Earn */}
+          {/* 4. Refer & Earn */}
           <button
             type="button"
             onClick={() => {
@@ -127,31 +115,7 @@ export function RightMenuDrawer({
             <span>Refer & Earn</span>
           </button>
 
-          {/* 6. Rent Receipts */}
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onOpenRentReceipts();
-            }}
-            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#FD3752] hover:bg-neutral-50/70 transition-colors cursor-pointer"
-          >
-            <span>Rent Receipts</span>
-          </button>
-
-          {/* 7. Tenant Plans */}
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onOpenPlan('tenant');
-            }}
-            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#FD3752] hover:bg-neutral-50/70 transition-colors cursor-pointer"
-          >
-            <span>Tenant Plans</span>
-          </button>
-
-          {/* 8. Owner Plans */}
+          {/* 5. Owner Plans */}
           <button
             type="button"
             onClick={() => {
@@ -163,7 +127,7 @@ export function RightMenuDrawer({
             <span>Owner Plans</span>
           </button>
 
-          {/* 9. Buyer Plans */}
+          {/* 6. Buyer Plans */}
           <button
             type="button"
             onClick={() => {
@@ -175,7 +139,7 @@ export function RightMenuDrawer({
             <span>Buyer Plans</span>
           </button>
 
-          {/* 10. Seller Plans */}
+          {/* 7. Seller Plans */}
           <button
             type="button"
             onClick={() => {
@@ -211,17 +175,7 @@ export function RightMenuDrawer({
                   }}
                   className="text-left text-xs text-neutral-600 hover:text-[#FD3752] py-1 cursor-pointer transition-colors"
                 >
-                  Commercial Rent
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onOpenPlan('commercial');
-                  }}
-                  className="text-left text-xs text-neutral-600 hover:text-[#FD3752] py-1 cursor-pointer transition-colors"
-                >
-                  Commercial Buy
+                  Commercial Buy & Investment
                 </button>
               </div>
             )}

@@ -94,7 +94,6 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
   // Primary navigation links for Desktop
   const navLinks = [
     { label: 'Buy', href: '/properties?type=BUY', icon: Home, highlight: false },
-    { label: 'Rent', href: '/properties?type=RENT', icon: KeyRound, highlight: false },
     { label: 'Projects', href: '/projects', icon: Building2, highlight: false },
     { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Rocket, highlight: true, badge: 'HOT' },
     { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
@@ -299,23 +298,23 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               </span>
             </Link>
 
-            {/* 3. RENT BUTTON */}
+            {/* 3. NEW LAUNCHES BUTTON */}
             <Link
-              href="/properties?type=RENT"
+              href="/properties?possession=NEW_LAUNCH"
               className={`relative py-2 px-1 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
-                pathname === '/properties' && currentType === 'RENT'
+                pathname === '/properties' && currentType === 'NEW_LAUNCH'
                   ? 'bg-gradient-to-b from-amber-400/25 to-amber-500/10 text-[#F4C430] border border-amber-400/35 shadow-[0_0_16px_rgba(244,196,48,0.25)]'
                   : 'text-neutral-300 hover:text-white hover:bg-white/10 border border-transparent'
               }`}
             >
               <div className="relative">
-                <KeyRound className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'RENT' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
-                {pathname === '/properties' && currentType === 'RENT' && (
+                <Rocket className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
+                {pathname === '/properties' && currentType === 'NEW_LAUNCH' && (
                   <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
                 )}
               </div>
-              <span className={`text-[10px] tracking-tight ${pathname === '/properties' && currentType === 'RENT' ? 'font-black text-[#F4C430]' : 'font-medium'}`}>
-                Rent
+              <span className={`text-[10px] tracking-tight ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'font-black text-[#F4C430]' : 'font-medium'}`}>
+                Launches
               </span>
             </Link>
 

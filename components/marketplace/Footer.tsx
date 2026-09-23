@@ -35,8 +35,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/properties?type=RENT" className="hover:text-[#D4A017] transition-colors">
-                  Properties for Rent
+                <Link href="/developers" className="hover:text-[#D4A017] transition-colors">
+                  Top Developers & Builders
                 </Link>
               </li>
               <li>

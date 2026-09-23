@@ -66,12 +66,12 @@ export function MobileServicesModal({ isOpen, onClose }: ModalBaseProps) {
       benefits: ['Free 3D visual designs', '45-day guaranteed move-in', 'No cost EMI available'],
     },
     {
-      id: 'rental-agreement',
-      title: 'Digital Rental Agreement',
+      id: 'property-valuation',
+      title: 'Property Valuation & Legal Check',
       icon: ShieldCheck,
-      badge: 'Govt. Approved',
-      desc: 'Legally binding e-stamping with biometric police intimation.',
-      benefits: ['Aadhaar biometric doorstep verification', 'Instant soft-copy PDF', 'No visit to sub-registrar'],
+      badge: 'Certified',
+      desc: 'Government-approved valuation, title verification & RERA clearance.',
+      benefits: ['Title search report', 'Market value assessment', 'Legal clearance certificate'],
     },
     {
       id: 'movers',

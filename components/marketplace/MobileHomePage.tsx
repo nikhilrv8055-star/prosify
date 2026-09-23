@@ -53,7 +53,7 @@ export function MobileHomePage({
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'BUY' | 'RENT' | 'PROJECTS' | 'COMMERCIAL' | 'NEW_LAUNCH'>('BUY');
+  const [activeCategory, setActiveCategory] = useState<'BUY' | 'PROJECTS' | 'COMMERCIAL' | 'NEW_LAUNCH'>('BUY');
   const [bannerMode, setBannerMode] = useState<'BUYER' | 'OWNER'>('BUYER');
 
   const quickSearchSuggestions = [
@@ -66,7 +66,6 @@ export function MobileHomePage({
 
   const categories = [
     { key: 'BUY', label: 'Buy', href: '/properties?type=BUY' },
-    { key: 'RENT', label: 'Rent', href: '/properties?type=RENT' },
     { key: 'PROJECTS', label: 'Projects', href: '/projects' },
     { key: 'COMMERCIAL', label: 'Commercial', href: '/properties?type=COMMERCIAL' },
     { key: 'NEW_LAUNCH', label: 'New Launches', href: '/properties?possession=NEW_LAUNCH' },
@@ -90,11 +89,11 @@ export function MobileHomePage({
       color: 'bg-emerald-500/10 text-emerald-700',
     },
     {
-      id: 'rent',
-      title: 'Rent Property',
-      desc: 'Zero-brokerage rental residences',
-      icon: Key,
-      action: () => router.push('/properties?type=RENT'),
+      id: 'launches',
+      title: 'New Launches',
+      desc: 'Exclusive early-bird pre-launch bookings',
+      icon: Sparkles,
+      action: () => router.push('/properties?possession=NEW_LAUNCH'),
       color: 'bg-blue-500/10 text-blue-700',
     },
     {
@@ -181,9 +180,7 @@ export function MobileHomePage({
     if (searchQuery.trim()) {
       params.set('q', searchQuery.trim());
     }
-    if (activeCategory === 'RENT') {
-      params.set('type', 'RENT');
-    } else if (activeCategory === 'COMMERCIAL') {
+    if (activeCategory === 'COMMERCIAL') {
       params.set('type', 'COMMERCIAL');
     } else if (activeCategory === 'NEW_LAUNCH') {
       params.set('possession', 'NEW_LAUNCH');
@@ -316,7 +313,7 @@ export function MobileHomePage({
                     bannerMode === 'BUYER' ? 'bg-[#D4A017] text-neutral-950' : 'text-neutral-300'
                   }`}
                 >
-                  Buy/Rent
+                  Buy/Invest
                 </button>
                 <button
                   type="button"
@@ -342,10 +339,10 @@ export function MobileHomePage({
             ) : (
               <>
                 <h3 className="text-base font-extrabold text-white leading-tight pt-1">
-                  Want to Sell or Rent Your Property?
+                  Want to Sell Your Property?
                 </h3>
                 <p className="text-[11px] text-amber-200 font-medium">
-                  Direct Verified Buyers & Tenants • Zero Brokerage Listing
+                  Direct Verified Buyers • Zero Brokerage Listing
                 </p>
               </>
             )}

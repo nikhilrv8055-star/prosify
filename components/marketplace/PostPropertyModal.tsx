@@ -23,7 +23,7 @@ interface PostPropertyModalProps {
 
 export function PostPropertyModal({ isOpen, onClose }: PostPropertyModalProps) {
   const { toast } = useToast();
-  const [listingType, setListingType] = useState<'RENT' | 'SALE'>('RENT');
+  const [listingType] = useState<'SALE'>('SALE');
   const [propertyType, setPropertyType] = useState<'APARTMENT' | 'VILLA' | 'COMMERCIAL' | 'PLOT'>('APARTMENT');
   const [bhk, setBhk] = useState('2 BHK');
   const [city, setCity] = useState('Mumbai MMR');
@@ -153,35 +153,12 @@ export function PostPropertyModal({ isOpen, onClose }: PostPropertyModalProps) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Rent vs Sale Switch */}
-              <div>
-                <label className="text-xs font-semibold text-neutral-700 mb-1.5 block">
-                  I want to:
-                </label>
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-neutral-100">
-                  <button
-                    type="button"
-                    onClick={() => setListingType('RENT')}
-                    className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                      listingType === 'RENT'
-                        ? 'bg-white text-rose-600 shadow-xs'
-                        : 'text-neutral-600 hover:text-neutral-900'
-                    }`}
-                  >
-                    Rent Out
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setListingType('SALE')}
-                    className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                      listingType === 'SALE'
-                        ? 'bg-white text-rose-600 shadow-xs'
-                        : 'text-neutral-600 hover:text-neutral-900'
-                    }`}
-                  >
-                    Sell
-                  </button>
-                </div>
+              {/* Listing Purpose */}
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 border border-amber-200/70 text-xs">
+                <span className="text-neutral-700 font-semibold">Listing Purpose:</span>
+                <span className="font-bold text-neutral-950 bg-white px-2.5 py-1 rounded-lg border border-amber-300 shadow-xs">
+                  Sell / Resale Property
+                </span>
               </div>
 
               {/* Property Category */}
@@ -270,10 +247,10 @@ export function PostPropertyModal({ isOpen, onClose }: PostPropertyModalProps) {
                 </div>
               </div>
 
-              {/* Expected Price/Rent */}
+              {/* Expected Price */}
               <div>
                 <label className="text-xs font-semibold text-neutral-700 mb-1 block">
-                  Expected {listingType === 'RENT' ? 'Monthly Rent (₹)' : 'Selling Price (₹)'}
+                  Expected Selling Price (₹)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-neutral-400 text-xs font-bold">₹</span>
@@ -281,7 +258,7 @@ export function PostPropertyModal({ isOpen, onClose }: PostPropertyModalProps) {
                     type="text"
                     value={expectedPrice}
                     onChange={(e) => setExpectedPrice(e.target.value)}
-                    placeholder={listingType === 'RENT' ? 'e.g. 45,000' : 'e.g. 1.25 Cr'}
+                    placeholder="e.g. 1.25 Cr"
                     className="w-full pl-7 pr-3 py-2 rounded-xl border border-neutral-200 text-xs font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none"
                   />
                 </div>

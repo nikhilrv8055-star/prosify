@@ -472,8 +472,8 @@ export function MobileFilterOverlay({
             <label className="text-xs font-bold text-neutral-900 uppercase tracking-wide block mb-2">
               Listing Intent
             </label>
-            <div className="grid grid-cols-4 gap-1.5 text-xs font-semibold">
-              {['ALL', 'BUY', 'RENT', 'COMMERCIAL'].map((type) => {
+            <div className="grid grid-cols-3 gap-1.5 text-xs font-semibold">
+              {['ALL', 'BUY', 'COMMERCIAL'].map((type) => {
                 const isSelected = draft.listingType === type;
                 return (
                   <button

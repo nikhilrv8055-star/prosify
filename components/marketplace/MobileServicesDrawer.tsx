@@ -57,12 +57,12 @@ export function MobileServicesDrawer({
       color: 'bg-amber-50 text-amber-700',
     },
     {
-      id: 'rent',
-      title: 'Rent Property',
-      desc: 'Verified rental homes with digital lease documentation',
-      icon: Key,
-      href: '/properties?type=RENT',
-      color: 'bg-emerald-50 text-emerald-600',
+      id: 'launches',
+      title: 'New Launches',
+      desc: 'Early-bird residential launches with pre-booking discounts',
+      icon: Sparkles,
+      href: '/properties?possession=NEW_LAUNCH',
+      color: 'bg-blue-50 text-blue-600',
     },
     {
       id: 'projects',
@@ -83,7 +83,7 @@ export function MobileServicesDrawer({
     {
       id: 'post',
       title: 'Post Property',
-      desc: 'List your property for sale or rent to 50k+ verified buyers',
+      desc: 'List your property for sale to 50k+ verified buyers',
       icon: PlusCircle,
       action: () => {
         onClose();

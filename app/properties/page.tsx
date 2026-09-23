@@ -53,7 +53,7 @@ function PropertiesContent() {
   const [criteria, setCriteria] = useState<MobileFilterCriteria>(() => {
     let base: MobileFilterCriteria = {
       city: initialCity,
-      listingType: initialType,
+      listingType: initialType === 'RENT' ? 'BUY' : initialType,
       propertyType: initialPropType,
       bhks: initialBhk && initialBhk !== 'ALL' ? initialBhk.split(',').filter(Boolean) : [],
       minPrice: initialMinPrice,
@@ -72,11 +72,14 @@ function PropertiesContent() {
           if (!searchParams.get('maxPrice') && parsed.maxPrice) base.maxPrice = parsed.maxPrice;
           if (!searchParams.get('minPrice') && parsed.minPrice) base.minPrice = parsed.minPrice;
           if (!searchParams.get('city') && parsed.city) base.city = parsed.city;
-          if (!searchParams.get('type') && parsed.listingType) base.listingType = parsed.listingType;
+          if (!searchParams.get('type') && parsed.listingType) base.listingType = parsed.listingType === 'RENT' ? 'BUY' : parsed.listingType;
           if (!searchParams.get('propertyType') && parsed.propertyType) base.propertyType = parsed.propertyType;
           if (parsed.verifiedOnly !== undefined) base.verifiedOnly = parsed.verifiedOnly;
         }
       } catch {}
+    }
+    if (base.listingType === 'RENT') {
+      base.listingType = 'BUY';
     }
     return base;
   });
@@ -205,7 +208,7 @@ function PropertiesContent() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                Properties for Sale & Rent in Maharashtra
+                Properties for Sale in Maharashtra
               </h1>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1">
                 Showing <strong>{properties.length} verified listings</strong> with complete RERA transparency
@@ -393,8 +396,8 @@ function PropertiesContent() {
                 <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                   Listing Type
                 </label>
-                <div className="grid grid-cols-2 gap-1.5 text-xs">
-                  {['ALL', 'BUY', 'RENT', 'COMMERCIAL'].map((t) => (
+                <div className="grid grid-cols-3 gap-1.5 text-xs">
+                  {['ALL', 'BUY', 'COMMERCIAL'].map((t) => (
                     <button
                       key={t}
                       type="button"

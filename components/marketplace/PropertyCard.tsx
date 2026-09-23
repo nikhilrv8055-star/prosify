@@ -115,6 +115,7 @@ export function PropertyCard({
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             referrerPolicy="no-referrer"
+            unoptimized={Boolean(property.coverImage?.startsWith('data:') || property.coverImage?.includes('base64'))}
           />
 
           {/* Badges Overlay */}

@@ -889,12 +889,12 @@ export const INITIAL_PROPERTIES: Property[] = [
   },
   {
     id: 'prop-9',
-    title: 'Spacious 1 BHK for Rent in Hiranandani Estate',
-    slug: '1-bhk-rent-hiranandani-estate-thane',
-    listingType: 'RENT',
+    title: 'Spacious 1 BHK in Hiranandani Estate',
+    slug: '1-bhk-hiranandani-estate-thane',
+    listingType: 'BUY',
     propertyType: 'APARTMENT',
-    price: 28000, // Monthly Rent in INR
-    pricePerSqft: 62,
+    price: 5800000,
+    pricePerSqft: 12888,
     bhk: '1 BHK',
     carpetArea: 450,
     builtUpArea: 610,
@@ -915,7 +915,7 @@ export const INITIAL_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80',
     ],
     amenities: ['Gated Community', 'Swimming Pool', 'Security Guard', 'Elevator', 'Covered Parking'],
-    description: 'Charming 1 BHK flat available on rent with modular kitchen cabinets, piped gas, geyser, wardrobe, and covered bike/car parking.',
+    description: 'Charming 1 BHK luxury flat in Canary Tower, Hiranandani Estate with modular kitchen cabinets, piped gas, geyser, wardrobe, and covered bike/car parking.',
     createdAt: '2026-09-10T11:00:00.000Z',
   },
   {

@@ -13,6 +13,8 @@ import {
   Trash2,
   MapPin,
   X,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Project } from '@/lib/types';
 import { store } from '@/lib/data/store';
@@ -41,6 +43,7 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
     minPrice: 7500000,
     maxPrice: 21000000,
     description: 'Master-planned integrated residential township with riverfront promenade.',
+    featuredImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
   });
 
   const filteredProjects = projects.filter((p) => {
@@ -69,6 +72,7 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
       minPrice: 7500000,
       maxPrice: 21000000,
       description: 'Master-planned integrated residential township with riverfront promenade.',
+      featuredImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
     });
     setIsModalOpen(true);
   };
@@ -89,6 +93,7 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
       minPrice: p.minPrice || 7500000,
       maxPrice: p.maxPrice || 21000000,
       description: p.description || '',
+      featuredImage: p.featuredImage || p.image || p.coverImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
     });
     setIsModalOpen(true);
   };
@@ -100,14 +105,17 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
     if (editingProject) {
       store.updateProject(editingProject.id, {
         ...formData,
+        featuredImage: formData.featuredImage,
+        image: formData.featuredImage,
+        coverImage: formData.featuredImage,
       });
     } else {
       store.createProject({
         ...formData,
         slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         developerId: 'dev-1',
-        featuredImage:
-          'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+        featuredImage: formData.featuredImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+        image: formData.featuredImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
         galleryImages: [],
         amenities: ['Clubhouse', 'Olympic Pool', 'Badminton Court', 'Jogging Track'],
         bhkTypes: ['2 BHK', '3 BHK'],
@@ -286,6 +294,53 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
                     value={formData.possessionDate}
                     onChange={(e) => setFormData({ ...formData, possessionDate: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white focus:outline-none focus:border-[#0EA5E9]"
+                  />
+                </div>
+              </div>
+
+              {/* Project Cover Photo Field */}
+              <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-slate-300 font-medium text-xs flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#0EA5E9]" />
+                    <span>Project Cover / Elevation Photo</span>
+                  </label>
+                  <label className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[#0EA5E9] font-medium text-[11px] cursor-pointer flex items-center gap-1">
+                    <Upload className="w-3 h-3" />
+                    <span>Browse File</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            if (ev.target?.result) {
+                              setFormData({ ...formData, featuredImage: ev.target.result as string });
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-12 rounded-lg overflow-hidden bg-slate-950 border border-slate-700 shrink-0">
+                    <img
+                      src={formData.featuredImage}
+                      alt="Project Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.featuredImage}
+                    onChange={(e) => setFormData({ ...formData, featuredImage: e.target.value })}
+                    placeholder="Or paste image URL (https://...)"
+                    className="flex-1 px-3 py-1.5 bg-slate-950 rounded-lg border border-slate-700 text-white text-xs focus:outline-none focus:border-[#0EA5E9]"
                   />
                 </div>
               </div>

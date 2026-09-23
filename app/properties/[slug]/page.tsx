@@ -249,6 +249,7 @@ export default function PropertyDetailPage() {
             className="object-cover"
             priority
             referrerPolicy="no-referrer"
+            unoptimized={Boolean((allImages[activeImageIndex] || activeImage)?.startsWith('data:'))}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
@@ -283,6 +284,7 @@ export default function PropertyDetailPage() {
               className="object-cover"
               priority
               referrerPolicy="no-referrer"
+              unoptimized={Boolean(activeImage?.startsWith('data:'))}
             />
           </div>
 
@@ -305,6 +307,7 @@ export default function PropertyDetailPage() {
                   fill
                   className="object-cover"
                   referrerPolicy="no-referrer"
+                  unoptimized={Boolean(img?.startsWith('data:'))}
                 />
               </button>
             ))}
