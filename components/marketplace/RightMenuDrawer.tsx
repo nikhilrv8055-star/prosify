@@ -7,11 +7,10 @@ import { brandConfig } from '@/src/config/brand';
 interface RightMenuDrawerProps {
   onClose: () => void;
   onOpenPostProperty: () => void;
-  onOpenRentalAgreement?: () => void;
+  onOpenRequirement?: () => void;
   onOpenServices: () => void;
   onOpenReferEarn: () => void;
-  onOpenRentReceipts?: () => void;
-  onOpenPlan: (type: 'tenant' | 'owner' | 'buyer' | 'seller' | 'commercial') => void;
+  onOpenPlan: (type: 'owner' | 'buyer' | 'seller' | 'commercial') => void;
   onOpenCareers: () => void;
   onOpenCorporateEnquiry: () => void;
   onOpenBlog: () => void;
@@ -22,10 +21,9 @@ interface RightMenuDrawerProps {
 export function RightMenuDrawer({
   onClose,
   onOpenPostProperty,
-  onOpenRentalAgreement,
+  onOpenRequirement,
   onOpenServices,
   onOpenReferEarn,
-  onOpenRentReceipts,
   onOpenPlan,
   onOpenCareers,
   onOpenCorporateEnquiry,
@@ -74,10 +72,27 @@ export function RightMenuDrawer({
               onClose();
               onOpenPostProperty();
             }}
-            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#FD3752] hover:bg-neutral-50/70 transition-colors cursor-pointer"
+            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#D4A017] hover:bg-neutral-50/70 transition-colors cursor-pointer"
           >
             <span>Post Your Property</span>
           </button>
+
+          {/* 1b. Tell Us Your Property Requirement */}
+          {onOpenRequirement && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenRequirement();
+              }}
+              className="w-full text-left py-3 px-6 text-[13px] font-bold text-amber-700 hover:text-amber-800 bg-amber-50/50 hover:bg-amber-100/60 transition-colors cursor-pointer flex items-center justify-between"
+            >
+              <span>Submit Property Requirement</span>
+              <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-bold">
+                Buy Only
+              </span>
+            </button>
+          )}
 
           {/* 2. Painting & Cleaning */}
           <button
@@ -217,16 +232,16 @@ export function RightMenuDrawer({
             <span>Blog</span>
           </button>
 
-          {/* 15. NoBroker Support */}
+          {/* 15. Prosify Support */}
           <button
             type="button"
             onClick={() => {
               onClose();
               onOpenSupport();
             }}
-            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#FD3752] hover:bg-neutral-50/70 transition-colors cursor-pointer"
+            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#D4A017] hover:bg-neutral-50/70 transition-colors cursor-pointer"
           >
-            <span>NoBroker Support</span>
+            <span>Prosify Support</span>
           </button>
 
           {/* 16. Contact Us (Accordion dropdown, open by default in screenshot) */}

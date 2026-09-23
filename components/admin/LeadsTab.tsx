@@ -1,681 +1,310 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   Search,
   Filter,
-  Phone,
-  MessageSquare,
-  PlusCircle,
-  Download,
-  Calendar,
-  Building,
-  UserCheck,
+  Eye,
   CheckCircle2,
   Clock,
-  ArrowRight,
-  ExternalLink,
-  ShieldCheck,
+  Building,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
   X,
-  Sparkles,
+  FileSpreadsheet,
 } from 'lucide-react';
-import { Lead, LeadStatus, LeadSourceType } from '@/lib/types';
-import { store } from '@/lib/data/store';
+import { Lead, LeadStatus } from '@/lib/types';
 import { useToast } from '@/components/ui/toast';
 
-interface LeadsTabProps {
-  leads: Lead[];
-  onRefresh: () => void;
-}
+const STATUS_COLORS: Record<LeadStatus, string> = {
+  NEW: 'bg-blue-100 text-blue-800 border-blue-200',
+  CONTACTED: 'bg-purple-100 text-purple-800 border-purple-200',
+  SITE_VISIT_SCHEDULED: 'bg-amber-100 text-amber-800 border-amber-200',
+  OFFER_MADE: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  BOOKED: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  LOST: 'bg-rose-100 text-rose-800 border-rose-200',
+};
 
-export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
+export function LeadsTab() {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sourceFilter, setSourceFilter] = useState<string>('ALL');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sourceFilter, setSourceFilter] = useState('ALL');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-  // New Lead Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '+91 ',
-    email: '',
-    source: 'META_ADS' as LeadSourceType,
-    budget: '₹80 Lakh - ₹1.2 Cr',
-    location: 'Kalyan West',
-    propertyTitle: 'Godrej Riviera',
-    notes: 'Inquired about 2 BHK high floor unit.',
-    assignedTo: 'Vikramaditya S.',
+  const fetchLeads = async () => {
+    try {
+      const res = await fetch('/api/leads');
+      const data = await res.json();
+      if (data.success && data.leads) {
+        setLeads(data.leads);
+      }
+    } catch {
+      // offline / fallback
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const handleStatusChange = async (id: string, newStatus: LeadStatus) => {
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
+        );
+        if (selectedLead && selectedLead.id === id) {
+          setSelectedLead((prev) => (prev ? { ...prev, status: newStatus } : null));
+        }
+        toast(`Lead status updated to ${newStatus}`, 'success');
+      }
+    } catch {
+      toast('Failed to update status', 'error');
+    }
+  };
+
+  const filteredLeads = leads.filter((lead) => {
+    if (statusFilter !== 'ALL' && lead.status !== statusFilter) return false;
+    if (sourceFilter !== 'ALL' && lead.source !== sourceFilter) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const match =
+        lead.name.toLowerCase().includes(q) ||
+        lead.mobile.includes(q) ||
+        (lead.email && lead.email.toLowerCase().includes(q)) ||
+        (lead.location && lead.location.toLowerCase().includes(q)) ||
+        (lead.propertyTitle && lead.propertyTitle.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    return true;
   });
-
-  const sources: LeadSourceType[] = [
-    'DIRECT_WEBSITE',
-    'CHANNEL_PARTNER',
-    'META_ADS',
-    'GOOGLE_ADS',
-    'WHATSAPP',
-    'PROPERTY_PORTAL',
-    'OTHER',
-  ];
-
-  const statuses: LeadStatus[] = [
-    'NEW',
-    'CONTACTED',
-    'QUALIFIED',
-    'SITE_VISIT',
-    'SITE_VISIT_SCHEDULED',
-    'VISITED',
-    'NEGOTIATION',
-    'BOOKED',
-    'LOST',
-    'CLOSED',
-  ];
-
-  const salesExecutives = [
-    'Vikramaditya S.',
-    'Priya Sharma',
-    'Amit Deshmukh',
-    'Sneha Patil',
-    'Rajesh Verma',
-  ];
-
-  // Filtered Leads
-  const filteredLeads = leads.filter((l) => {
-    const matchesSource = sourceFilter === 'ALL' || l.source === sourceFilter;
-    const matchesStatus = statusFilter === 'ALL' || l.status === statusFilter;
-    const propTitle = l.propertyTitle || l.projectName || '';
-    const matchesSearch =
-      l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.phone.includes(searchTerm) ||
-      l.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      propTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSource && matchesStatus && matchesSearch;
-  });
-
-  // Handle fast status change
-  const handleStatusChange = (leadId: string, newStatus: LeadStatus) => {
-    store.updateLeadStatus(leadId, newStatus);
-    store.addAuditLog({
-      action: 'LEAD_STATUS_UPDATE',
-      entity: 'Lead',
-      user: 'admin@prosify.local',
-      details: { leadId, newStatus, host: 'admin.prosify.in' },
-    });
-    toast({
-      title: 'Lead Status Updated',
-      description: `Lead moved to ${newStatus.replace(/_/g, ' ')}`,
-      type: 'success',
-    });
-    onRefresh();
-  };
-
-  // Handle assignment
-  const handleAssigneeChange = (leadId: string, assignedTo: string) => {
-    store.updateLead(leadId, { assignedTo });
-    store.addAuditLog({
-      action: 'LEAD_REASSIGNED',
-      entity: 'Lead',
-      user: 'admin@prosify.local',
-      details: { leadId, assignedTo, host: 'admin.prosify.in' },
-    });
-    toast({
-      title: 'Executive Assigned',
-      description: `Lead allocated to ${assignedTo}`,
-      type: 'success',
-    });
-    onRefresh();
-  };
-
-  // Create Inbound Lead
-  const handleCreateLead = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name || !formData.phone) return;
-
-    store.createLead({
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email,
-      source: formData.source,
-      status: 'NEW',
-      budget: formData.budget,
-      location: formData.location,
-      propertyTitle: formData.propertyTitle,
-      assignedTo: formData.assignedTo,
-      notes: formData.notes,
-    });
-
-    store.addAuditLog({
-      action: 'LEAD_CREATED_MANUAL',
-      entity: 'Lead',
-      user: 'eni1526',
-      details: { name: formData.name, phone: formData.phone, source: formData.source },
-    });
-
-    toast({
-      title: 'Lead Ingested',
-      description: `New prospect registered from ${formData.source}`,
-      type: 'success',
-    });
-
-    setIsModalOpen(false);
-    setFormData({
-      name: '',
-      phone: '+91 ',
-      email: '',
-      source: 'META_ADS',
-      budget: '₹80 Lakh - ₹1.2 Cr',
-      location: 'Kalyan West',
-      propertyTitle: 'Godrej Riviera',
-      notes: '',
-      assignedTo: 'Vikramaditya S.',
-    });
-    onRefresh();
-  };
-
-  // Export CSV
-  const handleExportCSV = () => {
-    const headers = ['ID', 'Name', 'Phone', 'Email', 'Source', 'Status', 'Property', 'Budget', 'Assigned To', 'Created At'];
-    const rows = filteredLeads.map((l) => [
-      l.id,
-      `"${l.name.replace(/"/g, '""')}"`,
-      `"${l.phone}"`,
-      `"${l.email}"`,
-      l.source,
-      l.status,
-      `"${(l.propertyTitle || l.projectName || '').replace(/"/g, '""')}"`,
-      `"${l.budget || ''}"`,
-      `"${l.assignedTo || 'Unassigned'}"`,
-      l.createdAt,
-    ]);
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Prosify_Leads_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: 'CSV Exported',
-      description: `${filteredLeads.length} leads exported to CSV.`,
-      type: 'success',
-    });
-  };
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#1E293B]/70 p-5 rounded-2xl border border-slate-700/70 shadow-lg">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-white tracking-tight">Omnichannel Ingestion & Lead Hub</h2>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30 font-mono">
-              Live Feed
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time attribution from Meta Lead Ads, WhatsApp Business API, Google Search, and Channel Partner referrals.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-800 hover:text-white transition-all shadow-sm"
-          >
-            <Download className="w-3.5 h-3.5 text-[#0EA5E9]" />
-            <span>Export CSV</span>
-          </button>
-
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#10B981] text-slate-950 text-xs font-bold hover:bg-[#059669] transition-all shadow-md shadow-[#10B981]/20"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>New Lead</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-[#1E293B]/70 p-4 rounded-xl border border-slate-700/60">
-          <span className="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">Total Leads</span>
-          <span className="text-2xl font-bold text-white mt-1 block">{leads.length}</span>
-          <span className="text-[10px] text-emerald-400 mt-1 block">Active Inbound Pipeline</span>
-        </div>
-
-        <div className="bg-[#1E293B]/70 p-4 rounded-xl border border-slate-700/60">
-          <span className="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">New / Uncontacted</span>
-          <span className="text-2xl font-bold text-amber-400 mt-1 block">
-            {leads.filter((l) => l.status === 'NEW').length}
-          </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Requires instant follow-up</span>
-        </div>
-
-        <div className="bg-[#1E293B]/70 p-4 rounded-xl border border-slate-700/60">
-          <span className="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">Site Visits</span>
-          <span className="text-2xl font-bold text-blue-400 mt-1 block">
-            {leads.filter((l) => l.status === 'SITE_VISIT_SCHEDULED' || l.status === 'SITE_VISIT' || l.status === 'VISITED').length}
-          </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">High purchase intent</span>
-        </div>
-
-        <div className="bg-[#1E293B]/70 p-4 rounded-xl border border-slate-700/60">
-          <span className="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">Closed Won Deals</span>
-          <span className="text-2xl font-bold text-[#10B981] mt-1 block">
-            {leads.filter((l) => l.status === 'BOOKED' || l.status === 'CLOSED').length}
-          </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Conversion: 18.4%</span>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-[#1E293B]/50 p-3 rounded-xl border border-slate-700/60">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      {/* Top Controls */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-neutral-200">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
           <input
             type="text"
-            placeholder="Search leads by client name, mobile (+91), email, or property..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-900/90 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#10B981]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search leads by name, phone, email, locality..."
+            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <select
-            value={sourceFilter}
-            onChange={(e) => setSourceFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-[#10B981]"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-neutral-300 bg-neutral-50"
           >
-            <option value="ALL">All Sources</option>
-            {sources.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, ' ')}
-              </option>
-            ))}
+            <option value="ALL">All Statuses</option>
+            <option value="NEW">New</option>
+            <option value="CONTACTED">Contacted</option>
+            <option value="SITE_VISIT_SCHEDULED">Site Visit Scheduled</option>
+            <option value="OFFER_MADE">Offer Made</option>
+            <option value="BOOKED">Booked</option>
+            <option value="LOST">Lost</option>
           </select>
 
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-[#10B981]"
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-neutral-300 bg-neutral-50"
           >
-            <option value="ALL">All Statuses</option>
-            {statuses.map((st) => (
-              <option key={st} value={st}>
-                {st.replace(/_/g, ' ')}
-              </option>
-            ))}
+            <option value="ALL">All Sources</option>
+            <option value="BUY_REQUIREMENT">Buy Requirement Form</option>
+            <option value="WEBSITE_FORM">Website Form</option>
+            <option value="SITE_VISIT">Site Visit Booking</option>
+            <option value="CHANNEL_PARTNER">Channel Partner</option>
           </select>
         </div>
       </div>
 
       {/* Leads Table */}
-      <div className="bg-[#1E293B]/80 rounded-2xl border border-slate-700/80 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-3xl border border-neutral-200 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-900/90 text-slate-400 border-b border-slate-700 uppercase tracking-wider text-[10px] font-bold">
-                <th className="py-3 px-4">Lead & Contact</th>
-                <th className="py-3 px-4">Source & Attribution</th>
-                <th className="py-3 px-4">Property Interest</th>
-                <th className="py-3 px-4">Budget / Locality</th>
-                <th className="py-3 px-4">Assigned Executive</th>
-                <th className="py-3 px-4">Stage Status</th>
-                <th className="py-3 px-4 text-right">Instant Action</th>
+          <table className="w-full text-left text-xs">
+            <thead className="bg-neutral-100/70 border-b border-neutral-200 text-neutral-600 font-bold uppercase text-[10px]">
+              <tr>
+                <th className="p-3.5">Name & Contact</th>
+                <th className="p-3.5">Property Type / BHK</th>
+                <th className="p-3.5">Location & Budget</th>
+                <th className="p-3.5">Source & Attribution</th>
+                <th className="p-3.5">Date</th>
+                <th className="p-3.5">Status</th>
+                <th className="p-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/60">
+            <tbody className="divide-y divide-neutral-100">
               {filteredLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 text-xs">
-                    No leads match your current search or filter criteria.
+                  <td colSpan={7} className="p-8 text-center text-neutral-400">
+                    No leads matching the selected filter.
                   </td>
                 </tr>
               ) : (
-                filteredLeads.map((lead) => {
-                  const propTitle = lead.propertyTitle || lead.projectName || 'General Inquiry';
-                  const isNew = lead.status === 'NEW';
-
-                  return (
-                    <tr key={lead.id} className="hover:bg-slate-800/50 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2">
-                          {isNew && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />}
-                          <div>
-                            <span className="font-semibold text-white block text-sm">{lead.name}</span>
-                            <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
-                              <span>{lead.phone}</span>
-                              {lead.email && (
-                                <>
-                                  <span>•</span>
-                                  <span className="truncate max-w-[140px]">{lead.email}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
+                filteredLeads.map((lead) => (
+                  <tr key={lead.id} className="hover:bg-neutral-50/80 transition-colors">
+                    <td className="p-3.5">
+                      <div className="font-bold text-neutral-900">{lead.name}</div>
+                      <div className="text-neutral-500 flex items-center gap-1.5 mt-0.5">
+                        <Phone className="w-3 h-3" />
+                        <span>{lead.mobile}</span>
+                      </div>
+                      {lead.email && (
+                        <div className="text-neutral-400 text-[11px] truncate max-w-[150px]">
+                          {lead.email}
                         </div>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-900 border border-slate-700 text-slate-300">
-                          {lead.source}
-                        </span>
-                        {lead.partnerCode && (
-                          <span className="block text-[10px] text-[#0EA5E9] font-mono mt-1">
-                            Ref: {lead.partnerCode}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 text-slate-200 font-medium">
-                          <Building className="w-3.5 h-3.5 text-[#10B981] flex-shrink-0" />
-                          <span className="truncate max-w-[160px]">{propTitle}</span>
+                      )}
+                    </td>
+                    <td className="p-3.5">
+                      <div className="font-semibold text-neutral-800">
+                        {lead.propertyType || lead.propertyTitle || 'Residential'}
+                      </div>
+                      <div className="text-[11px] text-neutral-500">
+                        {lead.bhk || 'Standard'} • {lead.purpose || 'Buy'}
+                      </div>
+                    </td>
+                    <td className="p-3.5">
+                      <div className="font-semibold text-neutral-800">
+                        {lead.location || 'Maharashtra'}
+                      </div>
+                      <div className="text-[11px] font-bold text-[#D4A017]">
+                        {lead.budget || 'Custom'}
+                      </div>
+                    </td>
+                    <td className="p-3.5">
+                      <span className="px-2 py-0.5 rounded-md bg-neutral-100 border border-neutral-200 text-neutral-700 text-[10px] font-bold">
+                        {lead.source.replace('_', ' ')}
+                      </span>
+                      {lead.partnerName && (
+                        <div className="text-[10px] text-purple-600 mt-0.5">
+                          CP: {lead.partnerName}
                         </div>
-                        {lead.bhk && (
-                          <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
-                            Pref: {lead.bhk}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span className="text-slate-200 font-medium block">{lead.budget || '₹80L - ₹1.5 Cr'}</span>
-                        <span className="text-[10px] text-slate-400 block">{lead.location || 'Thane / MMR'}</span>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <select
-                          value={lead.assignedTo || 'Vikramaditya S.'}
-                          onChange={(e) => handleAssigneeChange(lead.id, e.target.value)}
-                          className="px-2 py-1 bg-slate-900 border border-slate-700 rounded text-[11px] text-slate-200 focus:outline-none focus:border-[#10B981]"
-                        >
-                          {salesExecutives.map((exec) => (
-                            <option key={exec} value={exec}>
-                              {exec}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <select
-                          value={lead.status}
-                          onChange={(e) => handleStatusChange(lead.id, e.target.value as LeadStatus)}
-                          className={`px-2.5 py-1 rounded text-[11px] font-bold border ${
-                            lead.status === 'NEW'
-                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                              : lead.status === 'BOOKED' || lead.status === 'CLOSED'
-                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                              : lead.status === 'SITE_VISIT_SCHEDULED'
-                              ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
-                              : 'bg-slate-800 text-slate-300 border-slate-700'
-                          }`}
-                        >
-                          {statuses.map((st) => (
-                            <option key={st} value={st} className="bg-slate-900 text-slate-200">
-                              {st.replace(/_/g, ' ')}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* WhatsApp Redirection */}
-                          <a
-                            href="https://wa.me/919326303244"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 rounded-lg bg-[#10B981]/20 border border-[#10B981]/40 text-[#10B981] hover:bg-[#10B981] hover:text-slate-950 transition-colors"
-                            title="Chat on WhatsApp"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                          </a>
-
-                          {/* Click to Call */}
-                          <a
-                            href={`tel:${lead.phone}`}
-                            className="p-1.5 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors"
-                            title="Call Prospect"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                          </a>
-
-                          <button
-                            onClick={() => setSelectedLead(lead)}
-                            className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 text-[11px]"
-                          >
-                            Details
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                      )}
+                    </td>
+                    <td className="p-3.5 text-neutral-500 text-[11px]">
+                      {new Date(lead.createdAt).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </td>
+                    <td className="p-3.5">
+                      <select
+                        value={lead.status}
+                        onChange={(e) => handleStatusChange(lead.id, e.target.value as LeadStatus)}
+                        className={`text-[10px] font-bold px-2 py-1 rounded-full border ${
+                          STATUS_COLORS[lead.status] || 'bg-gray-100'
+                        }`}
+                      >
+                        <option value="NEW">NEW</option>
+                        <option value="CONTACTED">CONTACTED</option>
+                        <option value="SITE_VISIT_SCHEDULED">SITE VISIT</option>
+                        <option value="OFFER_MADE">OFFER MADE</option>
+                        <option value="BOOKED">BOOKED</option>
+                        <option value="LOST">LOST</option>
+                      </select>
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedLead(lead)}
+                        className="p-1.5 rounded-lg border border-neutral-200 hover:bg-neutral-100 text-neutral-700"
+                        title="View Lead Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Modal: New Inbound Lead */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#10B981]" />
-                <h3 className="text-base font-bold text-white">Register Inbound Prospect</h3>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateLead} className="space-y-3.5 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Prospect Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Ramesh Kulkarni"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Mobile Number *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="+91 98200 12345"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="client@domain.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Attribution Channel</label>
-                  <select
-                    value={formData.source}
-                    onChange={(e) => setFormData({ ...formData, source: e.target.value as LeadSourceType })}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                  >
-                    {sources.map((src) => (
-                      <option key={src} value={src}>
-                        {src.replace(/_/g, ' ')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Target Property</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Godrej Riviera"
-                    value={formData.propertyTitle}
-                    onChange={(e) => setFormData({ ...formData, propertyTitle: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-medium mb-1">Budget Range</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ₹85 Lakh - ₹1.2 Cr"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-medium mb-1">Assign Sales Executive</label>
-                <select
-                  value={formData.assignedTo}
-                  onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                >
-                  {salesExecutives.map((exec) => (
-                    <option key={exec} value={exec}>
-                      {exec}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-medium mb-1">Initial Requirement Notes</label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Looking for ready-to-move unit, 2 BHK with balcony, finance pre-approved with SBI..."
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-[#10B981]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#10B981] text-slate-950 font-bold hover:bg-[#059669]"
-                >
-                  Confirm Ingestion
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal: Lead Details & Timeline */}
+      {/* Selected Lead Modal Detail */}
       {selectedLead && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#1E293B] border border-slate-700 rounded-2xl p-6 shadow-2xl animate-in fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+          onClick={() => setSelectedLead(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-neutral-200 space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-white">{selectedLead.name}</h3>
-                <span className="text-[11px] text-slate-400 font-mono">ID: {selectedLead.id}</span>
+                <span className="text-[10px] font-bold uppercase text-[#D4A017]">Lead Details</span>
+                <h3 className="text-lg font-bold text-neutral-950">{selectedLead.name}</h3>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedLead(null)}
-                className="p-1 text-slate-400 hover:text-white"
+                aria-label="Close lead details modal"
+                className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-900"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="bg-slate-900 p-3 rounded-xl space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Mobile:</span>
-                  <span className="text-white font-mono">{selectedLead.phone}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Email:</span>
-                  <span className="text-white">{selectedLead.email || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Channel:</span>
-                  <span className="text-[#10B981] font-semibold">{selectedLead.source}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Property:</span>
-                  <span className="text-white font-medium">{selectedLead.propertyTitle || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Budget:</span>
-                  <span className="text-white">{selectedLead.budget || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Current Stage:</span>
-                  <span className="text-amber-400 font-bold">{selectedLead.status}</span>
-                </div>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-neutral-50 rounded-xl">
+                <span className="text-neutral-400 block text-[10px]">Mobile</span>
+                <span className="font-bold text-neutral-800">{selectedLead.mobile}</span>
               </div>
-
-              {selectedLead.notes && (
-                <div>
-                  <span className="text-slate-400 font-medium block mb-1">Notes:</span>
-                  <p className="p-3 bg-slate-900/80 rounded-xl text-slate-300 border border-slate-800 text-[11px]">
-                    {selectedLead.notes}
-                  </p>
-                </div>
-              )}
-
-              <div className="pt-2 flex justify-end gap-2">
-                {/* WhatsApp button */}
-                <a
-                  href="https://wa.me/919326303244"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-xl bg-[#10B981] text-slate-950 font-bold flex items-center gap-1.5"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>WhatsApp</span>
-                </a>
-                <button
-                  onClick={() => setSelectedLead(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
-                >
-                  Close
-                </button>
+              <div className="p-3 bg-neutral-50 rounded-xl">
+                <span className="text-neutral-400 block text-[10px]">Email</span>
+                <span className="font-bold text-neutral-800">{selectedLead.email || 'N/A'}</span>
               </div>
+              <div className="p-3 bg-neutral-50 rounded-xl">
+                <span className="text-neutral-400 block text-[10px]">Property Type / Configuration</span>
+                <span className="font-bold text-neutral-800">{selectedLead.propertyType || 'N/A'} ({selectedLead.bhk || 'N/A'})</span>
+              </div>
+              <div className="p-3 bg-neutral-50 rounded-xl">
+                <span className="text-neutral-400 block text-[10px]">Budget & Location</span>
+                <span className="font-bold text-neutral-800">{selectedLead.budget || 'N/A'} in {selectedLead.location || 'N/A'}</span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-neutral-50 rounded-xl text-xs space-y-1">
+              <span className="text-neutral-400 block text-[10px]">Requirement Description</span>
+              <p className="text-neutral-700 leading-relaxed">
+                {selectedLead.requirement || 'No custom requirement note provided.'}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
+              <a
+                href={`tel:${selectedLead.mobile}`}
+                className="px-4 py-2 rounded-xl bg-neutral-950 text-white text-xs font-bold flex items-center gap-1.5"
+              >
+                <Phone className="w-3.5 h-3.5 text-[#D4A017]" />
+                <span>Call Client</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setSelectedLead(null)}
+                className="px-4 py-2 rounded-xl border border-neutral-300 text-xs font-semibold"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>

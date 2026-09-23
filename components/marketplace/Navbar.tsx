@@ -1,350 +1,239 @@
 'use client';
 
-import React, { useState, useEffect, useSyncExternalStore } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   Building2,
+  Home,
+  Compass,
+  Users,
+  Briefcase,
   Menu,
   X,
-  Scale,
+  PhoneCall,
   Sparkles,
-  Home,
-  KeyRound,
-  Rocket,
-  HardHat,
-  Briefcase,
-  MapPin,
-  ChevronRight,
+  ClipboardEdit,
+  ShieldCheck,
+  LayoutDashboard,
+  Search,
+  CheckCircle2,
 } from 'lucide-react';
-import { PortalSwitcher } from './PortalSwitcher';
+import { PropertyRequirementModal } from './PropertyRequirementModal';
 import { useAuth } from '@/lib/auth/authContext';
-import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
-import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
-import { MobileBurgerMenu } from './MobileBurgerMenu';
 
-interface NavbarProps {
-  onOpenEnquiry?: () => void;
-  onOpenMatcher?: () => void;
-}
-
-function PartnerTrackerBanner() {
-  const searchParams = useSearchParams();
+export function Navbar() {
   const pathname = usePathname();
-  const partnerQuery = searchParams.get('partner');
-  const partnerAttribution = partnerQuery ? partnerQuery.toUpperCase() : null;
-
-  useEffect(() => {
-    if (partnerQuery) {
-      fetch('/api/tracking/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          partnerCode: partnerQuery,
-          targetPath: pathname,
-          eventType: 'LANDING_PAGE_VIEW',
-          utmSource: searchParams.get('utm_source'),
-          utmMedium: searchParams.get('utm_medium'),
-          utmCampaign: searchParams.get('utm_campaign'),
-        }),
-      }).catch(() => {});
-    }
-  }, [partnerQuery, searchParams, pathname]);
-
-  if (!partnerAttribution) return null;
-
-  return (
-    <div className="bg-[#D4A017] text-neutral-950 px-4 py-1.5 text-xs font-medium text-center flex items-center justify-center gap-2">
-      <span>
-        Verified Channel Partner Referral Active: <strong>{partnerAttribution}</strong>
-      </span>
-      <span className="text-[11px] opacity-80 hidden sm:inline">
-        • Exclusive booking benefits and direct developer pricing applied
-      </span>
-    </div>
-  );
-}
-
-export function Navbar({ onOpenMatcher }: NavbarProps) {
-  const pathname = usePathname();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [internalMatcherOpen, setInternalMatcherOpen] = useState(false);
-  const currentType = useSyncExternalStore(
-    (callback) => {
-      window.addEventListener('popstate', callback);
-      return () => window.removeEventListener('popstate', callback);
-    },
-    () => (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('type') : null),
-    () => null
-  );
+  const [requirementModalOpen, setRequirementModalOpen] = useState(false);
 
-  const { comparedPropertyIds } = useAuth();
-
-  // Active compare count
-  const compareCount = comparedPropertyIds && comparedPropertyIds.length > 0 ? comparedPropertyIds.length : 2;
-
-  const handleOpenMatcher = () => {
-    if (onOpenMatcher) {
-      onOpenMatcher();
-    } else {
-      setInternalMatcherOpen(true);
-    }
-  };
-
-  // Primary navigation links for Desktop
   const navLinks = [
-    { label: 'Buy', href: '/properties?type=BUY', icon: Home, highlight: false },
-    { label: 'Projects', href: '/projects', icon: Building2, highlight: false },
-    { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Rocket, highlight: true, badge: 'HOT' },
-    { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
-    { label: 'Commercial', href: '/properties?type=COMMERCIAL', icon: Briefcase, highlight: false },
-    { label: 'Locations', href: '/properties?view=locations', icon: MapPin, highlight: false },
+    { name: 'Buy Properties', href: '/properties', icon: Home },
+    { name: 'Projects', href: '/projects', icon: Compass },
+    { name: 'Developers', href: '/developers', icon: Building2 },
+    { name: 'Commercial', href: '/properties?type=COMMERCIAL', icon: Briefcase },
+    { name: 'Partner Portal', href: '/partner', icon: Users },
+    { name: 'Admin CRM', href: '/admin', icon: LayoutDashboard },
   ];
 
   return (
     <>
-      <PortalSwitcher currentPortal="public" />
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200">
+        {/* Top Mini Ticker Bar */}
+        <div className="bg-neutral-950 text-white text-[11px] py-1.5 px-4 hidden sm:block">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1 text-[#D4A017] font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                MahaRERA Registered Marketplace: A51900032901
+              </span>
+              <span className="text-neutral-500">•</span>
+              <span className="text-neutral-400">Zero Brokerage on Direct Developer Units</span>
+            </div>
+            <div className="flex items-center gap-4 text-neutral-300">
+              <button
+                type="button"
+                onClick={() => setRequirementModalOpen(true)}
+                className="hover:text-[#D4A017] transition-colors flex items-center gap-1 font-medium cursor-pointer"
+              >
+                <ClipboardEdit className="w-3 h-3 text-[#D4A017]" />
+                Post Property Requirement
+              </button>
+              <span>•</span>
+              <a href="tel:+912269824000" className="hover:text-[#D4A017] flex items-center gap-1">
+                <PhoneCall className="w-3 h-3 text-[#D4A017]" />
+                +91 22 6982 4000
+              </a>
+            </div>
+          </div>
+        </div>
 
-      <React.Suspense fallback={null}>
-        <PartnerTrackerBanner />
-      </React.Suspense>
+        {/* Main Desktop Navbar */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-9 h-9 rounded-xl bg-neutral-950 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
+              <Building2 className="w-5 h-5 text-[#D4A017]" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-black tracking-tight text-neutral-950">
+                PROSIFY<span className="text-[#D4A017]">.</span>
+              </span>
+              <span className="text-[9px] font-bold text-neutral-400 -mt-1 tracking-wider uppercase">
+                Realty Marketplace
+              </span>
+            </div>
+          </Link>
 
-      {/* Main Navigation Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-18 lg:h-20">
-            {/* Brand Logo */}
-            <div className="flex items-center shrink-0">
-              <ProsifyLogo variant="dark" size="md" href="/" showTagline={false} />
+          {/* Nav Links */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'bg-neutral-900 text-white'
+                      : 'text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Action CTAs */}
+          <div className="hidden sm:flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setRequirementModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+            >
+              <ClipboardEdit className="w-3.5 h-3.5" />
+              <span>Post Requirement</span>
+            </button>
+            <Link
+              href="/admin"
+              className="px-3 py-2 rounded-xl border border-neutral-300 hover:bg-neutral-100 text-neutral-800 text-xs font-semibold"
+            >
+              Admin CRM
+            </Link>
+          </div>
+
+          {/* Mobile Right Controls */}
+          <div className="flex sm:hidden items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setRequirementModalOpen(true)}
+              className="px-2.5 py-1.5 rounded-lg bg-[#D4A017] text-neutral-950 font-bold text-[11px] flex items-center gap-1 shadow-xs"
+            >
+              <ClipboardEdit className="w-3 h-3" />
+              <span>Require</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+              className="p-2 rounded-xl text-neutral-700 hover:bg-neutral-100"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-neutral-200 bg-white px-4 py-4 space-y-3 animate-in slide-in-from-top-2">
+            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-amber-950">Property Buying Desk</p>
+                <p className="text-[11px] text-amber-800">Zero brokerage on direct-developer sales</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setRequirementModalOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-[#D4A017] text-neutral-950 text-xs font-bold"
+              >
+                Post Now
+              </button>
             </div>
 
-            {/* Desktop Navigation Links (Clean, Centered & Professional) */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
+            <div className="grid grid-cols-2 gap-2">
               {navLinks.map((link) => {
-                const isActive =
-                  pathname === link.href ||
-                  (link.href.includes('?') && pathname === link.href.split('?')[0]);
-
+                const Icon = link.icon;
                 return (
                   <Link
-                    key={link.label}
+                    key={link.name}
                     href={link.href}
-                    className={`relative px-3 py-2 rounded-xl text-[13px] font-semibold transition-all flex items-center gap-1.5 ${
-                      isActive
-                        ? 'text-neutral-950 bg-amber-500/10 font-bold border border-amber-500/20'
-                        : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/80'
-                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-3 rounded-xl border border-neutral-200 hover:bg-neutral-50 flex items-center gap-2 text-xs font-semibold text-neutral-800"
                   >
-                    <span>{link.label}</span>
-                    {link.badge && (
-                      <span className="px-1.5 py-0.2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[9px] font-extrabold tracking-wide uppercase shadow-xs">
-                        {link.badge}
-                      </span>
-                    )}
+                    <Icon className="w-4 h-4 text-[#D4A017]" />
+                    <span>{link.name}</span>
                   </Link>
                 );
               })}
-            </nav>
-
-            {/* Desktop Right Actions: Smart Match & Compare (NO Profile, NO Post Property) */}
-            <div className="hidden lg:flex items-center gap-2.5">
-              {/* Smart Match Button */}
-              <button
-                type="button"
-                onClick={handleOpenMatcher}
-                className="group px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-50 via-amber-100/60 to-amber-50 text-amber-900 border border-amber-300 hover:border-amber-400 hover:shadow-xs active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
-                title="AI Smart Property Matcher"
-              >
-                <div className="w-5 h-5 rounded-md bg-amber-500/20 flex items-center justify-center text-[#D4A017] group-hover:scale-110 transition-transform">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                </div>
-                <span>Smart Match</span>
-              </button>
-
-              {/* Compare Button */}
-              <Link
-                href="/compare"
-                className="group relative px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-all active:scale-95"
-                title="Property Comparison"
-              >
-                <Scale className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
-                <span>Compare</span>
-                <span className="min-w-5 h-5 px-1.5 rounded-full bg-[#D4A017] text-neutral-950 font-extrabold text-[11px] flex items-center justify-center shadow-xs">
-                  {compareCount}
-                </span>
-              </Link>
-
-              {/* Desktop Hamburger Menu Trigger */}
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`group px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-2xs ${
-                  mobileMenuOpen
-                    ? 'bg-neutral-950 text-white border-neutral-900 ring-2 ring-[#D4A017]/30'
-                    : 'bg-white hover:bg-neutral-100 hover:border-neutral-300 text-neutral-800 border-neutral-200'
-                }`}
-                aria-label={mobileMenuOpen ? "Close Menu" : "Open Hamburger Menu"}
-                title="Hamburger Menu"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-4 h-4 text-amber-400" />
-                ) : (
-                  <Menu className="w-4 h-4 text-neutral-700 group-hover:text-[#D4A017] transition-colors" />
-                )}
-                <span>{mobileMenuOpen ? 'Close Menu' : 'Menu'}</span>
-              </button>
             </div>
 
-            {/* Mobile / Android Top Bar Actions */}
-            <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
-              {/* Quick Smart Match for Mobile */}
-              <button
-                type="button"
-                onClick={handleOpenMatcher}
-                className="p-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80 flex items-center gap-1 text-xs font-bold active:scale-95 transition-all"
-                aria-label="Smart Match"
-              >
-                <Sparkles className="w-4 h-4 text-[#D4A017]" />
-                <span className="text-[11px] hidden xs:inline">Match</span>
-              </button>
-
-              {/* Quick Compare for Mobile */}
-              <Link
-                href="/compare"
-                className="relative p-2 rounded-xl bg-neutral-900 text-white flex items-center justify-center active:scale-95 transition-all shadow-xs"
-                aria-label="Compare Properties"
-              >
-                <Scale className="w-4 h-4 text-amber-400" />
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#D4A017] text-neutral-950 font-black text-[10px] flex items-center justify-center border-2 border-white shadow-xs">
-                  {compareCount}
-                </span>
-              </Link>
-
-              {/* Mobile Drawer Trigger */}
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`p-2.5 rounded-xl border transition-all active:scale-95 ${
-                  mobileMenuOpen
-                    ? 'bg-neutral-950 text-white border-neutral-900 ring-2 ring-[#D4A017]/30'
-                    : 'border-neutral-200 text-neutral-800 hover:bg-neutral-100'
-                }`}
-                aria-label="Toggle Mobile Menu"
-              >
-                {mobileMenuOpen ? <X className="w-5 h-5 text-amber-400" /> : <Menu className="w-5 h-5" />}
-              </button>
+            <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-500">
+              <span>MahaRERA: A51900032901</span>
+              <a href="tel:+912269824000" className="font-semibold text-neutral-900">
+                Call Advisory
+              </a>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
-      {/* Full-Screen Front Overlay Burger Menu with all 16 requested options */}
-      <MobileBurgerMenu
-        isOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-      />
+      {/* Mobile Bottom Dock Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 px-3 py-2 flex items-center justify-around">
+        <Link
+          href="/"
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold ${
+            pathname === '/' ? 'text-[#D4A017]' : 'text-neutral-600'
+          }`}
+        >
+          <Home className="w-4 h-4" />
+          <span>Home</span>
+        </Link>
+        <Link
+          href="/properties"
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold ${
+            pathname === '/properties' ? 'text-[#D4A017]' : 'text-neutral-600'
+          }`}
+        >
+          <Search className="w-4 h-4" />
+          <span>Buy</span>
+        </Link>
+        <Link
+          href="/projects"
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold ${
+            pathname === '/projects' ? 'text-[#D4A017]' : 'text-neutral-600'
+          }`}
+        >
+          <Compass className="w-4 h-4" />
+          <span>Projects</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setRequirementModalOpen(true)}
+          className="flex flex-col items-center gap-1 text-[10px] font-bold text-[#D4A017]"
+        >
+          <ClipboardEdit className="w-4 h-4" />
+          <span>Post Req</span>
+        </button>
+      </div>
 
-      {/* ============================================================== */}
-      {/* MOBILE BOTTOM NAVIGATION DOCK (Original Core Options)         */}
-      {/* Buttons: Home, Buy, Rent, Projects                             */}
-      {/* ============================================================== */}
-      <nav
-        aria-label="Mobile Navigation"
-        className="lg:hidden fixed bottom-3 inset-x-3 sm:inset-x-8 z-40 max-w-md mx-auto"
-      >
-        <div className="relative rounded-3xl bg-neutral-950/85 backdrop-blur-2xl border border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.65)] p-1.5 overflow-hidden">
-          {/* Top gloss specular highlight line */}
-          <div className="absolute inset-x-6 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-
-          {/* 4 Buttons Grid */}
-          <div className="grid grid-cols-4 items-center gap-1 relative z-10">
-            {/* 1. HOME BUTTON */}
-            <Link
-              href="/"
-              className={`relative py-2 px-1 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
-                pathname === '/'
-                  ? 'bg-gradient-to-b from-amber-400/25 to-amber-500/10 text-[#F4C430] border border-amber-400/35 shadow-[0_0_16px_rgba(244,196,48,0.25)]'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/10 border border-transparent'
-              }`}
-            >
-              <div className="relative">
-                <Home className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
-                {pathname === '/' && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
-                )}
-              </div>
-              <span className={`text-[10px] tracking-tight ${pathname === '/' ? 'font-black text-[#F4C430]' : 'font-medium'}`}>
-                Home
-              </span>
-            </Link>
-
-            {/* 2. BUY BUTTON */}
-            <Link
-              href="/properties?type=BUY"
-              className={`relative py-2 px-1 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
-                pathname === '/properties' && (!currentType || currentType === 'BUY')
-                  ? 'bg-gradient-to-b from-amber-400/25 to-amber-500/10 text-[#F4C430] border border-amber-400/35 shadow-[0_0_16px_rgba(244,196,48,0.25)]'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/10 border border-transparent'
-              }`}
-            >
-              <div className="relative">
-                <Building2 className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && (!currentType || currentType === 'BUY') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
-                {pathname === '/properties' && (!currentType || currentType === 'BUY') && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
-                )}
-              </div>
-              <span className={`text-[10px] tracking-tight ${pathname === '/properties' && (!currentType || currentType === 'BUY') ? 'font-black text-[#F4C430]' : 'font-medium'}`}>
-                Buy
-              </span>
-            </Link>
-
-            {/* 3. NEW LAUNCHES BUTTON */}
-            <Link
-              href="/properties?possession=NEW_LAUNCH"
-              className={`relative py-2 px-1 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
-                pathname === '/properties' && currentType === 'NEW_LAUNCH'
-                  ? 'bg-gradient-to-b from-amber-400/25 to-amber-500/10 text-[#F4C430] border border-amber-400/35 shadow-[0_0_16px_rgba(244,196,48,0.25)]'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/10 border border-transparent'
-              }`}
-            >
-              <div className="relative">
-                <Rocket className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
-                {pathname === '/properties' && currentType === 'NEW_LAUNCH' && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
-                )}
-              </div>
-              <span className={`text-[10px] tracking-tight ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'font-black text-[#F4C430]' : 'font-medium'}`}>
-                Launches
-              </span>
-            </Link>
-
-            {/* 4. PROJECTS BUTTON */}
-            <Link
-              href="/projects"
-              className={`relative py-2 px-1 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
-                pathname.startsWith('/projects')
-                  ? 'bg-gradient-to-b from-amber-400/25 to-amber-500/10 text-[#F4C430] border border-amber-400/35 shadow-[0_0_16px_rgba(244,196,48,0.25)]'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/10 border border-transparent'
-              }`}
-            >
-              <div className="relative">
-                <Rocket className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname.startsWith('/projects') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
-                {pathname.startsWith('/projects') && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
-                )}
-              </div>
-              <span className={`text-[10px] tracking-tight ${pathname.startsWith('/projects') ? 'font-black text-[#F4C430]' : 'font-medium'}`}>
-                Projects
-              </span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Internal Smart Matcher Modal if triggered without parent wrapper */}
-      <SmartMatcherModal
-        isOpen={internalMatcherOpen}
-        onClose={() => setInternalMatcherOpen(false)}
+      <PropertyRequirementModal
+        isOpen={requirementModalOpen}
+        onClose={() => setRequirementModalOpen(false)}
       />
     </>
   );

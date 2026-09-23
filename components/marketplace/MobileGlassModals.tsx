@@ -246,7 +246,7 @@ export function MobileServicesModal({ isOpen, onClose }: ModalBaseProps) {
 // -------------------------------------------------------------
 export function MobileBillPaymentsModal({ isOpen, onClose }: ModalBaseProps) {
   const { toast } = useToast();
-  const [billType, setBillType] = useState<'rent' | 'maintenance' | 'electricity'>('rent');
+  const [billType, setBillType] = useState<'maintenance' | 'property_tax' | 'electricity'>('maintenance');
   const [payeeName, setPayeeName] = useState('');
   const [payeeUpi, setPayeeUpi] = useState('');
   const [amount, setAmount] = useState('25000');
@@ -319,7 +319,7 @@ export function MobileBillPaymentsModal({ isOpen, onClose }: ModalBaseProps) {
                   <BadgePercent className="w-3 h-3" /> Up to 2% Cashback
                 </span>
               </h3>
-              <p className="text-xs text-neutral-400">Pay Rent, Maintenance & Utilities using Credit Card/UPI</p>
+              <p className="text-xs text-neutral-400">Pay Society Maintenance, Property Tax & Utilities using Credit Card/UPI</p>
             </div>
           </div>
           <button
@@ -389,8 +389,8 @@ export function MobileBillPaymentsModal({ isOpen, onClose }: ModalBaseProps) {
               {/* Payment Category Tabs */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'rent', label: 'House Rent', icon: Building, tag: 'Most Popular' },
-                  { id: 'maintenance', label: 'Society Maint.', icon: ShieldCheck, tag: 'Zero Fee' },
+                  { id: 'maintenance', label: 'Society Maint.', icon: ShieldCheck, tag: 'Most Popular' },
+                  { id: 'property_tax', label: 'Property Tax', icon: Building, tag: 'Municipal Dues' },
                   { id: 'electricity', label: 'Electricity/Gas', icon: Zap, tag: 'BBPS Direct' },
                 ].map((tab) => {
                   const Icon = tab.icon;
@@ -418,7 +418,7 @@ export function MobileBillPaymentsModal({ isOpen, onClose }: ModalBaseProps) {
               <form onSubmit={handlePay} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-medium text-neutral-300 mb-1">
-                    {billType === 'rent' ? 'Landlord / Owner Name' : billType === 'maintenance' ? 'Society / RWA Name' : 'Consumer Name'}
+                    {billType === 'property_tax' ? 'Property Owner / Assessment Name' : billType === 'maintenance' ? 'Society / RWA Name' : 'Consumer Name'}
                   </label>
                   <input
                     type="text"
@@ -432,14 +432,14 @@ export function MobileBillPaymentsModal({ isOpen, onClose }: ModalBaseProps) {
 
                 <div>
                   <label className="block text-xs font-medium text-neutral-300 mb-1">
-                    {billType === 'rent' ? 'Landlord UPI ID / Bank A/C' : 'Society UPI / Consumer Number'}
+                    {billType === 'property_tax' ? 'Property SAC / Assessment Number' : 'Society UPI / Consumer Number'}
                   </label>
                   <input
                     type="text"
                     required
                     value={payeeUpi}
                     onChange={(e) => setPayeeUpi(e.target.value)}
-                    placeholder="e.g. landlord@okhdfcbank or 5010049281..."
+                    placeholder="e.g. society@okhdfcbank or 5010049281..."
                     className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-800/80 border border-white/15 text-white placeholder-neutral-500 text-xs focus:outline-none focus:border-emerald-400"
                   />
                 </div>
@@ -469,7 +469,7 @@ export function MobileBillPaymentsModal({ isOpen, onClose }: ModalBaseProps) {
                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <Receipt className="w-4 h-4 text-emerald-400" />
-                    <span className="text-neutral-200">Instant HRA Tax Rent Receipt</span>
+                    <span className="text-neutral-200">Instant Society & Municipal Payment Receipt</span>
                   </div>
                   <span className="text-emerald-400 font-bold text-[11px]">Free PDF</span>
                 </div>
@@ -544,18 +544,18 @@ export function MobilePlansModal({ isOpen, onClose }: ModalBaseProps) {
       ],
     },
     {
-      id: 'tenant_zero',
-      name: 'Tenant Super Pass',
-      badge: 'Budget Friendly',
-      price: '₹499',
-      duration: 'Valid for 45 days',
-      savings: 'Zero Brokerage Guarantee',
+      id: 'investor_priority',
+      name: 'Investor VIP Club',
+      badge: 'High Yield Pre-Launch',
+      price: '₹1,499',
+      duration: 'Valid for 1 year',
+      savings: 'Exclusive Pre-Launch Allocation',
       highlight: false,
       features: [
-        'Contact unlimited verified direct owners',
-        'Instant WhatsApp owner connect alerts',
-        'Rental agreement drafting discount',
-        'Packers & Movers ₹500 discount voucher',
+        'Priority access to developer pre-launch allotments',
+        'Direct bulk-buying discounts & zero brokerage',
+        'Comprehensive ROI & infrastructure growth analysis',
+        'Dedicated senior portfolio manager',
       ],
     },
   ];

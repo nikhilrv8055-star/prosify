@@ -425,7 +425,7 @@ export default function PropertyDetailPage() {
                   All-Inclusive Price
                 </span>
                 <div className="text-3xl font-extrabold text-neutral-950 mt-1">
-                  {formatIndianPrice(property.price, property.listingType === 'RENT')}
+                  {formatIndianPrice(property.price)}
                 </div>
                 {property.pricePerSqft > 0 && (
                   <span className="text-xs text-neutral-500 font-medium">

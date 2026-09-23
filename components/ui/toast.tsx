@@ -1,85 +1,60 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 interface Toast {
   id: string;
-  title: string;
-  description?: string;
-  type?: ToastType;
+  type: 'success' | 'error' | 'info';
+  message: string;
 }
 
 interface ToastContextType {
-  toast: (options: { title: string; description?: string; type?: ToastType; duration?: number }) => void;
+  toast: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+const ToastContext = createContext<ToastContextType>({
+  toast: () => {},
+});
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+  const toast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = `toast-${Date.now()}-${Math.random()}`;
+    setToasts((prev) => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4500);
   }, []);
-
-  const toast = useCallback(
-    ({
-      title,
-      description,
-      type = 'success',
-      duration = 3500,
-    }: {
-      title: string;
-      description?: string;
-      type?: ToastType;
-      duration?: number;
-    }) => {
-      const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, title, description, type }]);
-
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
-    },
-    [removeToast]
-  );
 
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      {/* Toast container */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={cn(
-              'pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border text-sm backdrop-blur-md animate-in slide-in-from-bottom-2 duration-200',
-              t.type === 'success' && 'bg-white border-emerald-200 text-neutral-900',
-              t.type === 'error' && 'bg-white border-red-200 text-neutral-900',
-              t.type === 'warning' && 'bg-white border-amber-300 text-neutral-900',
-              t.type === 'info' && 'bg-white border-neutral-200 text-neutral-900'
-            )}
+            className={`pointer-events-auto flex items-center justify-between gap-3 p-3.5 rounded-xl shadow-xl border text-xs font-semibold animate-in slide-in-from-bottom-2 ${
+              t.type === 'success'
+                ? 'bg-neutral-950 text-white border-neutral-800'
+                : t.type === 'error'
+                ? 'bg-rose-950 text-white border-rose-800'
+                : 'bg-neutral-900 text-white border-neutral-700'
+            }`}
           >
-            {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />}
-            {t.type === 'error' && <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />}
-            {t.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />}
-            {t.type === 'info' && <Info className="w-5 h-5 text-neutral-600 shrink-0 mt-0.5" />}
-
-            <div className="flex-1 min-w-0">
-              <strong className="block font-semibold text-neutral-950">{t.title}</strong>
-              {t.description && <p className="text-xs text-neutral-600 mt-0.5">{t.description}</p>}
+            <div className="flex items-center gap-2.5">
+              {t.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+              {t.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />}
+              {t.type === 'info' && <Info className="w-4 h-4 text-sky-400 shrink-0" />}
+              <span className="leading-snug">{t.message}</span>
             </div>
-
             <button
-              onClick={() => removeToast(t.id)}
-              className="text-neutral-400 hover:text-neutral-700 p-0.5"
-              aria-label="Dismiss toast"
+              type="button"
+              onClick={() => setToasts((prev) => prev.filter((item) => item.id !== t.id))}
+              className="text-neutral-400 hover:text-white shrink-0 p-1"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         ))}
@@ -89,14 +64,5 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    // Return dummy fallback if not inside provider
-    return {
-      toast: (opts: { title: string; description?: string }) => {
-        console.log('Toast:', opts.title, opts.description);
-      },
-    };
-  }
-  return context;
+  return useContext(ToastContext);
 }

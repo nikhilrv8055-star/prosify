@@ -1,161 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data/store';
-import { z } from 'zod';
-import { getServerUser } from '@/lib/auth/serverAuth';
-import { applyRateLimit } from '@/lib/security/rateLimit';
-
-const createLeadSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: z.string().min(10, 'Phone must be a valid 10-digit number'),
-  email: z.string().email().optional().or(z.literal('')),
-  source: z.enum([
-    'WEBSITE',
-    'DIRECT_WEBSITE',
-    'CHANNEL_PARTNER',
-    'FACEBOOK',
-    'GOOGLE',
-    'PROPERTY_PORTAL',
-    'SYNDICATION',
-    'API',
-    'MANUAL',
-    'OTHER',
-    'NINETY_NINE_ACRES',
-    'MAGICBRICKS',
-    'HOUSING',
-  ]).default('WEBSITE'),
-  propertyId: z.string().optional(),
-  propertyTitle: z.string().optional(),
-  projectId: z.string().optional(),
-  projectName: z.string().optional(),
-  developerName: z.string().optional(),
-  partnerId: z.string().optional(),
-  partnerCode: z.string().optional(),
-  partnerName: z.string().optional(),
-  budget: z.string().optional(),
-  requirement: z.string().optional(),
-  location: z.string().optional(),
-  notes: z.string().optional(),
-  utmSource: z.string().optional(),
-  utmMedium: z.string().optional(),
-  utmCampaign: z.string().optional(),
-});
+import { LeadSourceType, LeadStatus } from '@/lib/types';
 
 export async function GET(req: NextRequest) {
-  // Rate limiting
-  const rateLimitResponse = applyRateLimit(req, { limit: 120, windowMs: 60 * 1000 }, 'leads_get');
-  if (rateLimitResponse) return rateLimitResponse;
-
-  // Verify auth session for leads access
-  const user = getServerUser(req);
-  if (!user) {
-    return NextResponse.json(
-      { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required to view leads' } },
-      { status: 401 }
-    );
+  try {
+    const leads = store.getLeads();
+    return NextResponse.json({ success: true, leads });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: 'Failed to retrieve leads' }, { status: 500 });
   }
-
-  const { searchParams } = new URL(req.url);
-  let partnerId = searchParams.get('partnerId') || undefined;
-  const status = (searchParams.get('status') as any) || undefined;
-  const search = searchParams.get('q') || undefined;
-  const source = searchParams.get('source') || undefined;
-
-  // Channel Partner can only view leads attributed to their own partnerCode/partnerId
-  if (user.role === 'CHANNEL_PARTNER') {
-    const partner = user.partnerCode ? store.getPartnerByCode(user.partnerCode) : null;
-    partnerId = partner?.id || 'NO_ACCESS';
-  }
-
-  const leads = store.getLeads({ partnerId, status, search, source });
-  return NextResponse.json({ success: true, count: leads.length, data: leads });
 }
 
 export async function POST(req: NextRequest) {
-  // Rate limiting (20 submissions per minute per IP to prevent spam)
-  const rateLimitResponse = applyRateLimit(req, { limit: 20, windowMs: 60 * 1000 }, 'leads_submit');
-  if (rateLimitResponse) return rateLimitResponse;
-
   try {
     const body = await req.json();
-
-    // Check for partner attribution in cookie or body
-    let partnerId = body.partnerId;
-    let partnerCode = body.partnerCode;
-    let partnerName = body.partnerName;
-
-    // Check cookie fallback if partner was set in session
-    const partnerCookie = req.cookies.get('prosify_partner_ref')?.value || req.cookies.get('swarna_partner_ref')?.value;
-    if (!partnerId && partnerCookie) {
-      const partner = store.getPartnerByCode(partnerCookie);
-      if (partner) {
-        partnerId = partner.id;
-        partnerCode = partner.code;
-        partnerName = partner.companyName;
-      }
-    } else if (partnerCode && !partnerId) {
-      const partner = store.getPartnerByCode(partnerCode);
-      if (partner) {
-        partnerId = partner.id;
-        partnerName = partner.companyName;
-      }
-    }
-
-    const validated = createLeadSchema.safeParse({
-      ...body,
+    const {
+      name,
+      mobile,
+      email,
+      propertyId,
+      propertyTitle,
+      budget,
+      location,
+      requirement,
+      propertyType,
+      bhk,
+      purpose,
+      source = 'WEBSITE_FORM',
       partnerId,
-      partnerCode,
       partnerName,
-      source: partnerId ? 'CHANNEL_PARTNER' : body.source || 'WEBSITE',
-    });
+      utmSource,
+      utmMedium,
+      utmCampaign,
+    } = body;
 
-    if (!validated.success) {
+    if (!name || !mobile) {
       return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Please provide valid contact information (Name & 10-digit Phone)',
-            details: validated.error.flatten(),
-          },
-        },
+        { success: false, error: 'Name and mobile number are required' },
         { status: 400 }
       );
     }
 
-    const newLead = store.createLead({
-      name: validated.data.name,
-      phone: validated.data.phone,
-      email: validated.data.email || '',
-      source: validated.data.source,
-      propertyId: validated.data.propertyId,
-      propertyTitle: validated.data.propertyTitle,
-      projectId: validated.data.projectId,
-      projectName: validated.data.projectName,
-      developerName: validated.data.developerName,
-      partnerId: validated.data.partnerId,
-      partnerCode: validated.data.partnerCode,
-      partnerName: validated.data.partnerName,
-      budget: validated.data.budget || 'Flexible',
-      requirement: validated.data.requirement || 'General Enquiry',
-      location: validated.data.location || 'Maharashtra',
-      notes: validated.data.notes,
-      utmSource: validated.data.utmSource,
-      utmMedium: validated.data.utmMedium,
-      utmCampaign: validated.data.utmCampaign,
-      assignedTo: 'Amit Sharma (Sales Mgr)',
+    const lead = store.createLead({
+      name,
+      mobile,
+      email,
+      propertyId,
+      propertyTitle,
+      budget,
+      location,
+      requirement,
+      propertyType,
+      bhk,
+      purpose: purpose || 'Buy',
+      source: source as LeadSourceType,
+      partnerId,
+      partnerName,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      status: 'NEW',
     });
 
+    return NextResponse.json({ success: true, lead }, { status: 201 });
+  } catch (error) {
     return NextResponse.json(
-      {
-        success: true,
-        message: 'Enquiry received! Our property specialist will contact you shortly.',
-        data: newLead,
-      },
-      { status: 201 }
+      { success: false, error: 'Internal server error processing lead' },
+      { status: 500 }
     );
-  } catch {
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { id, status } = body;
+
+    if (!id || !status) {
+      return NextResponse.json(
+        { success: false, error: 'Lead ID and status are required' },
+        { status: 400 }
+      );
+    }
+
+    const updated = store.updateLeadStatus(id, status as LeadStatus);
+    if (!updated) {
+      return NextResponse.json({ success: false, error: 'Lead not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, lead: updated });
+  } catch (error) {
     return NextResponse.json(
-      { success: false, error: { code: 'SERVER_ERROR', message: 'Failed to submit enquiry' } },
+      { success: false, error: 'Failed to update lead status' },
       { status: 500 }
     );
   }

@@ -23,7 +23,7 @@ const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'n1',
     title: 'New Launch: Godrej Riviera Phase 2',
-    desc: 'Pre-launch bookings opened with introductory 2% spot discount & guaranteed rental yield in Kalyan.',
+    desc: 'Pre-launch bookings opened with introductory 2% spot discount & high capital appreciation in Kalyan.',
     time: '10m ago',
     type: 'launch',
     link: '/projects/godrej-riviera',
