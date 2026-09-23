@@ -1,21 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   X,
   Building2,
-  CheckCircle2,
   Phone,
-  User,
   Mail,
+  User,
   MapPin,
   IndianRupee,
   Home,
-  MessageSquare,
+  CheckCircle2,
   Sparkles,
-  ArrowRight,
   ShieldCheck,
+  Send,
+  MessageSquare,
+  ArrowRight,
+  Clock,
+  FileText,
 } from 'lucide-react';
+import { getStoredAttribution } from '@/lib/attribution';
 import { useToast } from '@/components/ui/toast';
 
 interface PropertyRequirementModalProps {
@@ -23,192 +28,332 @@ interface PropertyRequirementModalProps {
   onClose: () => void;
   defaultLocation?: string;
   defaultPropertyType?: string;
+  defaultBudget?: string;
+  defaultBhk?: string;
 }
-
-const PROPERTY_TYPES = [
-  'Apartment / Flat',
-  'Independent Villa / House',
-  'Penthouse',
-  'Residential Plot',
-  'Commercial Office Space',
-  'Retail Showroom / Shop',
-];
-
-const BUDGET_OPTIONS = [
-  'Under ₹50 Lakh',
-  '₹50 Lakh - ₹1 Cr',
-  '₹1 Cr - ₹1.5 Cr',
-  '₹1.5 Cr - ₹2.5 Cr',
-  '₹2.5 Cr - ₹5 Cr',
-  '₹5 Cr - ₹10 Cr',
-  '₹10 Cr+',
-];
-
-const BHK_OPTIONS = ['1 BHK', '1.5 BHK', '2 BHK', '2.5 BHK', '3 BHK', '3.5 BHK', '4 BHK', '5+ BHK / Penthouse', 'Commercial Space'];
 
 export function PropertyRequirementModal({
   isOpen,
   onClose,
   defaultLocation = '',
   defaultPropertyType = 'Apartment / Flat',
+  defaultBudget = '₹75 Lakh - ₹1.2 Cr',
+  defaultBhk = '2 BHK',
 }: PropertyRequirementModalProps) {
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+
   const [fullName, setFullName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [propertyType, setPropertyType] = useState(defaultPropertyType);
-  const [preferredLocation, setPreferredLocation] = useState(defaultLocation);
-  const [budget, setBudget] = useState('₹1 Cr - ₹1.5 Cr');
-  const [bhk, setBhk] = useState('2 BHK');
+  const [location, setLocation] = useState(defaultLocation);
+  const [budget, setBudget] = useState(defaultBudget);
+  const [bhk, setBhk] = useState(defaultBhk);
   const [additionalRequirement, setAdditionalRequirement] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [leadReference, setLeadReference] = useState('');
+
+  // Pre-fill / reset when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSubmitted(false);
+      setLeadReference('');
+      if (defaultLocation && !location) setLocation(defaultLocation);
+      if (defaultBudget && !budget) setBudget(defaultBudget);
+    }
+  }, [isOpen, defaultLocation, defaultBudget]);
+
+  // Lock body scroll when open
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalStyle;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const propertyTypeOptions = [
+    'Apartment / Flat',
+    'Villa / Bungalow',
+    'Penthouse',
+    'Residential Plot',
+    'Commercial Office',
+    'Retail Shop / Showroom',
+  ];
+
+  const popularLocations = [
+    'Thane West',
+    'Dombivli (Palava)',
+    'Kalyan West',
+    'Bandra / BKC',
+    'Andheri East',
+    'Pune (Baner/Hinjawadi)',
+    'Navi Mumbai',
+  ];
+
+  const budgetPresets = [
+    'Under ₹45 Lakh',
+    '₹45 Lakh - ₹75 Lakh',
+    '₹75 Lakh - ₹1.2 Cr',
+    '₹1.2 Cr - ₹2.0 Cr',
+    '₹2.0 Cr - ₹3.5 Cr',
+    'Above ₹3.5 Cr',
+  ];
+
+  const bhkOptions = ['1 RK', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK / Villa'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fullName.trim()) {
-      toast('Please enter your full name', 'error');
+    // Validation
+    const cleanName = fullName.trim();
+    const cleanPhone = phone.replace(/\D/g, '');
+
+    if (!cleanName || cleanName.length < 2) {
+      toast({
+        title: 'Please enter your Full Name',
+        type: 'error',
+      });
       return;
     }
 
-    if (!mobileNumber.trim() || mobileNumber.replace(/\D/g, '').length < 10) {
-      toast('Please enter a valid 10-digit mobile number', 'error');
+    if (cleanPhone.length < 10) {
+      toast({
+        title: 'Please enter a valid 10-digit mobile number',
+        type: 'error',
+      });
       return;
     }
 
-    if (!preferredLocation.trim()) {
-      toast('Please specify your preferred location or area', 'error');
+    if (!location.trim()) {
+      toast({
+        title: 'Please specify your Preferred Location / Area',
+        type: 'error',
+      });
       return;
     }
 
-    setIsSubmitting(true);
+    if (!budget.trim()) {
+      toast({
+        title: 'Please select or enter your Budget',
+        type: 'error',
+      });
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      const response = await fetch('/api/leads', {
+      // Capture UTMs from URL or stored attribution
+      const stored = getStoredAttribution();
+      const utmSource = searchParams?.get('utm_source') || stored?.utmSource || 'WEBSITE';
+      const utmMedium = searchParams?.get('utm_medium') || stored?.utmMedium || 'BUY_REQUIREMENT_MODAL';
+      const utmCampaign = searchParams?.get('utm_campaign') || stored?.utmCampaign || 'PURCHASE_DEMAND';
+      const partnerCode = searchParams?.get('ref') || searchParams?.get('partner') || stored?.partnerCode;
+
+      const payload = {
+        name: cleanName,
+        phone: cleanPhone.length === 10 ? `+91 ${cleanPhone}` : cleanPhone,
+        email: email.trim(),
+        source: partnerCode ? 'CHANNEL_PARTNER' : 'BUY_REQUIREMENT',
+        partnerCode: partnerCode || undefined,
+        partnerId: stored?.partnerId || undefined,
+        partnerName: stored?.partnerName || undefined,
+        propertyType,
+        purpose: 'Buy',
+        bhk,
+        budget,
+        location: location.trim(),
+        requirement: `[BUY REQUIREMENT] Type: ${propertyType} | Config: ${bhk} | Area: ${location.trim()} | Budget: ${budget}. ${
+          additionalRequirement ? `Additional: ${additionalRequirement.trim()}` : ''
+        }`,
+        notes: additionalRequirement.trim() || `Submitted via "Tell Us Your Property Requirement" modal on Prosify.`,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+      };
+
+      const res = await fetch('/api/leads', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fullName.trim(),
-          mobile: mobileNumber.trim(),
-          email: email.trim() || undefined,
-          propertyType,
-          location: preferredLocation.trim(),
-          budget,
-          bhk,
-          requirement: additionalRequirement.trim() || `Looking for ${bhk} ${propertyType} in ${preferredLocation} with budget ${budget}`,
-          purpose: 'Buy',
-          source: 'BUY_REQUIREMENT',
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to record requirement');
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setLeadReference(data.data?.id || `REQ-${Date.now().toString().slice(-6)}`);
+        setSubmitted(true);
+        toast({
+          title: 'Requirement Registered Successfully!',
+          description: 'A Prosify property advisor will connect with you shortly.',
+          type: 'success',
+        });
+      } else {
+        throw new Error(data.error?.message || 'Submission failed');
       }
-
-      setIsSubmitted(true);
-      toast('Requirement submitted! Our senior advisor will contact you within 30 minutes.', 'success');
-    } catch {
-      // Offline fallback: still consider submitted locally
-      setIsSubmitted(true);
-      toast('Requirement recorded! Our team will contact you shortly.', 'success');
+    } catch (err: any) {
+      toast({
+        title: 'Submission Error',
+        description: err.message || 'Could not submit your requirement. Please try again.',
+        type: 'error',
+      });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
-  };
-
-  const handleReset = () => {
-    setIsSubmitted(false);
-    setFullName('');
-    setMobileNumber('');
-    setEmail('');
-    setPreferredLocation('');
-    setAdditionalRequirement('');
-    onClose();
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-neutral-950/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-neutral-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
+        className="w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-neutral-200 text-neutral-900 max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="requirement-modal-title"
       >
-        {/* Header with Dark Gold Accent */}
-        <div className="relative bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 text-white p-5 sm:p-6 shrink-0 border-b border-neutral-800">
+        {/* Header */}
+        <div className="relative px-5 py-4 border-b border-neutral-100 bg-neutral-50/80 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#D4A017]/15 text-[#D4A017] border border-[#D4A017]/30 flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5 text-[#996515]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 id="requirement-modal-title" className="text-base sm:text-lg font-bold text-neutral-950 tracking-tight">
+                  Tell Us Your Property Requirement
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
+                  Buy Only
+                </span>
+              </div>
+              <p className="text-xs text-neutral-500 font-normal">
+                Direct developer inventory • Zero spam • Tailored verified options
+              </p>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close modal"
-            className="absolute top-4 right-4 p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+            className="p-1.5 rounded-full hover:bg-neutral-200/70 text-neutral-400 hover:text-neutral-700 transition-colors"
+            aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
-
-          <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D4A017]/20 border border-[#D4A017]/40 text-[#F4C430] text-[11px] font-bold tracking-wide uppercase">
-              <Sparkles className="w-3 h-3 text-[#D4A017]" />
-              Buyer Sourcing Desk
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[11px] font-semibold">
-              Zero Brokerage
-            </span>
-          </div>
-
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Tell Us Your Property Requirement
-          </h2>
-          <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-            Share your budget and preferred locality. Our senior property advisors source verified direct-developer options tailored for your purchase.
-          </p>
         </div>
 
-        {/* Content Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4">
-          {isSubmitted ? (
-            <div className="py-8 text-center space-y-4 animate-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10" />
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+          {submitted ? (
+            /* SUCCESS STATE */
+            <div className="py-6 sm:py-8 flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shadow-md">
+                <CheckCircle2 className="w-9 h-9 text-emerald-600" />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-neutral-950">Requirement Received!</h3>
-                <p className="text-xs sm:text-sm text-neutral-600 max-w-sm mx-auto">
-                  Thank you, <strong>{fullName}</strong>. A dedicated Prosify advisory specialist has been assigned to source options matching your criteria in <strong>{preferredLocation}</strong>.
+
+              <div className="space-y-1.5 max-w-md">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full">
+                  Requirement Ref #{leadReference}
+                </span>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-neutral-950 pt-1">
+                  Thank You, {fullName}!
+                </h3>
+                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
+                  We have registered your property-buying requirement across Maharashtra. Our senior investment specialist is matching direct developer inventory tailored to your criteria.
                 </p>
               </div>
 
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-left text-xs space-y-2 max-w-sm mx-auto">
-                <div className="font-bold text-amber-900 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-[#D4A017]" />
-                  What happens next?
+              {/* Requirement Recap Card */}
+              <div className="w-full max-w-md bg-neutral-50 rounded-2xl p-4 border border-neutral-200/80 text-left text-xs space-y-2">
+                <div className="font-bold text-neutral-800 border-b border-neutral-200/70 pb-1.5 flex items-center justify-between">
+                  <span>Requirement Summary</span>
+                  <span className="text-[10px] font-semibold text-[#996515] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                    Purpose: Buy (Purchase)
+                  </span>
                 </div>
-                <ul className="text-neutral-700 space-y-1 text-[11px] list-disc list-inside">
-                  <li>You will receive a curated PDF brochure on WhatsApp.</li>
-                  <li>Direct developer pricing with zero brokerage.</li>
-                  <li>Free chauffeur-driven site visit scheduling available.</li>
-                </ul>
+                <div className="grid grid-cols-2 gap-2 text-neutral-600 pt-1">
+                  <div>
+                    <span className="text-[11px] text-neutral-400 block">Property Type</span>
+                    <strong className="text-neutral-900">{propertyType}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-neutral-400 block">Configuration</span>
+                    <strong className="text-neutral-900">{bhk}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-neutral-400 block">Preferred Area</span>
+                    <strong className="text-neutral-900">{location}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-neutral-400 block">Budget Range</span>
+                    <strong className="text-neutral-900">{budget}</strong>
+                  </div>
+                </div>
+                {additionalRequirement && (
+                  <div className="pt-2 border-t border-neutral-200/60">
+                    <span className="text-[11px] text-neutral-400 block">Notes:</span>
+                    <p className="text-neutral-700 text-[11px] italic mt-0.5 line-clamp-2">
+                      &ldquo;{additionalRequirement}&rdquo;
+                    </p>
+                  </div>
+                )}
               </div>
 
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-6 py-2.5 rounded-xl bg-neutral-900 text-white text-xs font-bold hover:bg-neutral-800 transition-colors"
-              >
-                Close & Browse Marketplace
-              </button>
+              <div className="w-full max-w-md space-y-2.5 pt-2">
+                <a
+                  href="https://wa.me/919326303244?text=Hi%20Prosify,%20I%20just%20submitted%20my%20property%20buying%20requirement%20online."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Connect Instantly on WhatsApp</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full py-2.5 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-semibold text-xs transition-colors"
+                >
+                  Done / Close
+                </button>
+              </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Full Name & Mobile */}
+            /* FORM STATE */
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              {/* Purpose Banner: Buy (Fixed) */}
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 text-amber-950">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#D4A017] shrink-0" />
+                  <span className="text-[11px] font-semibold">
+                    Purpose: <strong className="font-extrabold text-neutral-900">Property Purchase / Buy</strong> (Fixed)
+                  </span>
+                </div>
+                <span className="text-[10px] font-medium text-amber-800 bg-white/80 px-2 py-0.5 rounded border border-amber-300">
+                  Zero Brokerage on New Launches
+                </span>
+              </div>
+
+              {/* Row 1: Name & Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
+                  <label className="block text-xs font-semibold text-neutral-800 mb-1">
                     Full Name <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
@@ -216,179 +361,189 @@ export function PropertyRequirementModal({
                     <input
                       type="text"
                       required
+                      placeholder="e.g. Ramesh Kulkarni"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Vikram Singhania"
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50"
+                      className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-900"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
+                  <label className="block text-xs font-semibold text-neutral-800 mb-1">
                     Mobile Number <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                    <span className="absolute left-3 top-2 text-xs font-bold text-neutral-500">
+                      +91
+                    </span>
                     <input
                       type="tel"
                       required
-                      value={mobileNumber}
-                      onChange={(e) => setMobileNumber(e.target.value)}
-                      placeholder="10-digit mobile"
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50"
+                      maxLength={10}
+                      placeholder="98200 12345"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-11 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-900 tracking-wide"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Email (Optional) & Fixed Purpose: Buy */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
-                    Email Address <span className="text-neutral-400 font-normal">(Optional)</span>
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@example.com"
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
-                    Purpose
-                  </label>
-                  <div className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl border border-neutral-200 bg-neutral-100 font-bold text-neutral-800">
-                    <Building2 className="w-4 h-4 text-[#D4A017]" />
-                    <span>Buy / Property Purchase (Fixed)</span>
-                  </div>
+              {/* Row 2: Email */}
+              <div>
+                <label className="block text-xs font-semibold text-neutral-800 mb-1">
+                  Email Address <span className="text-neutral-400 font-normal">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                  <input
+                    type="email"
+                    placeholder="name@domain.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-900"
+                  />
                 </div>
               </div>
 
-              {/* Property Type & BHK Configuration */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
-                    Property Type <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Home className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
-                    <select
-                      value={propertyType}
-                      onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50 cursor-pointer"
+              {/* Row 3: Property Type * */}
+              <div>
+                <label className="block text-xs font-semibold text-neutral-800 mb-1.5">
+                  Property Type <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {propertyTypeOptions.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setPropertyType(opt)}
+                      className={`py-2 px-2.5 rounded-xl text-left text-xs font-semibold border transition-all ${
+                        propertyType === opt
+                          ? 'bg-neutral-950 text-white border-neutral-950 shadow-xs'
+                          : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
+                      }`}
                     >
-                      {PROPERTY_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Row 4: Preferred Location / Area * */}
+              <div>
+                <label className="block text-xs font-semibold text-neutral-800 mb-1">
+                  Preferred Location / Area <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative mb-2">
+                  <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Thane Majiwada, Dombivli, Kalyan, Baner Pune..."
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-900"
+                  />
+                </div>
+                {/* Location suggestion chips */}
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[10px] text-neutral-400 py-0.5">Popular:</span>
+                  {popularLocations.map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => setLocation(loc)}
+                      className={`text-[11px] px-2 py-0.5 rounded-lg border font-medium transition-colors ${
+                        location === loc
+                          ? 'bg-[#D4A017]/20 border-[#D4A017] text-neutral-950 font-bold'
+                          : 'bg-neutral-100 border-neutral-200 text-neutral-600 hover:bg-neutral-200'
+                      }`}
+                    >
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Row 5: Budget * & BHK Configuration */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-800 mb-1">
+                    Budget Range <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={budget}
+                    onChange={(e) => setBudget(e.target.value)}
+                    className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-900"
+                  >
+                    {budgetPresets.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
+                  <label className="block text-xs font-semibold text-neutral-800 mb-1">
                     BHK / Configuration
                   </label>
                   <select
                     value={bhk}
                     onChange={(e) => setBhk(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50 cursor-pointer"
+                    className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-900"
                   >
-                    {BHK_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
+                    {bhkOptions.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Preferred Location / Area & Budget */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
-                    Preferred Location / Area <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
-                    <input
-                      type="text"
-                      required
-                      value={preferredLocation}
-                      onChange={(e) => setPreferredLocation(e.target.value)}
-                      placeholder="e.g. Bandra West, Thane, Hinjawadi"
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-neutral-800 mb-1">
-                    Budget <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
-                    <select
-                      value={budget}
-                      onChange={(e) => setBudget(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50 cursor-pointer"
-                    >
-                      {BUDGET_OPTIONS.map((b) => (
-                        <option key={b} value={b}>
-                          {b}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Requirement */}
+              {/* Row 6: Additional Requirement */}
               <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                <label className="block text-xs font-semibold text-neutral-800 mb-1">
                   Additional Requirement <span className="text-neutral-400 font-normal">(Optional)</span>
                 </label>
-                <div className="relative">
-                  <MessageSquare className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
-                  <textarea
-                    rows={2}
-                    value={additionalRequirement}
-                    onChange={(e) => setAdditionalRequirement(e.target.value)}
-                    placeholder="e.g. High floor sea view, ready to move within 3 months, EV charging slot required..."
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-neutral-50/50 resize-none"
-                  />
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Ready to move or under-construction, higher floor, vaastu compliant, balcony, home loan pre-approved with SBI..."
+                  value={additionalRequirement}
+                  onChange={(e) => setAdditionalRequirement(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-900"
+                />
+              </div>
+
+              {/* Security note & submit button */}
+              <div className="pt-2 border-t border-neutral-100 space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-neutral-500">
+                  <span className="flex items-center gap-1 text-emerald-700 font-medium">
+                    <ShieldCheck className="w-3.5 h-3.5" /> 100% Privacy & Zero Spam Guarantee
+                  </span>
+                  <span className="text-neutral-400">Direct Developer Tie-ups</span>
                 </div>
-              </div>
 
-              {/* Privacy and Trust Disclaimer */}
-              <div className="flex items-center gap-2 text-[11px] text-neutral-500">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Zero spam guarantee • 100% direct developer prices • MahaRERA certified advisory</span>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 px-4 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Submitting Requirement...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 text-[#D4A017]" />
+                      <span>Submit Requirement</span>
+                    </>
+                  )}
+                </button>
               </div>
-
-              {/* Submit CTA */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 px-4 rounded-xl bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <span>Processing...</span>
-                ) : (
-                  <>
-                    <span>Submit Requirement</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
             </form>
           )}
         </div>

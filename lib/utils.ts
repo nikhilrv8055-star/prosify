@@ -1,11 +1,15 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
-export function formatIndianPrice(amount: number): string {
+/**
+ * Formats price in Indian Lakhs and Crores (₹)
+ * e.g. 4800000 -> ₹48.0 Lakh, 12500000 -> ₹1.25 Cr
+ */
+export function formatIndianPrice(amount: number, _isRent = false): string {
   if (!amount || amount === 0) return 'Price on Request';
   if (amount >= 10000000) {
     const cr = amount / 10000000;
@@ -13,17 +17,14 @@ export function formatIndianPrice(amount: number): string {
   }
   if (amount >= 100000) {
     const lakh = amount / 100000;
-    return `₹${lakh.toFixed(lakh % 1 === 0 ? 0 : 1)} Lakh`;
+    return `₹${lakh.toFixed(lakh % 1 === 0 ? 0 : 2)} Lakh`;
   }
   return `₹${amount.toLocaleString('en-IN')}`;
 }
 
-export function formatPricePerSqFt(price: number, area: number): string {
-  if (!price || !area || area === 0) return '';
-  const rate = Math.round(price / area);
-  return `₹${rate.toLocaleString('en-IN')}/sq.ft`;
-}
+export const formatPrice = formatIndianPrice;
 
-export function formatIndianNumber(num: number): string {
-  return num.toLocaleString('en-IN');
+export function formatArea(sqft: number): string {
+  if (!sqft) return 'N/A';
+  return `${sqft.toLocaleString('en-IN')} sq.ft`;
 }

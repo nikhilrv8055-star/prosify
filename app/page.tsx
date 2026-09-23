@@ -1,358 +1,579 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Search,
   Building2,
-  ShieldCheck,
-  Sparkles,
-  ArrowRight,
-  CheckCircle2,
   MapPin,
-  TrendingUp,
+  Sparkles,
+  ShieldCheck,
   Award,
+  ArrowRight,
+  TrendingUp,
+  CheckCircle2,
+  Users,
+  Building,
   PhoneCall,
-  ClipboardEdit,
-  Car,
-  BadgePercent,
+  SlidersHorizontal,
+  Home,
+  Check,
 } from 'lucide-react';
 import { Navbar } from '@/components/marketplace/Navbar';
 import { Footer } from '@/components/marketplace/Footer';
 import { PropertyCard } from '@/components/marketplace/PropertyCard';
+import { ProjectCard } from '@/components/marketplace/ProjectCard';
 import { EnquiryModal } from '@/components/marketplace/EnquiryModal';
 import { SiteVisitModal } from '@/components/marketplace/SiteVisitModal';
+import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
 import { PropertyRequirementModal } from '@/components/marketplace/PropertyRequirementModal';
 import { store } from '@/lib/data/store';
-import { Property } from '@/lib/types';
-import { brandConfig } from '@/src/config/brand';
+import { Property, Project } from '@/lib/types';
+import { formatIndianPrice } from '@/lib/utils';
+import { useAuth } from '@/lib/auth/authContext';
+import { useToast } from '@/components/ui/toast';
 
 export default function HomePage() {
   const router = useRouter();
-  const [city, setCity] = useState('ALL');
-  const [bhk, setBhk] = useState('ALL');
-  const [budget, setBudget] = useState('ALL');
-  const [searchQuery, setSearchQuery] = useState('');
+  const { toggleCompareProperty, comparedPropertyIds } = useAuth();
+  const { toast } = useToast();
 
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  // Search form state
+  const [searchTab, setSearchTab] = useState<'BUY' | 'PROJECTS' | 'COMMERCIAL'>('BUY');
+  const [city, setCity] = useState('All');
+  const [propertyType, setPropertyType] = useState('ALL');
+  const [budget, setBudget] = useState('ALL');
+  const [bhk, setBhk] = useState('ALL');
+  const [query, setQuery] = useState('');
+
+  // Modals state
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [visitOpen, setVisitOpen] = useState(false);
-  const [requirementModalOpen, setRequirementModalOpen] = useState(false);
+  const [matcherOpen, setMatcherOpen] = useState(false);
+  const [requirementOpen, setRequirementOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const featuredProperties = store.getFeaturedProperties();
-  const developers = store.getDevelopers();
-  const projects = store.getProjects();
+  // Compare properties
+  const [comparedProperties, setComparedProperties] = useState<Property[]>([]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  // Get data from store
+  const allProperties = useMemo(() => store.getProperties(), []);
+  const featuredProperties = useMemo(() => allProperties.filter((p) => p.isFeatured).slice(0, 6), [allProperties]);
+  const projects = useMemo(() => store.getProjects().slice(0, 4), []);
+  const developers = useMemo(() => store.getDevelopers().slice(0, 6), []);
+
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (city !== 'ALL') params.set('city', city);
+    if (searchTab === 'PROJECTS') {
+      if (city !== 'All') params.set('city', city);
+      if (query) params.set('q', query);
+      router.push(`/projects?${params.toString()}`);
+      return;
+    }
+
+    if (searchTab !== 'BUY') params.set('type', searchTab);
+    if (city !== 'All') params.set('city', city);
+    if (propertyType !== 'ALL') params.set('propertyType', propertyType);
     if (bhk !== 'ALL') params.set('bhk', bhk);
-    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (query) params.set('q', query);
     router.push(`/properties?${params.toString()}`);
   };
 
+  const handleOpenEnquiry = (property?: Property) => {
+    setSelectedProperty(property || null);
+    setSelectedProject(null);
+    setEnquiryOpen(true);
+  };
+
+  const handleOpenSiteVisit = (property?: Property) => {
+    setSelectedProperty(property || null);
+    setSelectedProject(null);
+    setVisitOpen(true);
+  };
+
+  const handleToggleCompare = (property: Property) => {
+    const isCurrentlyCompared = comparedPropertyIds.includes(property.id);
+    if (!isCurrentlyCompared && comparedPropertyIds.length >= 4) {
+      toast({
+        title: 'Comparison Limit Reached',
+        description: 'You can compare up to 4 properties at once.',
+        type: 'warning',
+      });
+      return;
+    }
+    toggleCompareProperty(property.id);
+  };
+
+  const locations = [
+    { name: 'Mumbai MMR', city: 'Mumbai', count: '1,420+ Properties', image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Thane', city: 'Thane', count: '890+ Properties', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Dombivli', city: 'Dombivli', count: '640+ Properties', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Kalyan', city: 'Kalyan', count: '510+ Properties', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Pune', city: 'Pune', count: '1,150+ Properties', image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Nagpur', city: 'Nagpur', count: '380+ Properties', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80' },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900">
-      <Navbar />
+    <div className="min-h-screen flex flex-col bg-neutral-50/50">
+      <Navbar
+        onOpenEnquiry={() => handleOpenEnquiry()}
+        onOpenMatcher={() => setMatcherOpen(true)}
+      />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white pt-12 pb-20 sm:pt-16 sm:pb-24 overflow-hidden border-b border-neutral-800">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#D4A017_1px,transparent_1px)] [background-size:16px_16px]" />
+      <section className="relative bg-[#0F172A] text-white overflow-hidden py-16 lg:py-24">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0 opacity-25">
+          <Image
+            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80"
+            alt="Luxury Architecture"
+            fill
+            className="object-cover"
+            priority
+            referrerPolicy="no-referrer"
+          />
+        </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          {/* Trust Pill */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900/90 border border-neutral-700/80 text-neutral-300 text-xs shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-semibold text-white">Direct Developer Pricing</span>
-            <span className="text-neutral-500">•</span>
-            <span className="text-[#D4A017] font-bold">Zero Brokerage</span>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="max-w-3xl space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#F4C430] border border-[#D4A017]/40 backdrop-blur-xs">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Maharashtra’s Most Trusted Direct Developer Marketplace</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+              Find Your Perfect Property in Maharashtra
+            </h1>
+
+            <p className="text-base sm:text-lg text-neutral-300 font-normal leading-relaxed">
+              Discover verified homes, new launch projects and high-yield investment opportunities across Mumbai, Thane, Dombivli, Pune and beyond with direct RERA transparency.
+            </p>
           </div>
 
-          {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight">
-            Buy Premium Properties Directly From Top Developers
-          </h1>
+          {/* Multi-Tab Search Box */}
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 text-neutral-900 border border-neutral-200/80">
+            {/* Tabs */}
+            <div className="flex items-center gap-2 border-b border-neutral-100 pb-4 mb-4 overflow-x-auto">
+              {[
+                { key: 'BUY', label: 'Buy Property' },
+                { key: 'PROJECTS', label: 'New Projects' },
+                { key: 'COMMERCIAL', label: 'Commercial' },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setSearchTab(tab.key as any)}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
+                    searchTab === tab.key
+                      ? 'bg-[#171717] text-white shadow-xs'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
 
-          <p className="text-sm sm:text-base text-neutral-300 max-w-2xl mx-auto leading-relaxed">
-            Verified RERA residences, luxury sea-facing highrises, and corporate commercial spaces across Mumbai, Thane, Navi Mumbai, and Pune.
-          </p>
+              <button
+                type="button"
+                onClick={() => setMatcherOpen(true)}
+                className="ml-auto px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition-colors flex items-center gap-1.5 shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
+                <span className="hidden sm:inline">AI Smart Match</span>
+              </button>
+            </div>
 
-          {/* Quick Search Form */}
-          <div className="max-w-4xl mx-auto bg-white p-3 sm:p-4 rounded-3xl shadow-2xl border border-neutral-200 text-neutral-900 mt-6">
-            <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              {/* City */}
+            {/* Form Fields */}
+            <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+              {/* City Selection */}
               <div>
-                <label className="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1 text-left">
-                  City / Region
+                <label className="block text-xs font-semibold text-neutral-600 mb-1">
+                  Location / City
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-800"
+                  >
+                    <option value="All">All Maharashtra Hubs</option>
+                    <option value="Mumbai">Mumbai MMR</option>
+                    <option value="Thane">Thane</option>
+                    <option value="Dombivli">Dombivli</option>
+                    <option value="Kalyan">Kalyan</option>
+                    <option value="Pune">Pune</option>
+                    <option value="Nagpur">Nagpur</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Property Type */}
+              <div>
+                <label className="block text-xs font-semibold text-neutral-600 mb-1">
+                  Property Type
                 </label>
                 <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs font-semibold rounded-xl border border-neutral-200 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                  value={propertyType}
+                  onChange={(e) => setPropertyType(e.target.value)}
+                  className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-800"
                 >
-                  <option value="ALL">All Maharashtra</option>
-                  <option value="Mumbai">Mumbai MMR</option>
-                  <option value="Thane">Thane</option>
-                  <option value="Navi Mumbai">Navi Mumbai</option>
-                  <option value="Pune">Pune</option>
+                  <option value="ALL">All Property Types</option>
+                  <option value="APARTMENT">Apartment / Flat</option>
+                  <option value="VILLA">Villa / Row House</option>
+                  <option value="PENTHOUSE">Penthouse</option>
+                  <option value="PLOT">Residential Plot</option>
+                  <option value="OFFICE">Office Space</option>
+                  <option value="SHOP">Retail Shop</option>
                 </select>
               </div>
 
-              {/* BHK */}
+              {/* Configuration BHK */}
               <div>
-                <label className="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1 text-left">
-                  Configuration
+                <label className="block text-xs font-semibold text-neutral-600 mb-1">
+                  BHK Config
                 </label>
                 <select
                   value={bhk}
                   onChange={(e) => setBhk(e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs font-semibold rounded-xl border border-neutral-200 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                  className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-800"
                 >
-                  <option value="ALL">All Configurations</option>
+                  <option value="ALL">Any Configuration</option>
                   <option value="1 BHK">1 BHK</option>
                   <option value="2 BHK">2 BHK</option>
                   <option value="3 BHK">3 BHK</option>
-                  <option value="4 BHK">4+ BHK / Penthouse</option>
+                  <option value="4 BHK">4 BHK+</option>
                 </select>
               </div>
 
-              {/* Locality or Keyword */}
+              {/* Keyword / Project */}
               <div>
-                <label className="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-1 text-left">
-                  Locality / Project
+                <label className="block text-xs font-semibold text-neutral-600 mb-1">
+                  Project or Locality
                 </label>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="e.g. Lower Parel, Kolshet"
-                  className="w-full px-3 py-2.5 text-xs font-semibold rounded-xl border border-neutral-200 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
-                />
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="e.g. Godrej, Bandra..."
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                  />
+                </div>
               </div>
 
-              {/* Search CTA */}
-              <div className="flex flex-col justify-end">
+              {/* Submit CTA */}
+              <div>
                 <button
                   type="submit"
-                  className="w-full py-2.5 px-4 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-xs sm:text-sm transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  <Search className="w-4 h-4 text-[#D4A017]" />
+                  <Search className="w-4 h-4" />
                   <span>Search Properties</span>
                 </button>
               </div>
             </form>
 
-            {/* Quick Requirement Link under search */}
-            <div className="mt-3 pt-3 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className="text-neutral-500">
-                Can&apos;t find your exact specification?
-              </span>
+            {/* Direct Requirement Quick Trigger */}
+            <div className="mt-4 pt-3 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-600">
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Can&apos;t find the exact home or budget you are looking for?</span>
+              </div>
               <button
                 type="button"
-                onClick={() => setRequirementModalOpen(true)}
-                className="text-[#D4A017] hover:text-[#b88912] font-bold flex items-center gap-1 cursor-pointer"
+                onClick={() => setRequirementOpen(true)}
+                className="font-bold text-[#b88912] hover:text-[#916b0b] flex items-center gap-1.5 transition-colors underline underline-offset-4 cursor-pointer"
               >
-                <ClipboardEdit className="w-3.5 h-3.5" />
-                <span>Tell Us Your Property Requirement &rarr;</span>
+                <span>Tell Us Your Property Requirement</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* DEDICATED REQUIREMENT BANNER SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20 w-full">
-        <div className="bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-neutral-700 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#D4A017]/20 border border-[#D4A017]/40 text-[#F4C430] text-[10px] font-extrabold uppercase">
-              <Sparkles className="w-3 h-3 text-[#D4A017]" />
-              Buyer Concierge Service
+      {/* Tell Us Your Property Requirement Dedicated Section */}
+      <section className="py-12 bg-gradient-to-br from-amber-500/10 via-amber-100/30 to-white border-y border-amber-200/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-amber-200 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="max-w-2xl space-y-3.5 text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#D4A017]/20 text-amber-900 border border-[#D4A017]/30">
+                <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                <span>Zero Brokerage Dedicated Buyer Advisory</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-neutral-950 tracking-tight">
+                Looking for a Specific Property? Tell Us Your Requirement
+              </h2>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Skip endless browsing. Share your preferred location, budget and configuration. Our verified relationship managers will handpick matching direct-developer units and schedule private site visits.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                {[
+                  { label: 'Direct Developer Rate', desc: 'No middleman markup' },
+                  { label: '100% Verified RERA', desc: 'Pre-vetted legal titles' },
+                  { label: 'Cab Site Visits', desc: 'Doorstep pickup & tour' },
+                  { label: 'Home Loan Desk', desc: 'Lowest interest rates' },
+                ].map((perk, i) => (
+                  <div key={i} className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/70">
+                    <div className="text-xs font-bold text-neutral-900">{perk.label}</div>
+                    <div className="text-[10px] text-neutral-500">{perk.desc}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Tell Us Your Property Requirement
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-300 max-w-2xl leading-relaxed">
-              Have specific budget criteria or looking for pre-launch developer allocation? Submit your exact requirement and get direct-developer options with zero brokerage within 30 minutes.
-            </p>
-          </div>
 
-          <div className="shrink-0 flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            <button
-              type="button"
-              onClick={() => setRequirementModalOpen(true)}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer"
-            >
-              <ClipboardEdit className="w-4 h-4" />
-              <span>Submit Requirement</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="shrink-0 w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => setRequirementOpen(true)}
+                className="px-8 py-4 rounded-2xl bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 font-black text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Tell Us Your Property Requirement</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <span className="text-[11px] text-neutral-500 text-center font-medium">
+                Free consultation • Response within 30 minutes
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Properties Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      {/* Popular Maharashtra Locations Section */}
+      <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
           <div>
-            <span className="text-xs font-bold text-[#D4A017] uppercase tracking-wider">
-              Exclusive Inventory
+            <span className="text-xs font-bold uppercase tracking-wider text-[#D4A017]">
+              Strategic Corridors
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-950">
-              Featured Properties for Sale
+            <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 mt-1">
+              Explore Popular Maharashtra Hubs
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-              Hand-picked verified luxury residences and commercial suites
-            </p>
           </div>
-
           <Link
             href="/properties"
-            className="text-xs font-bold text-neutral-900 hover:text-[#D4A017] flex items-center gap-1 transition-colors"
+            className="text-xs font-semibold text-neutral-700 hover:text-[#D4A017] flex items-center gap-1"
           >
-            <span>View All ({store.getProperties().length}) Properties</span>
+            <span>View All Localities</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProperties.map((prop) => (
-            <PropertyCard
-              key={prop.id}
-              property={prop}
-              onScheduleVisit={(p) => {
-                setSelectedProperty(p);
-                setVisitOpen(true);
-              }}
-              onEnquire={(p) => {
-                setSelectedProperty(p);
-                setEnquiryOpen(true);
-              }}
-            />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {locations.map((loc) => (
+            <Link
+              key={loc.name}
+              href={`/properties?city=${loc.city}`}
+              className="group relative rounded-2xl overflow-hidden aspect-[4/5] bg-neutral-900 shadow-xs hover:shadow-md transition-all"
+            >
+              <Image
+                src={loc.image}
+                alt={loc.name}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300 opacity-75 group-hover:opacity-90"
+                sizes="(max-width: 768px) 50vw, 16vw"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-neutral-950/20 to-transparent p-3.5 flex flex-col justify-end">
+                <h4 className="text-white font-bold text-sm leading-tight">{loc.name}</h4>
+                <p className="text-[11px] text-amber-300 font-medium">{loc.count}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
 
-      {/* Why Buy Through Prosify Section */}
-      <section className="bg-neutral-900 text-white py-16 border-y border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <span className="text-xs font-bold text-[#D4A017] uppercase tracking-wider">
-              The Prosify Advantage
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Why Buyers Trust Prosify
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-400">
-              Transparent transactions directly with top-tier developers
+      {/* Smart Property Matcher Interactive Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-14">
+        <div className="bg-gradient-to-r from-[#171717] via-[#262626] to-[#1E293B] rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden border border-neutral-800">
+          <div className="relative z-10 max-w-2xl space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#D4A017] text-neutral-950">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Proprietary Algorithm</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+              Find Your Ideal Home in 30 Seconds
+            </h3>
+            <p className="text-neutral-300 text-sm leading-relaxed">
+              Answer 4 quick preferences regarding budget, locality, and family configuration. Our multi-weighted matching engine scours certified developer inventory to surface your highest-scoring properties.
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="p-6 bg-neutral-950/80 rounded-3xl border border-neutral-800 space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-[#D4A017] flex items-center justify-center font-bold">
-                <BadgePercent className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">Zero Brokerage</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Direct transactions without intermediary charges. 100% savings on brokerage fees for property buyers.
-              </p>
-            </div>
-
-            <div className="p-6 bg-neutral-950/80 rounded-3xl border border-neutral-800 space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-[#D4A017] flex items-center justify-center font-bold">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">100% RERA Verified</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Every listed project is verified with official MahaRERA registration, floor plans, and title clearances.
-              </p>
-            </div>
-
-            <div className="p-6 bg-neutral-950/80 rounded-3xl border border-neutral-800 space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-[#D4A017] flex items-center justify-center font-bold">
-                <Car className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">Free Chauffeur Site Visits</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Experience doorstep luxury pickup & drop for site visits with dedicated property specialists.
-              </p>
-            </div>
-
-            <div className="p-6 bg-neutral-950/80 rounded-3xl border border-neutral-800 space-y-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-[#D4A017] flex items-center justify-center font-bold">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-white">Direct Developer Discounts</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Exclusive festive schemes, pre-launch priority allocations, and upfront developer price benefits.
-              </p>
+            <div className="pt-2">
+              <button
+                onClick={() => setMatcherOpen(true)}
+                className="px-6 py-3 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-sm transition-all shadow-md flex items-center gap-2"
+              >
+                <span>Launch Smart Property Matcher</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Top Developers Showcase */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full space-y-8">
+      {/* Featured Properties Showcase */}
+      <section className="py-14 bg-white border-y border-neutral-200/80 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#D4A017]">
+                Handpicked Collections
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 mt-1">
+                Featured Verified Properties
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+                Curated high-demand inventory with zero brokerage and direct developer transparency
+              </p>
+            </div>
+
+            <Link
+              href="/properties"
+              className="text-xs font-semibold px-4 py-2 rounded-xl border border-neutral-300 hover:border-neutral-900 text-neutral-800 transition-colors flex items-center gap-1.5 shrink-0"
+            >
+              <span>Explore All ({allProperties.length})</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredProperties.map((prop) => (
+              <PropertyCard
+                key={prop.id}
+                property={prop}
+                onScheduleVisit={handleOpenSiteVisit}
+                onEnquire={handleOpenEnquiry}
+                onToggleCompare={handleToggleCompare}
+                isCompared={comparedPropertyIds.includes(prop.id)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* New Launch Projects Showcase */}
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <span className="text-xs font-bold text-[#D4A017] uppercase tracking-wider">
-              Trusted Builders
+            <span className="text-xs font-bold uppercase tracking-wider text-[#D4A017]">
+              Masterplanned Communities
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-950">
-              Leading Real Estate Developers
+            <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 mt-1">
+              Trending New Launch Projects
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-              Certified developers with proven delivery track records in Maharashtra
+              Explore integrated townships, clubhouses, and pre-launch booking pricing
             </p>
           </div>
 
           <Link
-            href="/developers"
-            className="text-xs font-bold text-neutral-900 hover:text-[#D4A017] flex items-center gap-1"
+            href="/projects"
+            className="text-xs font-semibold px-4 py-2 rounded-xl border border-neutral-300 hover:border-neutral-900 text-neutral-800 transition-colors flex items-center gap-1.5 shrink-0"
           >
-            <span>View All Developers</span>
+            <span>View All Projects</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {developers.slice(0, 3).map((dev) => (
-            <div
-              key={dev.id}
-              className="p-5 rounded-3xl border border-neutral-200 bg-white hover:shadow-lg transition-all space-y-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-neutral-100 relative overflow-hidden shrink-0">
-                  <Image
-                    src={dev.logo}
-                    alt={dev.name}
-                    fill
-                    className="object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {projects.map((proj) => (
+            <ProjectCard key={proj.id} project={proj} />
+          ))}
+        </div>
+      </section>
+
+      {/* Trusted Developers Showcase */}
+      <section className="py-14 bg-neutral-100 border-t border-neutral-200 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center max-w-xl mx-auto space-y-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#D4A017]">
+              Grade-A Real Estate Partners
+            </span>
+            <h3 className="text-2xl font-bold text-neutral-950">
+              India’s Leading Real Estate Developers
+            </h3>
+            <p className="text-xs text-neutral-600">
+              Direct inventory synchronization with certified track records of timely delivery
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {developers.map((dev) => (
+              <Link
+                key={dev.id}
+                href={`/developers/${dev.slug}`}
+                className="bg-white p-4 rounded-xl border border-neutral-200/90 text-center hover:border-[#D4A017] transition-all group flex flex-col items-center justify-between gap-2 shadow-2xs"
+              >
+                <div className="w-12 h-12 rounded-full bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-800 font-bold text-sm group-hover:scale-105 transition-transform">
+                  <Building className="w-6 h-6 text-[#D4A017]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-neutral-950 line-clamp-1">{dev.name}</h3>
-                  <span className="text-[11px] text-neutral-500">Est. {dev.establishedYear} • {dev.completedSqFtMillion}M+ sq.ft delivered</span>
+                  <h4 className="font-bold text-xs text-neutral-900 line-clamp-1">{dev.name}</h4>
+                  <p className="text-[11px] text-neutral-500 mt-0.5">{dev.ongoingProjects} Active Projects</p>
                 </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Channel Partner & Developer Dual CTA Banner */}
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Partner Box */}
+          <div className="bg-[#171717] text-white p-8 rounded-3xl border border-neutral-800 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#F4C430] border border-[#D4A017]/40">
+                <Users className="w-3.5 h-3.5" />
+                <span>Channel Partner Program</span>
               </div>
-              <p className="text-xs text-neutral-600 line-clamp-2 leading-relaxed">
-                {dev.description}
+              <h3 className="text-2xl font-bold text-white">
+                Earn Up to 3.5% Brokerage on Every Booking
+              </h3>
+              <p className="text-neutral-400 text-sm leading-relaxed">
+                Join Maharashtra’s top real estate affiliate network. Get custom tracking links, instant client lead registration, automated commission ledger, and verified site visit assistance.
               </p>
-              <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
-                <span className="text-neutral-500 font-medium">{dev.totalProjects} Active Projects</span>
-                <Link
-                  href={`/properties?q=${encodeURIComponent(dev.name)}`}
-                  className="font-bold text-[#D4A017] hover:underline"
-                >
-                  View Listings &rarr;
-                </Link>
-              </div>
             </div>
-          ))}
+            <div className="pt-4">
+              <Link
+                href="/partner"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-xs transition-colors"
+              >
+                <span>Partner Portal & Registration</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Developer Box */}
+          <div className="bg-gradient-to-br from-neutral-900 to-slate-900 text-white p-8 rounded-3xl border border-neutral-800 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Developer Inventory Sync</span>
+              </div>
+              <h3 className="text-2xl font-bold text-white">
+                List Projects & Broadcast Real-Time Availability
+              </h3>
+              <p className="text-neutral-400 text-sm leading-relaxed">
+                Upload master plans, manage tower-by-tower inventory with CSV import, lock units in real-time, and access hundreds of active channel partner distributions across MMR & Pune.
+              </p>
+            </div>
+            <div className="pt-4">
+              <Link
+                href="/developer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs transition-colors"
+              >
+                <span>Developer Inventory Console</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -363,17 +584,24 @@ export default function HomePage() {
         isOpen={enquiryOpen}
         onClose={() => setEnquiryOpen(false)}
         property={selectedProperty}
+        project={selectedProject}
       />
 
       <SiteVisitModal
         isOpen={visitOpen}
         onClose={() => setVisitOpen(false)}
         property={selectedProperty}
+        project={selectedProject}
+      />
+
+      <SmartMatcherModal
+        isOpen={matcherOpen}
+        onClose={() => setMatcherOpen(false)}
       />
 
       <PropertyRequirementModal
-        isOpen={requirementModalOpen}
-        onClose={() => setRequirementModalOpen(false)}
+        isOpen={requirementOpen}
+        onClose={() => setRequirementOpen(false)}
       />
     </div>
   );
