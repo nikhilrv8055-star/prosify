@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import {
   X,
   Building2,
@@ -40,7 +39,6 @@ export function PropertyRequirementModal({
   defaultBudget = '₹75 Lakh - ₹1.2 Cr',
   defaultBhk = '2 BHK',
 }: PropertyRequirementModalProps) {
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [fullName, setFullName] = useState('');
@@ -158,11 +156,12 @@ export function PropertyRequirementModal({
 
     try {
       // Capture UTMs from URL or stored attribution
+      const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
       const stored = getStoredAttribution();
-      const utmSource = searchParams?.get('utm_source') || stored?.utmSource || 'WEBSITE';
-      const utmMedium = searchParams?.get('utm_medium') || stored?.utmMedium || 'BUY_REQUIREMENT_MODAL';
-      const utmCampaign = searchParams?.get('utm_campaign') || stored?.utmCampaign || 'PURCHASE_DEMAND';
-      const partnerCode = searchParams?.get('ref') || searchParams?.get('partner') || stored?.partnerCode;
+      const utmSource = urlParams?.get('utm_source') || stored?.utmSource || 'WEBSITE';
+      const utmMedium = urlParams?.get('utm_medium') || stored?.utmMedium || 'BUY_REQUIREMENT_MODAL';
+      const utmCampaign = urlParams?.get('utm_campaign') || stored?.utmCampaign || 'PURCHASE_DEMAND';
+      const partnerCode = urlParams?.get('ref') || urlParams?.get('partner') || stored?.partnerCode;
 
       const payload = {
         name: cleanName,

@@ -5,6 +5,7 @@ import { AuthProvider } from '@/lib/auth/authContext';
 import { ToastProvider } from '@/components/ui/toast';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { AttributionTracker } from '@/components/marketplace/AttributionTracker';
+import { RequirementPopupWidget } from '@/components/marketplace/RequirementPopupWidget';
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -32,6 +33,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
         {children}
         <AuthModal />
         <AttributionTracker />
+        <RequirementPopupWidget />
       </ToastProvider>
     </AuthProvider>
   );

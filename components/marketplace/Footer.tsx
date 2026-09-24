@@ -30,6 +30,11 @@ export function Footer() {
             <h4 className="text-white text-sm font-semibold tracking-wider uppercase">Marketplace</h4>
             <ul className="space-y-2 text-sm text-neutral-400">
               <li>
+                <Link href="/post-requirement" className="text-[#F4C430] font-semibold hover:underline flex items-center gap-1 transition-colors">
+                  <span>★ Post Requirement</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/properties?type=BUY" className="hover:text-[#D4A017] transition-colors">
                   Properties for Sale (Buy)
                 </Link>
