@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "prosify-real-estate",
+  "name": "prosify",
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-02-15",
   "compatibility_flags": [
@@ -28,7 +28,7 @@
   "kv_namespaces": [
     {
       "binding": "KV_CACHE",
-      "id": "REPLACE_WITH_YOUR_KV_ID"
+      "id": "801fe9ecb7d04f2884fe6701c36cfff9"
     }
   ],
   "r2_buckets": [
