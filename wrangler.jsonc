@@ -33,10 +33,6 @@
   ],
   "r2_buckets": [
     {
-      "binding": "NEXT_INC_CACHE_R2_BUCKET",
-      "bucket_name": "prosify-cache"
-    },
-    {
       "binding": "R2_UPLOADS",
       "bucket_name": "prosify-uploads"
     }
