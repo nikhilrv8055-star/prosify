@@ -21,7 +21,7 @@
     {
       "binding": "DB",
       "database_name": "prosify_production",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_id": "0429eb5c-27a5-4fb8-8fac-c53e09f8036d",
       "migrations_dir": "migrations"
     }
   ],
