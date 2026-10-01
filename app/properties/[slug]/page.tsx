@@ -36,7 +36,7 @@ import Script from 'next/script';
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const slug = (params?.slug as string) || '';
   const { isSaved, toggleSavedProperty } = useAuth();
   const { toast } = useToast();
 

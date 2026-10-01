@@ -13,7 +13,7 @@ import { MobileValuationModal } from './MobileValuationModal';
 import { EMICalculator } from './EMICalculator';
 
 export function MobileBottomNav() {
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
   const router = useRouter();
   const { user, openAuthModal, savedPropertyIds } = useAuth();
 

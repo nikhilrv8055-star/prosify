@@ -33,8 +33,8 @@ interface NavbarProps {
 
 function PartnerTrackerBanner() {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const partnerQuery = searchParams.get('partner');
+  const pathname = usePathname() || '';
+  const partnerQuery = searchParams?.get('partner');
   const partnerAttribution = partnerQuery ? partnerQuery.toUpperCase() : null;
 
   useEffect(() => {
@@ -46,9 +46,9 @@ function PartnerTrackerBanner() {
           partnerCode: partnerQuery,
           targetPath: pathname,
           eventType: 'LANDING_PAGE_VIEW',
-          utmSource: searchParams.get('utm_source'),
-          utmMedium: searchParams.get('utm_medium'),
-          utmCampaign: searchParams.get('utm_campaign'),
+          utmSource: searchParams?.get('utm_source'),
+          utmMedium: searchParams?.get('utm_medium'),
+          utmCampaign: searchParams?.get('utm_campaign'),
         }),
       }).catch(() => {});
     }
@@ -69,7 +69,7 @@ function PartnerTrackerBanner() {
 }
 
 export function Navbar({ onOpenMatcher }: NavbarProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [internalMatcherOpen, setInternalMatcherOpen] = useState(false);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);

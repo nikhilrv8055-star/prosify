@@ -43,14 +43,14 @@ function PropertiesContent() {
   const { toast } = useToast();
 
   // URL parameters init
-  const initialCity = searchParams.get('city') || 'ALL';
-  const initialType = searchParams.get('type') || 'ALL';
-  const initialPropType = searchParams.get('propertyType') || 'ALL';
-  const initialBhk = searchParams.get('bhk') || '';
-  const initialPossession = searchParams.get('possession') || '';
-  const initialMinPrice = Number(searchParams.get('minPrice')) || 0;
-  const initialMaxPrice = Number(searchParams.get('maxPrice')) || 0;
-  const initialQuery = searchParams.get('q') || '';
+  const initialCity = searchParams?.get('city') || 'ALL';
+  const initialType = searchParams?.get('type') || 'ALL';
+  const initialPropType = searchParams?.get('propertyType') || 'ALL';
+  const initialBhk = searchParams?.get('bhk') || '';
+  const initialPossession = searchParams?.get('possession') || '';
+  const initialMinPrice = Number(searchParams?.get('minPrice')) || 0;
+  const initialMaxPrice = Number(searchParams?.get('maxPrice')) || 0;
+  const initialQuery = searchParams?.get('q') || '';
 
   // Multi-criteria filter state (persisted in localStorage + URL)
   const [criteria, setCriteria] = useState<MobileFilterCriteria>(() => {
@@ -70,13 +70,13 @@ function PropertiesContent() {
         const saved = localStorage.getItem('prosify_mobile_filters_v2');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (!searchParams.get('bhk') && parsed.bhks) base.bhks = parsed.bhks;
-          if (!searchParams.get('possession') && parsed.possessionStatuses) base.possessionStatuses = parsed.possessionStatuses;
-          if (!searchParams.get('maxPrice') && parsed.maxPrice) base.maxPrice = parsed.maxPrice;
-          if (!searchParams.get('minPrice') && parsed.minPrice) base.minPrice = parsed.minPrice;
-          if (!searchParams.get('city') && parsed.city) base.city = parsed.city;
-          if (!searchParams.get('type') && parsed.listingType) base.listingType = parsed.listingType === 'RENT' ? 'BUY' : parsed.listingType;
-          if (!searchParams.get('propertyType') && parsed.propertyType) base.propertyType = parsed.propertyType;
+          if (!searchParams?.get('bhk') && parsed.bhks) base.bhks = parsed.bhks;
+          if (!searchParams?.get('possession') && parsed.possessionStatuses) base.possessionStatuses = parsed.possessionStatuses;
+          if (!searchParams?.get('maxPrice') && parsed.maxPrice) base.maxPrice = parsed.maxPrice;
+          if (!searchParams?.get('minPrice') && parsed.minPrice) base.minPrice = parsed.minPrice;
+          if (!searchParams?.get('city') && parsed.city) base.city = parsed.city;
+          if (!searchParams?.get('type') && parsed.listingType) base.listingType = parsed.listingType === 'RENT' ? 'BUY' : parsed.listingType;
+          if (!searchParams?.get('propertyType') && parsed.propertyType) base.propertyType = parsed.propertyType;
           if (parsed.verifiedOnly !== undefined) base.verifiedOnly = parsed.verifiedOnly;
         }
       } catch {}

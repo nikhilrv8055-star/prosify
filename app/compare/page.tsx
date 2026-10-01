@@ -30,7 +30,7 @@ function CompareContent() {
   
   // Default to first 2 properties if none specified
   const initialSelected = useMemo(() => {
-    const ids = searchParams.get('ids')?.split(',').filter(Boolean) || [];
+    const ids = searchParams?.get('ids')?.split(',').filter(Boolean) || [];
     if (ids.length > 0) {
       return allProps.filter((p) => ids.includes(p.id));
     }

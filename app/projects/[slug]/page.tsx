@@ -28,7 +28,7 @@ import { formatIndianPrice } from '@/lib/utils';
 
 export default function ProjectDetailPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const slug = (params?.slug as string) || '';
 
   const project = useMemo(() => {
     return store.getProjectBySlug(slug) || store.getProjectById(slug);

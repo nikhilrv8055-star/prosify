@@ -18,8 +18,8 @@ import { store } from '@/lib/data/store';
 
 function ProjectsListContent() {
   const searchParams = useSearchParams();
-  const [city, setCity] = useState(searchParams.get('city') || 'ALL');
-  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [city, setCity] = useState(searchParams?.get('city') || 'ALL');
+  const [query, setQuery] = useState(searchParams?.get('q') || '');
 
   const projects = useMemo(() => {
     return store.getProjects({
