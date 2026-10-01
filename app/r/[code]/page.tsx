@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { store } from '@/lib/data/store';
+import { INITIAL_AFFILIATE_MEMBERS } from '@/lib/data/affiliateStore';
 
 interface ShortRedirectProps {
   params: Promise<{ code: string }>;
@@ -22,6 +23,18 @@ export default async function ShortRedirectPage({ params, searchParams }: ShortR
     }
   }
 
+  // Also check affiliate members (referralCode or customSlug)
+  if (!partnerCode) {
+    const affiliate = INITIAL_AFFILIATE_MEMBERS.find(
+      (a) =>
+        (a.referralCode && a.referralCode.toUpperCase() === code.toUpperCase()) ||
+        (a.customSlug && a.customSlug.toUpperCase() === code.toUpperCase())
+    );
+    if (affiliate && affiliate.referralCode) {
+      partnerCode = affiliate.referralCode;
+    }
+  }
+
   // Record click event in store
   if (partnerCode) {
     store.recordTrackingEvent(partnerCode, targetUrl, 'CLICK', link?.code);
@@ -29,7 +42,10 @@ export default async function ShortRedirectPage({ params, searchParams }: ShortR
 
   // Construct forward search query
   const query = new URLSearchParams();
-  if (partnerCode) query.set('partner', partnerCode);
+  if (partnerCode) {
+    query.set('partner', partnerCode);
+    query.set('ref', partnerCode);
+  }
   if (link?.utmSource) query.set('utm_source', link.utmSource);
   if (link?.utmMedium) query.set('utm_medium', link.utmMedium);
   if (link?.utmCampaign) query.set('utm_campaign', link.utmCampaign);

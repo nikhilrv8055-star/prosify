@@ -13,6 +13,7 @@ const createLeadSchema = z.object({
     'DIRECT_WEBSITE',
     'BUY_REQUIREMENT',
     'PROPERTY_REQUIREMENT',
+    'PROMATCH',
     'CHANNEL_PARTNER',
     'FACEBOOK',
     'META_ADS',
@@ -23,6 +24,7 @@ const createLeadSchema = z.object({
     'API',
     'MANUAL',
     'OTHER',
+    'WHATSAPP',
     'NINETY_NINE_ACRES',
     'MAGICBRICKS',
     'HOUSING',
@@ -41,7 +43,11 @@ const createLeadSchema = z.object({
   budget: z.string().optional(),
   requirement: z.string().optional(),
   location: z.string().optional(),
+  preferredLocations: z.array(z.string()).optional(),
   notes: z.string().optional(),
+  hasBrochureDownload: z.boolean().optional(),
+  hasWhatsappEngagement: z.boolean().optional(),
+  hasSiteVisitRequest: z.boolean().optional(),
   utmSource: z.string().optional(),
   utmMedium: z.string().optional(),
   utmCampaign: z.string().optional(),
@@ -148,17 +154,23 @@ export async function POST(req: NextRequest) {
       budget: validated.data.budget || 'Flexible',
       requirement: validated.data.requirement || 'General Enquiry',
       location: validated.data.location || 'Maharashtra',
+      preferredLocations: validated.data.preferredLocations,
       notes: validated.data.notes,
+      hasBrochureDownload: validated.data.hasBrochureDownload,
+      hasWhatsappEngagement: validated.data.hasWhatsappEngagement,
+      hasSiteVisitRequest: validated.data.hasSiteVisitRequest,
       utmSource: validated.data.utmSource,
       utmMedium: validated.data.utmMedium,
       utmCampaign: validated.data.utmCampaign,
-      assignedTo: 'Amit Sharma (Sales Mgr)',
+      assignedTo: 'Amit Sharma (Senior Relationship Mgr)',
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Enquiry received! Our property specialist will contact you shortly.',
+        message: newLead.qualification === 'HOT'
+          ? 'Priority inquiry received! A senior property director has been assigned.'
+          : 'Enquiry received! Our property specialist will contact you shortly.',
         data: newLead,
       },
       { status: 201 }

@@ -54,15 +54,17 @@ export function PropertyRequirementModal({
   const [submitted, setSubmitted] = useState(false);
   const [leadReference, setLeadReference] = useState('');
 
-  // Pre-fill / reset when modal opens
+  // Pre-fill when modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    const timer = setTimeout(() => {
       setSubmitted(false);
       setLeadReference('');
       if (defaultLocation && !location) setLocation(defaultLocation);
       if (defaultBudget && !budget) setBudget(defaultBudget);
-    }
-  }, [isOpen, defaultLocation, defaultBudget]);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [isOpen, defaultLocation, defaultBudget, location, budget]);
 
   // Lock body scroll when open
   useEffect(() => {

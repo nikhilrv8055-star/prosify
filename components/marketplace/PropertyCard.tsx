@@ -120,12 +120,17 @@ export function PropertyCard({
 
           {/* Badges Overlay */}
           <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
-            {property.isVerified && (
+            {property.isProVerifyCertified ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#D4A017] text-neutral-950 shadow-xs border border-amber-300">
+                <CheckCircle2 className="w-3 h-3 text-neutral-950" />
+                ProVerify™ Certified
+              </span>
+            ) : property.isVerified ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-600/95 text-white backdrop-blur-xs shadow-xs">
                 <CheckCircle2 className="w-3 h-3" />
                 Verified
               </span>
-            )}
+            ) : null}
             {property.isFeatured && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#D4A017] text-neutral-950 shadow-xs">
                 <Sparkles className="w-3 h-3" />

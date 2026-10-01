@@ -17,6 +17,7 @@ import {
   MapPin,
   ChevronRight,
   ClipboardEdit,
+  Share2,
 } from 'lucide-react';
 import { PortalSwitcher } from './PortalSwitcher';
 import { useAuth } from '@/lib/auth/authContext';
@@ -102,6 +103,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
     { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
     { label: 'Commercial', href: '/properties?type=COMMERCIAL', icon: Briefcase, highlight: false },
     { label: 'Locations', href: '/properties?view=locations', icon: MapPin, highlight: false },
+    { label: 'Affiliate', href: '/affiliate', icon: Share2, highlight: true, badge: '3%' },
   ];
 
   return (

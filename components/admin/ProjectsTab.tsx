@@ -22,12 +22,16 @@ import { store } from '@/lib/data/store';
 interface ProjectsTabProps {
   projects: Project[];
   onRefresh: () => void;
+  subview?: string;
 }
 
-export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
+export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalDismissed, setModalDismissed] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  const isAddOpen = isModalOpen || (subview === 'proj-add' && !modalDismissed);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -58,6 +62,8 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
 
   const handleOpenAdd = () => {
     setEditingProject(null);
+    setModalDismissed(false);
+    setIsModalOpen(true);
     setFormData({
       name: '',
       developerName: 'Godrej Properties',
@@ -226,7 +232,7 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
       </div>
 
       {/* Add / Edit Modal */}
-      {isModalOpen && (
+      {isAddOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="w-full max-w-xl bg-[#1E293B] border border-slate-700 rounded-2xl shadow-2xl p-6 relative">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-700">
@@ -234,7 +240,14 @@ export function ProjectsTab({ projects, onRefresh }: ProjectsTabProps) {
                 <Layers className="w-5 h-5 text-[#0EA5E9]" />
                 <span>{editingProject ? 'Edit Township Project' : 'Register Township Project'}</span>
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setModalDismissed(true);
+                }}
+                className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>

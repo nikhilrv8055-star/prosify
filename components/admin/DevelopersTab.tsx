@@ -15,6 +15,9 @@ import {
   Calendar,
   X,
   Award,
+  Upload,
+  FileCode,
+  Check,
 } from 'lucide-react';
 import { Developer } from '@/lib/types';
 import { store } from '@/lib/data/store';
@@ -27,7 +30,71 @@ interface DevelopersTabProps {
 export function DevelopersTab({ developers, onRefresh }: DevelopersTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingDev, setEditingDev] = useState<Developer | null>(null);
+  const [importJson, setImportJson] = useState('');
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState<string | null>(null);
+
+  const sampleDevelopers = [
+    {
+      name: 'Prestige Group',
+      establishedYr: 1986,
+      headquarters: 'Bengaluru & Mumbai MMR',
+      contactEmail: 'sales.mumbai@prestigeconstructions.com',
+      contactPhone: '+91 22 4110 5000',
+      website: 'https://prestigeconstructions.com',
+      about: 'Leading DA1 rated conglomerate developing luxury landmarks across MMR.',
+      totalProjects: 250,
+      completedProjects: 210,
+      ongoingProjects: 35,
+      upcomingProjects: 5,
+      isVerified: true,
+    },
+    {
+      name: 'Hiranandani Communities',
+      establishedYr: 1978,
+      headquarters: 'Powai, Mumbai',
+      contactEmail: 'info@hiranandani.net',
+      contactPhone: '+91 22 2576 3600',
+      website: 'https://hiranandani.com',
+      about: 'Pioneers of integrated master-planned townships with neo-classical architecture.',
+      totalProjects: 65,
+      completedProjects: 58,
+      ongoingProjects: 5,
+      upcomingProjects: 2,
+      isVerified: true,
+    },
+  ];
+
+  const handleBulkImport = async () => {
+    try {
+      setImportLoading(true);
+      setImportResult(null);
+      const parsed = JSON.parse(importJson);
+      const res = await fetch('/api/admin/developers/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Array.isArray(parsed) ? parsed : [parsed]),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setImportResult(`Successfully imported ${data.data.importedCount} new developers (${data.data.updatedCount} updated).`);
+        onRefresh();
+        setTimeout(() => {
+          setIsImportModalOpen(false);
+          setImportResult(null);
+          setImportJson('');
+        }, 1500);
+      } else {
+        setImportResult(`Error: ${data.error}`);
+      }
+    } catch (err: any) {
+      setImportResult(`Invalid JSON format: ${err.message}`);
+    } finally {
+      setImportLoading(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -127,13 +194,26 @@ export function DevelopersTab({ developers, onRefresh }: DevelopersTabProps) {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="px-4 py-2 rounded-xl bg-[#10B981] hover:bg-[#059669] text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-[#10B981]/20 cursor-pointer"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Register Developer</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setImportJson(JSON.stringify(sampleDevelopers, null, 2));
+              setIsImportModalOpen(true);
+            }}
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-[#D4A017] border border-[#D4A017]/30 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Import Portfolio</span>
+          </button>
+
+          <button
+            onClick={handleOpenAdd}
+            className="px-4 py-2 rounded-xl bg-[#10B981] hover:bg-[#059669] text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-[#10B981]/20 cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Register Developer</span>
+          </button>
+        </div>
       </div>
 
       <div className="p-4 rounded-2xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700 flex items-center gap-3">
@@ -285,6 +365,77 @@ export function DevelopersTab({ developers, onRefresh }: DevelopersTabProps) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Import Modal */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-xl bg-[#1E293B] border border-slate-700 rounded-2xl shadow-2xl p-6 relative">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-700">
+              <div className="flex items-center gap-2">
+                <FileCode className="w-5 h-5 text-[#D4A017]" />
+                <h3 className="text-base font-bold text-white">Import Developer Portfolio (JSON)</h3>
+              </div>
+              <button
+                onClick={() => setIsImportModalOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400 mb-3">
+              Paste an array of developer objects containing corporate details, projects track-record, and contact lines.
+            </p>
+
+            <textarea
+              rows={10}
+              value={importJson}
+              onChange={(e) => setImportJson(e.target.value)}
+              className="w-full p-3 font-mono text-xs bg-slate-900 rounded-xl border border-slate-700 text-emerald-400 focus:outline-none focus:border-[#D4A017]"
+              placeholder='[ { "name": "Prestige Group", "establishedYr": 1986, ... } ]'
+            />
+
+            {importResult && (
+              <div
+                className={`mt-3 p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  importResult.startsWith('Error') || importResult.startsWith('Invalid')
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                }`}
+              >
+                {importResult}
+              </div>
+            )}
+
+            <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-700">
+              <button
+                type="button"
+                onClick={() => setImportJson(JSON.stringify(sampleDevelopers, null, 2))}
+                className="text-xs text-[#D4A017] hover:underline cursor-pointer"
+              >
+                Reset to sample MMR developers
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsImportModalOpen(false)}
+                  className="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkImport}
+                  disabled={importLoading || !importJson.trim()}
+                  className="px-4 py-1.5 rounded-xl bg-[#D4A017] hover:bg-[#b8890f] text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {importLoading ? 'Importing...' : 'Execute Import'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

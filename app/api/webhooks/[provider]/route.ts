@@ -171,6 +171,19 @@ export async function POST(
         location: payload.location || 'Maharashtra',
         utmSource: 'google_cpc',
       };
+    } else if (providerUpper === 'REALATIC') {
+      // Realatic CRM Inbound Mapping (Build Pack v1.0 Isolation Layer)
+      leadData = {
+        name: payload.contact_name || payload.first_name || payload.name || 'Realatic CRM Lead',
+        phone: payload.mobile_number || payload.phone || '+91 99999 00000',
+        email: payload.email || '',
+        source: 'REALATIC_CRM',
+        budget: payload.budget_max ? `₹${payload.budget_max}` : (payload.budget || '₹1.25 Cr - ₹2.5 Cr'),
+        requirement: payload.requirement || `Realatic Lead Stage: ${payload.lead_stage || 'NEW'}`,
+        location: payload.preferred_location || payload.location || 'Mumbai MMR',
+        utmSource: 'realatic_crm_sync',
+        realaticCrmLeadId: payload.lead_id || payload.external_lead_id,
+      };
     } else {
       // Syndication Portals / Custom CRM Ingress
       leadData = {
@@ -188,31 +201,53 @@ export async function POST(
       processedIdempotencyKeys.add(idempotencyKey);
     }
 
-    const newLead = store.createLead({
-      name: leadData.name,
-      phone: leadData.phone,
-      email: leadData.email,
-      source: leadData.source as any,
-      budget: leadData.budget,
-      requirement: leadData.requirement,
-      location: leadData.location,
-      notes: `Webhook ingested via ${providerUpper} (Signature Verified: ${Boolean(signature && signatureValid)})`,
-      utmSource: leadData.utmSource,
-      utmCampaign: leadData.utmCampaign,
-    });
+    // Idempotent lead handling: update if existing phone exists, else create new
+    const existingLead = store.getLeads().find((l) => l.phone && l.phone === leadData.phone);
+    let targetLeadId: string;
 
-    store.addAuditLog(
-      'WEBHOOK_INGESTION',
-      'Integration',
-      `Lead received via ${providerUpper} webhook: ${newLead.name} (${newLead.phone})`,
-      newLead.id
-    );
+    if (existingLead) {
+      existingLead.updatedAt = new Date().toISOString();
+      if (leadData.budget) existingLead.budget = leadData.budget;
+      if (leadData.location) existingLead.location = leadData.location;
+      if (leadData.realaticCrmLeadId) existingLead.realaticLeadId = leadData.realaticCrmLeadId;
+      existingLead.notes = `${existingLead.notes || ''} | Re-engaged via ${providerUpper}`;
+      targetLeadId = existingLead.id;
+
+      store.addAuditLog(
+        'WEBHOOK_INGESTION_UPDATE',
+        'Integration',
+        `Existing lead updated via ${providerUpper} webhook: ${existingLead.name} (${existingLead.phone})`,
+        existingLead.id
+      );
+    } else {
+      const newLead = store.createLead({
+        name: leadData.name,
+        phone: leadData.phone,
+        email: leadData.email,
+        source: leadData.source as any,
+        budget: leadData.budget,
+        requirement: leadData.requirement,
+        location: leadData.location,
+        notes: `Webhook ingested via ${providerUpper} (Signature Verified: ${Boolean(signature && signatureValid)})`,
+        utmSource: leadData.utmSource,
+        utmCampaign: leadData.utmCampaign,
+      });
+      targetLeadId = newLead.id;
+
+      store.addAuditLog(
+        'WEBHOOK_INGESTION',
+        'Integration',
+        `Lead received via ${providerUpper} webhook: ${newLead.name} (${newLead.phone})`,
+        newLead.id
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
         message: `Webhook received and lead attributed successfully from ${providerUpper}`,
-        leadId: newLead.id,
+        leadId: targetLeadId,
+        isDuplicateUpdated: Boolean(existingLead),
       },
       { status: 200 }
     );

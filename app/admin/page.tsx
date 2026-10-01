@@ -55,6 +55,26 @@ import { ReportsTab } from '@/components/admin/ReportsTab';
 import { NotificationsTab } from '@/components/admin/NotificationsTab';
 import { SettingsTab } from '@/components/admin/SettingsTab';
 import { AuditLogsTab } from '@/components/admin/AuditLogsTab';
+import { PortalAccessTab } from '@/components/admin/PortalAccessTab';
+import { DeveloperApiTab } from '@/components/admin/DeveloperApiTab';
+import { AdminSidebarAccordion } from '@/components/admin/AdminSidebarAccordion';
+import { AdminMenuKey } from '@/components/admin/adminMenuTypes';
+import { PropertySpecificationsView } from '@/components/admin/views/PropertySpecificationsView';
+import { PropertyPricingRequestsView } from '@/components/admin/views/PropertyPricingRequestsView';
+import { PackageManagementView } from '@/components/admin/views/PackageManagementView';
+import { UsersManagementView } from '@/components/admin/views/UsersManagementView';
+import { VendorsManagementView } from '@/components/admin/views/VendorsManagementView';
+import { SupportTicketsAdminView } from '@/components/admin/views/SupportTicketsAdminView';
+import { HomePageCmsView } from '@/components/admin/views/HomePageCmsView';
+import { FooterCmsView } from '@/components/admin/views/FooterCmsView';
+import { BlogManagementView } from '@/components/admin/views/BlogManagementView';
+import { FaqManagementView } from '@/components/admin/views/FaqManagementView';
+import { AdvertisementsView } from '@/components/admin/views/AdvertisementsView';
+import { BasicSettingsView } from '@/components/admin/views/BasicSettingsView';
+import { PaymentGatewaysView } from '@/components/admin/views/PaymentGatewaysView';
+import { AdminManagementView } from '@/components/admin/views/AdminManagementView';
+import { AffiliateProgramView } from '@/components/admin/views/AffiliateProgramView';
+import { ShieldCheck, Bot, KeyRound, Webhook } from 'lucide-react';
 
 export default function AdminAppPage() {
   // Authentication State
@@ -160,6 +180,7 @@ export default function AdminAppPage() {
   const rolePermissions: Record<AdminRole, string[]> = {
     SUPER_ADMIN: [
       'dashboard',
+      'portal-access',
       'properties',
       'projects',
       'developers',
@@ -169,6 +190,7 @@ export default function AdminAppPage() {
       'partners',
       'commissions',
       'payouts',
+      'developer-api',
       'sync-center',
       'integrations',
       'reports',
@@ -178,9 +200,11 @@ export default function AdminAppPage() {
     ],
     ADMIN: [
       'dashboard',
+      'portal-access',
       'properties',
       'projects',
       'developers',
+      'developer-api',
       'inventory',
       'leads',
       'crm',
@@ -193,6 +217,7 @@ export default function AdminAppPage() {
     FINANCE_OFFICER: ['dashboard', 'commissions', 'payouts', 'partners', 'reports', 'notifications', 'audit-logs'],
     COMPLIANCE_OFFICER: [
       'dashboard',
+      'portal-access',
       'properties',
       'projects',
       'developers',
@@ -202,13 +227,38 @@ export default function AdminAppPage() {
     ],
   };
 
-  const isTabAllowed = rolePermissions[currentRole].includes(activeTab);
+  const isTabAllowed =
+    currentRole === 'SUPER_ADMIN' ||
+    rolePermissions[currentRole]?.includes(activeTab) ||
+    activeTab.startsWith('spec-') ||
+    activeTab.startsWith('prop-') ||
+    activeTab.startsWith('proj-') ||
+    activeTab.startsWith('pkg-') ||
+    activeTab.startsWith('users-') ||
+    activeTab.startsWith('vendors-') ||
+    activeTab.startsWith('tickets-') ||
+    activeTab.startsWith('home-') ||
+    activeTab.startsWith('footer-') ||
+    activeTab.startsWith('blog-') ||
+    activeTab.startsWith('faq-') ||
+    activeTab.startsWith('ads-') ||
+    activeTab.startsWith('settings-') ||
+    activeTab.startsWith('gateway-') ||
+    activeTab.startsWith('admin-') ||
+    activeTab === 'payment-logs';
 
   const tabsConfig = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: null },
+    { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard, badge: null },
+    {
+      id: 'portal-access',
+      label: 'Portal & Passwords',
+      icon: KeyRound,
+      badge: null,
+    },
     { id: 'properties', label: 'Properties', icon: Building2, badge: properties.length },
     { id: 'projects', label: 'Projects', icon: Layers, badge: projects.length },
     { id: 'developers', label: 'Developers', icon: Building, badge: developers.length },
+    { id: 'developer-api', label: 'Builder API Sync', icon: Webhook, badge: null },
     { id: 'inventory', label: 'Inventory', icon: Grid3X3, badge: units.length },
     { id: 'leads', label: 'Leads', icon: UserPlus, badge: leads.filter((l) => l.status === 'NEW').length },
     { id: 'crm', label: 'CRM Pipeline', icon: Workflow, badge: leads.filter((l) => l.status === 'SITE_VISIT_SCHEDULED').length },
@@ -283,73 +333,32 @@ export default function AdminAppPage() {
           />
         )}
 
-        {/* LEFT SIDEBAR NAVIGATION ("ek ke niche ek") */}
-        <aside
-          className={`fixed inset-y-0 left-0 z-40 w-64 bg-neutral-900/98 backdrop-blur-xl border-r border-neutral-800 flex flex-col pt-[57px] md:pt-0 transition-transform duration-200 ease-in-out md:static md:translate-x-0 md:h-[calc(100vh-57px)] md:sticky md:top-[57px] md:z-20 shrink-0 ${
-            mobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
+        {/* Mobile Left Sidebar */}
+        <div
+          className={`fixed inset-y-0 left-0 z-40 w-72 pt-[57px] md:pt-0 transition-transform duration-200 ease-in-out md:hidden ${
+            mobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
           }`}
         >
-          {/* Sidebar Header */}
-          <div className="p-3.5 border-b border-neutral-800/80 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-[#D4A017]" />
-              <span className="text-xs font-bold text-neutral-200 tracking-wider uppercase">Navigation</span>
-            </div>
-            <span className="text-[10px] font-mono text-neutral-400 bg-neutral-800 px-2 py-0.5 rounded-md border border-neutral-700/60">
-              {tabsConfig.length} Modules
-            </span>
-          </div>
+          <AdminSidebarAccordion
+            activeMenu={activeTab as AdminMenuKey}
+            onSelectMenu={(menu) => {
+              setActiveTab(menu);
+              setMobileSidebarOpen(false);
+            }}
+            currentUser={currentUser}
+          />
+        </div>
 
-          {/* Vertical list of all 16 options one below another */}
-          <nav className="flex-1 overflow-y-auto p-2.5 space-y-1" aria-label="Admin Navigation Sidebar">
-            {tabsConfig.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              const isAllowed = rolePermissions[currentRole].includes(tab.id);
-
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setMobileSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer group text-left ${
-                    isActive
-                      ? 'bg-[#D4A017] text-neutral-950 font-bold shadow-md shadow-amber-500/20'
-                      : isAllowed
-                      ? 'text-neutral-300 hover:text-white hover:bg-neutral-800/80'
-                      : 'text-neutral-600 hover:text-neutral-500 hover:bg-neutral-800/30 opacity-60'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-neutral-950' : 'text-neutral-400 group-hover:text-[#F4C430]'}`} />
-                    <span className="truncate">{tab.label}</span>
-                  </div>
-                  {tab.badge !== null && tab.badge > 0 && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ml-1.5 shrink-0 ${
-                        isActive
-                          ? 'bg-neutral-950 text-[#F4C430]'
-                          : tab.id === 'notifications' || tab.id === 'crm'
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                          : 'bg-neutral-800 text-neutral-300 border border-neutral-700/60'
-                      }`}
-                    >
-                      {tab.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Quick Admin User Footer inside Sidebar */}
-          <div className="p-3 border-t border-neutral-800/80 bg-neutral-950/50 text-[11px] text-neutral-400 flex items-center justify-between">
-            <span className="truncate font-mono">{currentUser}</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Online" />
-          </div>
-        </aside>
+        {/* Desktop Left Sidebar ("ek ke niche ek" with All 17 Modules & Collapsible Groups) */}
+        <div className="hidden md:block shrink-0">
+          <AdminSidebarAccordion
+            activeMenu={activeTab as AdminMenuKey}
+            onSelectMenu={(menu) => {
+              setActiveTab(menu);
+            }}
+            currentUser={currentUser}
+          />
+        </div>
 
         {/* Content Area */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6 overflow-x-hidden">
@@ -377,9 +386,11 @@ export default function AdminAppPage() {
           </div>
         ) : (
           <>
+            {/* 1. DASHBOARD & INTEGRATIONS */}
             {activeTab === 'dashboard' && (
               <DashboardTab
                 properties={properties}
+                projects={projects}
                 leads={leads}
                 partners={partners}
                 bookings={bookings}
@@ -390,46 +401,124 @@ export default function AdminAppPage() {
               />
             )}
 
-            {activeTab === 'properties' && (
-              <PropertiesTab properties={properties} onRefresh={refreshAllData} />
+            {activeTab === 'portal-access' && <PortalAccessTab />}
+            {activeTab === 'developer-api' && <DeveloperApiTab onRefresh={refreshAllData} />}
+
+            {/* 2. PROPERTY SPECIFICATIONS */}
+            {activeTab.startsWith('spec-') && (
+              <PropertySpecificationsView subview={activeTab} />
             )}
 
-            {activeTab === 'projects' && (
-              <ProjectsTab projects={projects} onRefresh={refreshAllData} />
+            {/* 3. PROPERTY MANAGEMENT & PRICING */}
+            {(activeTab.startsWith('prop-pricing-') || activeTab === 'prop-messages') && (
+              <PropertyPricingRequestsView subview={activeTab} />
+            )}
+            {(activeTab === 'properties' || (activeTab.startsWith('prop-') && !activeTab.startsWith('prop-pricing-') && activeTab !== 'prop-messages')) && (
+              <PropertiesTab properties={properties} onRefresh={refreshAllData} subview={activeTab} />
             )}
 
-            {activeTab === 'developers' && (
-              <DevelopersTab developers={developers} onRefresh={refreshAllData} />
-            )}
-
-            {activeTab === 'inventory' && (
-              <InventoryTab units={units} onRefresh={refreshAllData} />
-            )}
-
-            {activeTab === 'leads' && (
-              <LeadsTab leads={leads} onRefresh={refreshAllData} />
-            )}
-
-            {activeTab === 'crm' && (
-              <CrmTab leads={leads} onRefresh={refreshAllData} />
-            )}
-
-            {activeTab === 'partners' && (
+            {/* 4. PROJECT MANAGEMENT */}
+            {activeTab === 'proj-agents' && (
               <PartnersTab partners={partners} onRefresh={refreshAllData} />
             )}
-
-            {activeTab === 'commissions' && (
-              <CommissionsTab commissions={commissions} onRefresh={refreshAllData} />
+            {(activeTab === 'projects' || (activeTab.startsWith('proj-') && activeTab !== 'proj-agents')) && (
+              <ProjectsTab projects={projects} onRefresh={refreshAllData} subview={activeTab} />
             )}
 
-            {activeTab === 'payouts' && (
+            {/* 5. PACKAGE MANAGEMENT */}
+            {activeTab.startsWith('pkg-') && (
+              <PackageManagementView subview={activeTab} />
+            )}
+
+            {/* 6. PAYMENT LOG */}
+            {activeTab === 'payment-logs' && (
               <PayoutsTab commissions={commissions} onRefresh={refreshAllData} />
             )}
 
+            {/* 7. USERS MANAGEMENT */}
+            {activeTab.startsWith('users-') && (
+              <UsersManagementView subview={activeTab} />
+            )}
+
+            {/* 8. VENDORS MANAGEMENT */}
+            {activeTab.startsWith('vendors-') && (
+              <VendorsManagementView subview={activeTab} />
+            )}
+
+            {/* 9. SUPPORT TICKETS */}
+            {activeTab.startsWith('tickets-') && (
+              <SupportTicketsAdminView subview={activeTab} />
+            )}
+
+            {/* 10. HOME PAGE CMS */}
+            {activeTab.startsWith('home-') && (
+              <HomePageCmsView />
+            )}
+
+            {/* 11. FOOTER CMS */}
+            {activeTab.startsWith('footer-') && (
+              <FooterCmsView subview={activeTab} />
+            )}
+
+            {/* 12. BLOG MANAGEMENT */}
+            {activeTab.startsWith('blog-') && (
+              <BlogManagementView subview={activeTab} />
+            )}
+
+            {/* 13. FAQ MANAGEMENT */}
+            {activeTab === 'faq-manage' && (
+              <FaqManagementView />
+            )}
+
+            {/* 14. ADVERTISEMENTS & PHOTO ADS */}
+            {activeTab.startsWith('ads-') && (
+              <AdvertisementsView subview={activeTab as any} />
+            )}
+
+            {/* 15. BASIC SETTINGS */}
+            {activeTab.startsWith('settings-') && (
+              <BasicSettingsView subview={activeTab} />
+            )}
+
+            {/* 16. PAYMENT GATEWAYS */}
+            {activeTab.startsWith('gateway-') && (
+              <PaymentGatewaysView subview={activeTab} />
+            )}
+
+            {/* 17. ADMIN MANAGEMENT */}
+            {activeTab.startsWith('admin-') && (
+              <AdminManagementView subview={activeTab} />
+            )}
+
+            {/* 18. AFFILIATE PROGRAM */}
+            {activeTab.startsWith('affiliate-') && (
+              <AffiliateProgramView subview={activeTab} />
+            )}
+
+            {/* CLASSIC / SYSTEM TABS */}
+            {activeTab === 'developers' && (
+              <DevelopersTab developers={developers} onRefresh={refreshAllData} />
+            )}
+            {activeTab === 'inventory' && (
+              <InventoryTab units={units} onRefresh={refreshAllData} />
+            )}
+            {activeTab === 'leads' && (
+              <LeadsTab leads={leads} onRefresh={refreshAllData} />
+            )}
+            {activeTab === 'crm' && (
+              <CrmTab leads={leads} onRefresh={refreshAllData} />
+            )}
+            {activeTab === 'partners' && (
+              <PartnersTab partners={partners} onRefresh={refreshAllData} />
+            )}
+            {activeTab === 'commissions' && (
+              <CommissionsTab commissions={commissions} onRefresh={refreshAllData} />
+            )}
+            {activeTab === 'payouts' && (
+              <PayoutsTab commissions={commissions} onRefresh={refreshAllData} />
+            )}
             {activeTab === 'sync-center' && <SyncCenterTab />}
-
             {activeTab === 'integrations' && <IntegrationsTab />}
-
             {activeTab === 'reports' && (
               <ReportsTab
                 properties={properties}
@@ -439,7 +528,6 @@ export default function AdminAppPage() {
                 units={units}
               />
             )}
-
             {activeTab === 'notifications' && (
               <NotificationsTab
                 notifications={notifications}
@@ -448,9 +536,7 @@ export default function AdminAppPage() {
                 onNavigateTab={(tab) => setActiveTab(tab)}
               />
             )}
-
             {activeTab === 'settings' && <SettingsTab />}
-
             {activeTab === 'audit-logs' && <AuditLogsTab logs={auditLogs} />}
           </>
         )}

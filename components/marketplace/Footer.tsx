@@ -104,36 +104,36 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Partners & Portals */}
+          {/* Column 4: Company & Compliance */}
           <div className="space-y-3">
-            <h4 className="text-white text-sm font-semibold tracking-wider uppercase">Ecosystem</h4>
+            <h4 className="text-white text-sm font-semibold tracking-wider uppercase">Company & Trust</h4>
             <ul className="space-y-2 text-sm text-neutral-400">
               <li>
-                <Link href="/partner" className="hover:text-[#D4A017] transition-colors font-medium text-amber-300">
-                  {brandConfig.partnerPortalName}
+                <Link href="/about" className="hover:text-[#D4A017] transition-colors">
+                  About {brandConfig.name}
                 </Link>
               </li>
               <li>
-                <Link href="/developer" className="hover:text-[#D4A017] transition-colors font-medium text-emerald-400">
-                  {brandConfig.developerPortalName}
+                <Link href="/affiliate" className="text-[#F4C430] font-semibold hover:underline flex items-center gap-1 transition-colors">
+                  <span>★ Affiliate & Partner Program (Up to 3%)</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-[#D4A017] transition-colors">
+                  Contact Advisory Desk
                 </Link>
               </li>
               <li>
                 <Link href="/developers" className="hover:text-[#D4A017] transition-colors">
-                  Developers Directory
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-[#D4A017] transition-colors text-neutral-400">
-                  {brandConfig.adminName}
+                  Verified Builder Network
                 </Link>
               </li>
               <li className="pt-1">
-                <span className="text-xs text-neutral-500 block">
+                <span className="text-xs text-neutral-400 block font-medium">
                   Support: {brandConfig.contact.supportEmail}
                 </span>
-                <span className="text-xs text-neutral-500 block">
-                  Hotline: {brandConfig.contact.phone}
+                <span className="text-xs text-neutral-400 block font-medium">
+                  Helpline: {brandConfig.contact.phone}
                 </span>
               </li>
             </ul>

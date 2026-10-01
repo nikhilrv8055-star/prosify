@@ -34,6 +34,7 @@ import { useToast } from '@/components/ui/toast';
 interface PropertiesTabProps {
   properties: Property[];
   onRefresh: () => void;
+  subview?: string;
 }
 
 const PRESET_PROPERTY_IMAGES = [
@@ -69,13 +70,17 @@ const PRESET_PROPERTY_IMAGES = [
   },
 ];
 
-export function PropertiesTab({ properties, onRefresh }: PropertiesTabProps) {
+export function PropertiesTab({ properties, onRefresh, subview }: PropertiesTabProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [modalDismissed, setModalDismissed] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+
+  // Auto open Add Property modal when subview === 'prop-add'
+  const isAddOpen = isAddModalOpen || (subview === 'prop-add' && !modalDismissed);
 
   // File Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,6 +115,7 @@ export function PropertiesTab({ properties, onRefresh }: PropertiesTabProps) {
   });
 
   const filteredProperties = properties.filter((p) => {
+    if (subview === 'prop-featured' && !p.isFeatured) return false;
     const matchesSearch =
       p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.locality.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,6 +127,8 @@ export function PropertiesTab({ properties, onRefresh }: PropertiesTabProps) {
 
   const handleOpenAdd = () => {
     setEditingProperty(null);
+    setModalDismissed(false);
+    setIsAddModalOpen(true);
     setUrlInput('');
     setFormData({
       title: '',
@@ -593,7 +601,7 @@ export function PropertiesTab({ properties, onRefresh }: PropertiesTabProps) {
       </div>
 
       {/* Add / Edit Modal with Enhanced Photo Upload */}
-      {isAddModalOpen && (
+      {isAddOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-6 overflow-y-auto">
           <div className="w-full max-w-3xl bg-[#1E293B] border border-slate-700 rounded-3xl shadow-2xl p-5 sm:p-7 relative my-8 max-h-[92vh] flex flex-col">
             {/* Modal Header */}
@@ -612,7 +620,11 @@ export function PropertiesTab({ properties, onRefresh }: PropertiesTabProps) {
                 </div>
               </div>
               <button
-                onClick={() => setIsAddModalOpen(false)}
+                type="button"
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setModalDismissed(true);
+                }}
                 className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />

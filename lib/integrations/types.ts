@@ -34,7 +34,7 @@ export interface ParsedWebhookLead {
 
 export interface IntegrationProviderAdapter {
   id: string;
-  provider: 'META' | 'GOOGLE' | 'WHATSAPP' | '99ACRES' | 'MAGICBRICKS' | 'HOUSING';
+  provider: 'META' | 'GOOGLE' | 'WHATSAPP' | '99ACRES' | 'MAGICBRICKS' | 'HOUSING' | 'REALATIC';
   displayName: string;
   tagline: string;
   description: string;

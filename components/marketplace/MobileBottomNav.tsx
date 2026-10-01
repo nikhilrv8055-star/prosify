@@ -24,8 +24,14 @@ export function MobileBottomNav() {
   const [valuationOpen, setValuationOpen] = useState(false);
   const [loanCalcOpen, setLoanCalcOpen] = useState(false);
 
-  // Hide bottom nav on admin dashboard to allow specialized dashboard layouts
-  if (pathname.startsWith('/admin')) {
+  // Hide bottom nav on all 4 portals (admin, vendor, agent, customer)
+  const isPortal =
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/vendor') ||
+    pathname.startsWith('/agent') ||
+    pathname.startsWith('/customer');
+
+  if (isPortal) {
     return null;
   }
 

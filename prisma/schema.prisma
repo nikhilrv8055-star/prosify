@@ -1,4 +1,4 @@
-// Prisma Schema for SwarnaEstate Real Estate & Channel Partner Platform
+// Prisma Schema for Prosify Real Estate Marketplace & AI Realty Operating System
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -11,10 +11,15 @@ generator client {
 enum UserRole {
   SUPER_ADMIN
   ADMIN
+  VERIFICATION_OFFICER
   SALES_MANAGER
+  SALES_AGENT
   SALES_EXECUTIVE
   DEVELOPER
   CHANNEL_PARTNER
+  FRANCHISE
+  MARKETING_MANAGER
+  FINANCE
   CUSTOMER
 }
 
@@ -673,4 +678,67 @@ model SeoMetadata {
   canonical   String?
   ogImage     String?
   keywords    String?
+}
+
+model ReraRecord {
+  id                 String    @id @default(uuid())
+  projectId          String
+  projectName        String
+  reraNumber         String
+  registeredName     String
+  promoterName       String
+  projectType        String?
+  totalLandAreaSqMtr Float?
+  validUntil         DateTime
+  status             String    @default("UNDER_REVIEW")
+  extractedData      String?
+  mismatches         String?
+  rawResponse        String?
+  lastCheckedAt      DateTime  @default(now())
+}
+
+model BuyerRequirement {
+  id                   String    @id @default(uuid())
+  userId               String?
+  fullName             String
+  phone                String
+  email                String?
+  locations            String
+  budgetMin            Float     @default(0)
+  budgetMax            Float
+  configuration        String
+  purpose              String    @default("END_USE")
+  possessionPreference String    @default("ANY")
+  status               String    @default("ACTIVE")
+  createdAt            DateTime  @default(now())
+}
+
+model CrmSyncLog {
+  id              String    @id @default(uuid())
+  leadId          String
+  leadName        String
+  leadPhone       String
+  crmProvider     String    @default("REALATIC")
+  requestPayload  String?
+  responsePayload String?
+  statusCode      Int?
+  errorMessage    String?
+  syncStatus      String    @default("PENDING")
+  idempotencyKey  String    @unique
+  syncTimestamp   DateTime  @default(now())
+}
+
+model AiAgentAction {
+  id               String    @id @default(uuid())
+  agentName        String
+  inputContext     String?
+  modelUsed        String
+  outputGenerated  String?
+  confidenceScore  Float     @default(0)
+  approvalRequired Boolean   @default(false)
+  isApproved       Boolean   @default(false)
+  approvedBy       String?
+  approvedAt       DateTime?
+  actionTaken      String?
+  createdAt        DateTime  @default(now())
 }

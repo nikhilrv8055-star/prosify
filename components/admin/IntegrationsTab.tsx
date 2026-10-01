@@ -22,12 +22,15 @@ import {
   Send,
   Sliders,
   CheckCheck,
+  Building2,
 } from 'lucide-react';
 import { IntegrationAdapter } from '@/lib/types';
 import { OFFICIAL_ADAPTERS } from '@/lib/integrations/registry';
 import { IntegrationProviderAdapter } from '@/lib/integrations/types';
+import { DeveloperApiIntegrationSection } from './DeveloperApiIntegrationSection';
 
 export function IntegrationsTab() {
+  const [integrationSection, setIntegrationSection] = useState<'DEVELOPER_API' | 'LEAD_CHANNELS'>('DEVELOPER_API');
   const [adapters, setAdapters] = useState<IntegrationAdapter[]>([]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isTestingProvider, setIsTestingProvider] = useState<string | null>(null);
@@ -222,167 +225,213 @@ export function IntegrationsTab() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Header & Subtab Switcher */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
             <Cable className="w-5 h-5 text-[#0EA5E9]" />
-            <span>Modular Third-Party Integration Adapters</span>
+            <span>Enterprise Integrations & Developer Ingress Engine</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Ingest verified leads from official ad channels & developer portals. Strictly enforces official API / feed credentials — zero web scraping.
+            Configure Grade-A builder real-time API push gateways, outbound feed auto-sync, and official lead ad channels.
           </p>
         </div>
 
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-300">
           <Shield className="w-4 h-4 text-emerald-400" />
-          <span className="font-semibold text-white">Zero Scraping Policy</span>
+          <span className="font-semibold text-white">Authenticated Endpoints</span>
           <span className="text-slate-500">|</span>
-          <span className="text-slate-400">Official REST/JSON & Webhooks Only</span>
+          <span className="text-slate-400">Zero Scraping Policy</span>
         </div>
       </div>
 
-      {/* Grid of Modular Adapters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {adapters.map((adapter) => {
-          const isTesting = isTestingProvider === adapter.id;
-          const isSimulating = isSimulatingProvider === adapter.id;
-          const officialMeta = OFFICIAL_ADAPTERS[adapter.provider.toUpperCase()];
+      {/* Primary Subtab Switcher */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs font-bold w-fit">
+        <button
+          onClick={() => setIntegrationSection('DEVELOPER_API')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            integrationSection === 'DEVELOPER_API'
+              ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-slate-950 shadow-md shadow-indigo-500/20'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Grade-A Developer Push & Sync API Gateway</span>
+          <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${integrationSection === 'DEVELOPER_API' ? 'bg-slate-950/40 text-slate-950' : 'bg-emerald-500/20 text-emerald-400'}`}>
+            NEW
+          </span>
+        </button>
 
-          return (
-            <div
-              key={adapter.id}
-              className="p-5 rounded-2xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700 shadow-xl space-y-4 flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">{adapter.displayName}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
-                        {adapter.provider}
+        <button
+          onClick={() => setIntegrationSection('LEAD_CHANNELS')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            integrationSection === 'LEAD_CHANNELS'
+              ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-slate-950 shadow-md shadow-indigo-500/20'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Cable className="w-4 h-4" />
+          <span>Marketing & Lead Ad Ingestion Adapters ({adapters.length})</span>
+        </button>
+      </div>
+
+      {/* Render Developer API Section */}
+      {integrationSection === 'DEVELOPER_API' && (
+        <DeveloperApiIntegrationSection onRefreshAll={fetchIntegrations} />
+      )}
+
+      {/* Render Lead Channels Adapters Grid */}
+      {integrationSection === 'LEAD_CHANNELS' && (
+        <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              Official Marketing Ad Webhooks & Real Estate Portals
+            </h3>
+            <span className="text-[11px] text-slate-400">Strictly enforces official developer credentials</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {adapters.map((adapter) => {
+              const isTesting = isTestingProvider === adapter.id;
+              const isSimulating = isSimulatingProvider === adapter.id;
+              const officialMeta = OFFICIAL_ADAPTERS[adapter.provider.toUpperCase()];
+
+              return (
+                <div
+                  key={adapter.id}
+                  className="p-5 rounded-2xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700 shadow-xl space-y-4 flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="text-sm font-bold text-white">{adapter.displayName}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">
+                            {adapter.provider}
+                          </span>
+                          {adapter.requiresOfficialCredentials && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 flex items-center gap-1">
+                              <Lock className="w-2.5 h-2.5" />
+                              Official Credentials Required
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border flex items-center gap-1 shrink-0 ${
+                          adapter.isConnected
+                            ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60'
+                            : 'bg-amber-950/80 text-amber-300 border-amber-800/60'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        {adapter.statusText}
                       </span>
-                      {adapter.requiresOfficialCredentials && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 flex items-center gap-1">
-                          <Lock className="w-2.5 h-2.5" />
-                          Official Credentials Required
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed">{adapter.description}</p>
+
+                    {/* Inbound Webhook Endpoint */}
+                    {adapter.webhookUrl && (
+                      <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 text-xs font-mono">
+                        <span className="text-slate-400 text-[11px] truncate">
+                          Webhook: <span className="text-cyan-300">{adapter.webhookUrl}</span>
                         </span>
+                        <button
+                          onClick={() => handleCopy(`https://admin.prosify.in${adapter.webhookUrl}`, adapter.id)}
+                          className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white flex-shrink-0 cursor-pointer"
+                          title="Copy Ingress URL"
+                        >
+                          {copiedKey === adapter.id ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Handshake & Metric Details */}
+                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+                      <div>
+                        <span className="block text-[10px] text-slate-500">Leads Ingested</span>
+                        <strong className="text-cyan-400 font-mono text-xs">
+                          {adapter.leadsReceived || 0}
+                        </strong>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-500">Latency</span>
+                        <strong className="text-slate-200 font-mono text-xs">
+                          {adapter.lastTestLatencyMs ? `${adapter.lastTestLatencyMs}ms` : '< 250ms'}
+                        </strong>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-500">Rate Quota</span>
+                        <strong className="text-slate-200 font-mono text-xs">
+                          {adapter.rateLimitPerMin ? `${adapter.rateLimitPerMin}/min` : 'Unlimited'}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {adapter.lastTestMessage && (
+                      <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-1.5">
+                        <Activity className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+                        <span className="truncate">{adapter.lastTestMessage}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => openConfigModal(adapter)}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
+                      >
+                        <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Configure Credentials</span>
+                      </button>
+
+                      {adapter.officialDocsUrl && (
+                        <a
+                          href={adapter.officialDocsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                          title="View Official Provider API Documentation"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
                       )}
                     </div>
-                  </div>
 
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded border flex items-center gap-1 shrink-0 ${
-                      adapter.isConnected
-                        ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60'
-                        : 'bg-amber-950/80 text-amber-300 border-amber-800/60'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3 h-3" />
-                    {adapter.statusText}
-                  </span>
-                </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleTestHandshake(adapter)}
+                        disabled={isTesting}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold flex items-center gap-1 border border-slate-700 cursor-pointer disabled:opacity-50"
+                      >
+                        <RotateCw className={`w-3.5 h-3.5 text-cyan-400 ${isTesting ? 'animate-spin' : ''}`} />
+                        <span>{isTesting ? 'Testing...' : 'Test Handshake'}</span>
+                      </button>
 
-                <p className="text-xs text-slate-300 leading-relaxed">{adapter.description}</p>
-
-                {/* Inbound Webhook Endpoint */}
-                {adapter.webhookUrl && (
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 text-xs font-mono">
-                    <span className="text-slate-400 text-[11px] truncate">
-                      Webhook: <span className="text-cyan-300">{adapter.webhookUrl}</span>
-                    </span>
-                    <button
-                      onClick={() => handleCopy(`https://admin.prosify.in${adapter.webhookUrl}`, adapter.id)}
-                      className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white flex-shrink-0 cursor-pointer"
-                      title="Copy Ingress URL"
-                    >
-                      {copiedKey === adapter.id ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {/* Handshake & Metric Details */}
-                <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-800">
-                  <div>
-                    <span className="block text-[10px] text-slate-500">Leads Ingested</span>
-                    <strong className="text-cyan-400 font-mono text-xs">
-                      {adapter.leadsReceived || 0}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-500">Latency</span>
-                    <strong className="text-slate-200 font-mono text-xs">
-                      {adapter.lastTestLatencyMs ? `${adapter.lastTestLatencyMs}ms` : '< 250ms'}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-500">Rate Quota</span>
-                    <strong className="text-slate-200 font-mono text-xs">
-                      {adapter.rateLimitPerMin ? `${adapter.rateLimitPerMin}/min` : 'Unlimited'}
-                    </strong>
+                      <button
+                        onClick={() => handleSimulateLead(adapter)}
+                        disabled={isSimulating}
+                        className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1 shadow-md shadow-cyan-500/20 cursor-pointer disabled:opacity-50"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>{isSimulating ? 'Ingesting...' : 'Ingest Lead'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {adapter.lastTestMessage && (
-                  <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-1.5">
-                    <Activity className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
-                    <span className="truncate">{adapter.lastTestMessage}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => openConfigModal(adapter)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
-                  >
-                    <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Configure Credentials</span>
-                  </button>
-
-                  {adapter.officialDocsUrl && (
-                    <a
-                      href={adapter.officialDocsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                      title="View Official Provider API Documentation"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => handleTestHandshake(adapter)}
-                    disabled={isTesting}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-semibold flex items-center gap-1 border border-slate-700 cursor-pointer disabled:opacity-50"
-                  >
-                    <RotateCw className={`w-3.5 h-3.5 text-cyan-400 ${isTesting ? 'animate-spin' : ''}`} />
-                    <span>{isTesting ? 'Testing...' : 'Test Handshake'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSimulateLead(adapter)}
-                    disabled={isSimulating}
-                    className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1 shadow-md shadow-cyan-500/20 cursor-pointer disabled:opacity-50"
-                  >
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>{isSimulating ? 'Ingesting...' : 'Ingest Lead'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Official Credentials Configuration Modal */}
       {activeConfigModal && (

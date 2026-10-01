@@ -258,11 +258,23 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
               <button
                 type="button"
                 onClick={handleCopyReferral}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 font-black text-xs flex items-center justify-center gap-2 shadow-md"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-neutral-950" />
                 <span>Copy Link & Share on WhatsApp</span>
               </button>
+
+              <Link
+                href="/affiliate"
+                onClick={() => {
+                  setReferEarnOpen(false);
+                  onClose();
+                }}
+                className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Open Full Affiliate & Broker Portal (Earn 3%)</span>
+                <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              </Link>
             </div>
           </div>
         </div>

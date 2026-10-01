@@ -5,6 +5,25 @@ export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || '';
   const url = request.nextUrl.clone();
 
+  // Case-insensitive portal routing (/Vendor, /Agent, /Customer, /Admin)
+  const pathnameLower = url.pathname.toLowerCase();
+  if (pathnameLower === '/vendor' && url.pathname !== '/vendor') {
+    url.pathname = '/vendor';
+    return NextResponse.rewrite(url);
+  }
+  if (pathnameLower === '/agent' && url.pathname !== '/agent') {
+    url.pathname = '/agent';
+    return NextResponse.rewrite(url);
+  }
+  if (pathnameLower === '/customer' && url.pathname !== '/customer') {
+    url.pathname = '/customer';
+    return NextResponse.rewrite(url);
+  }
+  if (pathnameLower === '/admin' && url.pathname !== '/admin') {
+    url.pathname = '/admin';
+    return NextResponse.rewrite(url);
+  }
+
   // Check if accessing via admin domain or subdomain
   const isAdminHost =
     host === 'admin.example.com' ||
