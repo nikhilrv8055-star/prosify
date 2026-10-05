@@ -14,7 +14,7 @@
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "prosify-real-estate"
+      "service": "prosify"
     }
   ],
   "d1_databases": [
@@ -34,7 +34,7 @@
   "r2_buckets": [
     {
       "binding": "R2_UPLOADS",
-      "bucket_name": "prosify"
+      "bucket_name": "prosify-uploads"
     }
   ],
   "images": {
