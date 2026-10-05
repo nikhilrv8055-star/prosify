@@ -103,16 +103,41 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
     () => false
   );
 
+  const isAnySubModalOpen =
+    postPropertyOpen ||
+    requirementModalOpen ||
+    servicesModalOpen ||
+    billsModalOpen ||
+    referEarnOpen ||
+    planTypeOpen !== null ||
+    careersOpen ||
+    corporateEnquiryOpen ||
+    blogOpen ||
+    contactOpen;
+
   // Lock body scroll and listen to ESC key to close
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen && !isAnySubModalOpen) return;
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        if (isAnySubModalOpen) {
+          setPostPropertyOpen(false);
+          setRequirementModalOpen(false);
+          setServicesModalOpen(false);
+          setBillsModalOpen(false);
+          setReferEarnOpen(false);
+          setPlanTypeOpen(null);
+          setCareersOpen(false);
+          setCorporateEnquiryOpen(false);
+          setBlogOpen(false);
+          setContactOpen(false);
+        } else {
+          onClose();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -121,7 +146,7 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, isAnySubModalOpen, onClose]);
 
   const handleAuthClick = () => {
     if (!isAuthenticated) {
@@ -157,23 +182,25 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
     });
   };
 
-  if (!isOpen || !isMounted) return null;
+  if ((!isOpen && !isAnySubModalOpen) || !isMounted) return null;
 
   return createPortal(
     <>
-      <RightMenuDrawer
-        onClose={onClose}
-        onOpenPostProperty={() => setPostPropertyOpen(true)}
-        onOpenRequirement={() => setRequirementModalOpen(true)}
-        onOpenServices={() => setServicesModalOpen(true)}
-        onOpenReferEarn={() => setReferEarnOpen(true)}
-        onOpenPlan={(type) => setPlanTypeOpen(type)}
-        onOpenCareers={() => setCareersOpen(true)}
-        onOpenCorporateEnquiry={() => setCorporateEnquiryOpen(true)}
-        onOpenBlog={() => setBlogOpen(true)}
-        onOpenSupport={() => setContactOpen(true)}
-        onCopyEmail={handleCopyEmail}
-      />
+      {isOpen && (
+        <RightMenuDrawer
+          onClose={onClose}
+          onOpenPostProperty={() => setPostPropertyOpen(true)}
+          onOpenRequirement={() => setRequirementModalOpen(true)}
+          onOpenServices={() => setServicesModalOpen(true)}
+          onOpenReferEarn={() => setReferEarnOpen(true)}
+          onOpenPlan={(type) => setPlanTypeOpen(type)}
+          onOpenCareers={() => setCareersOpen(true)}
+          onOpenCorporateEnquiry={() => setCorporateEnquiryOpen(true)}
+          onOpenBlog={() => setBlogOpen(true)}
+          onOpenSupport={() => setContactOpen(true)}
+          onCopyEmail={handleCopyEmail}
+        />
+      )}
 
       {/* =================================================================== */}
       {/* SUB-MODALS FOR ALL 16 ITEMS                                         */}

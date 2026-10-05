@@ -28,59 +28,10 @@ export interface AdminTicketItem {
   lastReply: string;
 }
 
-const INITIAL_TICKETS: AdminTicketItem[] = [
-  {
-    id: 't-1',
-    ticketNumber: 'TKT-2026-9921',
-    creatorName: 'Adarsh Malhotra (Godrej Properties)',
-    creatorRole: 'VENDOR',
-    subject: 'Webhook endpoint verification for Godrej Riviera Unit Status',
-    category: 'API_SYNC',
-    priority: 'HIGH',
-    status: 'OPEN',
-    createdAt: '2026-09-30 08:30',
-    lastReply: 'Awaiting network security IP whitelist confirmation.',
-  },
-  {
-    id: 't-2',
-    ticketNumber: 'TKT-2026-9874',
-    creatorName: 'Rajesh Mehra',
-    creatorRole: 'BUYER',
-    subject: 'Request for MahaRERA title verification certificate PDF',
-    category: 'DISPUTE',
-    priority: 'MEDIUM',
-    status: 'PENDING',
-    createdAt: '2026-09-29 14:15',
-    lastReply: 'Legal desk requested title search report from registrar.',
-  },
-  {
-    id: 't-3',
-    ticketNumber: 'TKT-2026-9762',
-    creatorName: 'Amit Shah (Apex Realty CP)',
-    creatorRole: 'CHANNEL_PARTNER',
-    subject: 'TDS certificate Form 16A download for Q2 commission payout',
-    category: 'BILLING',
-    priority: 'LOW',
-    status: 'CLOSED',
-    createdAt: '2026-09-25 10:00',
-    lastReply: 'Form 16A dispatched to registered tax email ID.',
-  },
-  {
-    id: 't-4',
-    ticketNumber: 'TKT-2026-9940',
-    creatorName: 'Sandeep Poddar (Lodha Group)',
-    creatorRole: 'VENDOR',
-    subject: 'Request to increase maximum photo ad banners in Dombivli cluster',
-    category: 'LISTING_APPROVAL',
-    priority: 'HIGH',
-    status: 'OPEN',
-    createdAt: '2026-09-30 11:20',
-    lastReply: 'Marketing desk reviewing festive slot availability.',
-  },
-];
+const INITIAL_TICKETS: AdminTicketItem[] = [];
 
 export function SupportTicketsAdminView({ subview = 'tickets-all' }: { subview?: string }) {
-  const [tickets, setTickets] = useState<AdminTicketItem[]>(INITIAL_TICKETS);
+  const [tickets, setTickets] = useState<AdminTicketItem[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'open' | 'closed' | 'settings'>(
     subview === 'tickets-pending'
       ? 'pending'
@@ -236,7 +187,14 @@ export function SupportTicketsAdminView({ subview = 'tickets-all' }: { subview?:
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredTickets.map((t) => (
+                {filteredTickets.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-slate-400 text-xs">
+                      No support tickets or client inquiries opened yet.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTickets.map((t) => (
                   <tr key={t.id} className="hover:bg-slate-800/40">
                     <td className="p-3.5 font-mono font-bold text-amber-400">{t.ticketNumber}</td>
                     <td className="p-3.5">
@@ -285,7 +243,8 @@ export function SupportTicketsAdminView({ subview = 'tickets-all' }: { subview?:
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
               </tbody>
             </table>
           </div>

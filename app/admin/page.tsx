@@ -121,6 +121,7 @@ export default function AdminAppPage() {
 
   // Reload store state
   const refreshAllData = () => {
+    store.rehydrateFromStorage();
     setProperties([...store.getProperties()]);
     setProjects([...store.getProjects()]);
     setDevelopers([...store.getDevelopers()]);
@@ -132,6 +133,20 @@ export default function AdminAppPage() {
     setNotifications([...store.getNotifications()]);
     setAuditLogs([...store.getAuditLogs()]);
   };
+
+  // Subscribe to live multi-panel & website synchronization
+  useEffect(() => {
+    store.rehydrateFromStorage();
+    const unsubscribe = store.subscribe(() => {
+      refreshAllData();
+    });
+    const handleUpdate = () => refreshAllData();
+    window.addEventListener('prosify:store-updated', handleUpdate);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('prosify:store-updated', handleUpdate);
+    };
+  }, []);
 
   const handleAuthenticated = (token: string, username: string) => {
     setIsAuthenticated(true);

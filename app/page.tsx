@@ -29,7 +29,11 @@ import { EnquiryModal } from '@/components/marketplace/EnquiryModal';
 import { SiteVisitModal } from '@/components/marketplace/SiteVisitModal';
 import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
 import { PropertyRequirementModal } from '@/components/marketplace/PropertyRequirementModal';
-import { store } from '@/lib/data/store';
+import { MetaInstantFormModal } from '@/components/leadgen/MetaInstantFormModal';
+import { LocalityGuidesSection } from '@/components/leadgen/LocalityGuidesSection';
+import { LocalSeoConsultantsSection } from '@/components/leadgen/LocalSeoConsultantsSection';
+import { useLiveStore } from '@/lib/data/useLiveStore';
+import { CITY_HUBS } from '@/lib/data/panIndiaData';
 import { Property, Project } from '@/lib/types';
 import { formatIndianPrice } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
@@ -39,6 +43,7 @@ export default function HomePage() {
   const router = useRouter();
   const { toggleCompareProperty, comparedPropertyIds } = useAuth();
   const { toast } = useToast();
+  const { properties: allProperties, projects: allProjects, developers: allDevelopers, cities } = useLiveStore();
 
   // Search form state
   const [searchTab, setSearchTab] = useState<'BUY' | 'PROJECTS' | 'COMMERCIAL'>('BUY');
@@ -53,17 +58,17 @@ export default function HomePage() {
   const [visitOpen, setVisitOpen] = useState(false);
   const [matcherOpen, setMatcherOpen] = useState(false);
   const [requirementOpen, setRequirementOpen] = useState(false);
+  const [metaModalOpen, setMetaModalOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Compare properties
   const [comparedProperties, setComparedProperties] = useState<Property[]>([]);
 
-  // Get data from store
-  const allProperties = useMemo(() => store.getProperties(), []);
+  // Get reactive data from live synchronized store
   const featuredProperties = useMemo(() => allProperties.filter((p) => p.isFeatured).slice(0, 6), [allProperties]);
-  const projects = useMemo(() => store.getProjects().slice(0, 4), []);
-  const developers = useMemo(() => store.getDevelopers().slice(0, 6), []);
+  const projects = useMemo(() => allProjects.slice(0, 6), [allProjects]);
+  const developers = useMemo(() => allDevelopers.slice(0, 6), [allDevelopers]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,14 +113,7 @@ export default function HomePage() {
     toggleCompareProperty(property.id);
   };
 
-  const locations = [
-    { name: 'Mumbai MMR', city: 'Mumbai', count: '1,420+ Properties', image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=600&q=80' },
-    { name: 'Thane', city: 'Thane', count: '890+ Properties', image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80' },
-    { name: 'Dombivli', city: 'Dombivli', count: '640+ Properties', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80' },
-    { name: 'Kalyan', city: 'Kalyan', count: '510+ Properties', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80' },
-    { name: 'Pune', city: 'Pune', count: '1,150+ Properties', image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80' },
-    { name: 'Nagpur', city: 'Nagpur', count: '380+ Properties', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80' },
-  ];
+  const locations = CITY_HUBS;
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50/50">
@@ -142,15 +140,15 @@ export default function HomePage() {
           <div className="max-w-3xl space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#F4C430] border border-[#D4A017]/40 backdrop-blur-xs">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Maharashtra’s Most Trusted Direct Developer Marketplace</span>
+              <span>India’s Most Trusted Direct Developer Real Estate Marketplace</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              Find Your Perfect Property in Maharashtra
+              Find Your Perfect Home Across Top Indian Metros
             </h1>
 
             <p className="text-base sm:text-lg text-neutral-300 font-normal leading-relaxed">
-              Discover verified homes, new launch projects and high-yield investment opportunities across Mumbai, Thane, Dombivli, Pune and beyond with direct RERA transparency.
+              Explore verified properties, new launch projects, and high-yield real estate investments across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, and Ahmedabad with direct RERA transparency.
             </p>
           </div>
 
@@ -201,13 +199,12 @@ export default function HomePage() {
                     onChange={(e) => setCity(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-800"
                   >
-                    <option value="All">All Maharashtra Hubs</option>
-                    <option value="Mumbai">Mumbai MMR</option>
-                    <option value="Thane">Thane</option>
-                    <option value="Dombivli">Dombivli</option>
-                    <option value="Kalyan">Kalyan</option>
-                    <option value="Pune">Pune</option>
-                    <option value="Nagpur">Nagpur</option>
+                    <option value="All">All 9 Indian Metros</option>
+                    {cities.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -522,64 +519,81 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Channel Partner & Developer Dual CTA Banner */}
-      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Partner Box */}
-          <div className="bg-[#171717] text-white p-8 rounded-3xl border border-neutral-800 space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#F4C430] border border-[#D4A017]/40">
-                <Users className="w-3.5 h-3.5" />
-                <span>Channel Partner Program</span>
+      {/* META LEAD GENERATION ADS & INSTANT FORMS SHOWCASE */}
+      <section className="py-14 bg-[#0B1120] border-t border-slate-800 w-full text-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#1E293B] via-[#0B1120] to-[#1E293B] border border-slate-700/80 shadow-2xl relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="space-y-4 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-rose-500/20 to-purple-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+                <span>Meta Instant Forms & High-Intent Funnels</span>
               </div>
-              <h3 className="text-2xl font-bold text-white">
-                Earn Up to 3.5% Brokerage on Every Booking
-              </h3>
-              <p className="text-neutral-400 text-sm leading-relaxed">
-                Join Maharashtra’s top real estate affiliate network. Get custom tracking links, instant client lead registration, automated commission ledger, and verified site visit assistance.
-              </p>
-            </div>
-            <div className="pt-4">
-              <Link
-                href="/partner"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-xs transition-colors"
-              >
-                <span>Partner Portal & Registration</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
 
-          {/* Developer Box */}
-          <div className="bg-gradient-to-br from-neutral-900 to-slate-900 text-white p-8 rounded-3xl border border-neutral-800 space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Developer Inventory Sync</span>
-              </div>
-              <h3 className="text-2xl font-bold text-white">
-                List Projects & Broadcast Real-Time Availability
+              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+                Native Meta Lead Generation with <span className="text-[#0EA5E9]">Pre-Qualifying Friction Filters</span>
               </h3>
-              <p className="text-neutral-400 text-sm leading-relaxed">
-                Upload master plans, manage tower-by-tower inventory with CSV import, lock units in real-time, and access hundreds of active channel partner distributions across MMR & Pune.
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                When prospects click Facebook or Instagram Reel ads, native pre-filled contact details pop up instantly. Custom friction filters (budget brackets, timeline, and financing readiness) weed out casual window-shoppers so our sales advisors only receive verified, high-intent buyer inquiries.
               </p>
+
+              <div className="flex flex-wrap items-center gap-2.5 pt-2 text-xs">
+                <span className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400 font-bold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Pre-Filled Native Details
+                </span>
+                <span className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-cyan-400 font-bold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  Intent Scoring Filter
+                </span>
+                <span className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-amber-400 font-bold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  Zero Window-Shoppers
+                </span>
+              </div>
             </div>
-            <div className="pt-4">
-              <Link
-                href="/developer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-950 font-bold text-xs transition-colors"
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
+              <button
+                type="button"
+                onClick={() => setMetaModalOpen(true)}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#10B981] via-[#0EA5E9] to-[#10B981] hover:opacity-95 text-slate-950 font-black text-xs uppercase tracking-wider shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Developer Inventory Console</span>
+                <span>Launch Instant Form Experience</span>
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
+
+              <a
+                href="https://wa.me/919326303244"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-[#10B981] hover:bg-[#0da674] text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer"
+              >
+                <PhoneCall className="w-4 h-4" />
+                <span>WhatsApp</span>
+              </a>
             </div>
           </div>
         </div>
       </section>
 
+      {/* LOCALITY GUIDES & E-BOOKS SECTION */}
+      <div className="bg-[#0B1120] text-slate-100 border-t border-slate-800">
+        <LocalityGuidesSection limit={3} />
+      </div>
+
+      {/* LOCAL SEO & MICRO-MARKET CONSULTANTS SECTION */}
+      <div className="bg-[#0B1120] text-slate-100 border-t border-slate-800">
+        <LocalSeoConsultantsSection limit={3} />
+      </div>
+
       <Footer />
 
       {/* Modals */}
+      <MetaInstantFormModal
+        isOpen={metaModalOpen}
+        onClose={() => setMetaModalOpen(false)}
+      />
       <EnquiryModal
         isOpen={enquiryOpen}
         onClose={() => setEnquiryOpen(false)}

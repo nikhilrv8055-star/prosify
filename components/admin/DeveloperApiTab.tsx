@@ -302,7 +302,7 @@ export function DeveloperApiTab({ onRefresh }: DeveloperApiTabProps) {
 
         <div className="p-4 rounded-2xl bg-[#1E293B]/80 border border-slate-700/80">
           <span className="text-[11px] font-semibold text-purple-400 uppercase tracking-wider block">Sync Engine Health</span>
-          <span className="text-2xl font-black text-white mt-1 block">99.8%</span>
+          <span className="text-2xl font-black text-white mt-1 block">{connections.length > 0 ? '100%' : 'Ready'}</span>
           <span className="text-[11px] text-slate-400">Zero Pipeline Lag</span>
         </div>
       </div>
@@ -333,7 +333,14 @@ export function DeveloperApiTab({ onRefresh }: DeveloperApiTabProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-200">
-              {connections.map((c) => {
+              {connections.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400 text-xs">
+                    No developer API pipelines configured yet. Click &quot;Connect Builder API&quot; above to integrate an ERP push webhook or scheduled XML/JSON feed.
+                  </td>
+                </tr>
+              ) : (
+                connections.map((c) => {
                 const isSyncing = syncingId === c.id;
                 return (
                   <tr key={c.id} className="hover:bg-slate-800/40 transition-colors">
@@ -459,7 +466,7 @@ export function DeveloperApiTab({ onRefresh }: DeveloperApiTabProps) {
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

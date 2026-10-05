@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import {
   Building2,
   Menu,
@@ -16,15 +16,19 @@ import {
   Briefcase,
   MapPin,
   ChevronRight,
+  ChevronDown,
   ClipboardEdit,
   Share2,
+  Shield,
+  UserCheck,
+  BookOpen,
 } from 'lucide-react';
-import { PortalSwitcher } from './PortalSwitcher';
 import { useAuth } from '@/lib/auth/authContext';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
 import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
 import { MobileBurgerMenu } from './MobileBurgerMenu';
 import { PropertyRequirementModal } from './PropertyRequirementModal';
+import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
 
 interface NavbarProps {
   onOpenEnquiry?: () => void;
@@ -34,7 +38,7 @@ interface NavbarProps {
 function PartnerTrackerBanner() {
   const searchParams = useSearchParams();
   const pathname = usePathname() || '';
-  const partnerQuery = searchParams?.get('partner');
+  const partnerQuery = searchParams?.get('partner') || searchParams?.get('ref') || searchParams?.get('cp');
   const partnerAttribution = partnerQuery ? partnerQuery.toUpperCase() : null;
 
   useEffect(() => {
@@ -59,17 +63,20 @@ function PartnerTrackerBanner() {
   return (
     <div className="bg-[#D4A017] text-neutral-950 px-4 py-1.5 text-xs font-medium text-center flex items-center justify-center gap-2">
       <span>
-        Verified Channel Partner Referral Active: <strong>{partnerAttribution}</strong>
+        Verified Referral / Partner Active: <strong>{partnerAttribution}</strong>
       </span>
       <span className="text-[11px] opacity-80 hidden sm:inline">
-        • Exclusive booking benefits and direct developer pricing applied
+        • Direct developer pricing and verified booking guarantee active across all 9 Indian Metros
       </span>
     </div>
   );
 }
 
 export function Navbar({ onOpenMatcher }: NavbarProps) {
+  const router = useRouter();
   const pathname = usePathname() || '';
+  const searchParams = useSearchParams();
+  const currentCity = searchParams?.get('city') || 'ALL';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [internalMatcherOpen, setInternalMatcherOpen] = useState(false);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);
@@ -100,16 +107,15 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
     { label: 'Buy', href: '/properties?type=BUY', icon: Home, highlight: false },
     { label: 'Projects', href: '/projects', icon: Building2, highlight: false },
     { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Rocket, highlight: true, badge: 'HOT' },
+    { label: 'Guides & E-Books', href: '/guides', icon: BookOpen, highlight: true, badge: 'NEW' },
+    { label: 'Micro-Markets', href: '/micro-markets', icon: MapPin, highlight: false },
     { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
     { label: 'Commercial', href: '/properties?type=COMMERCIAL', icon: Briefcase, highlight: false },
-    { label: 'Locations', href: '/properties?view=locations', icon: MapPin, highlight: false },
-    { label: 'Affiliate', href: '/affiliate', icon: Share2, highlight: true, badge: '3%' },
+    { label: 'Affiliate', href: '/affiliate?tab=dashboard', icon: Share2, highlight: false, badge: '3%' },
   ];
 
   return (
     <>
-      <PortalSwitcher currentPortal="public" />
-
       <React.Suspense fallback={null}>
         <PartnerTrackerBanner />
       </React.Suspense>
@@ -118,9 +124,34 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-18 lg:h-20">
-            {/* Brand Logo */}
-            <div className="flex items-center shrink-0">
+            {/* Brand Logo & City Quick Selector */}
+            <div className="flex items-center gap-3 shrink-0">
               <ProsifyLogo variant="dark" size="md" href="/" showTagline={false} />
+
+              {/* Quick Pan-India Metro Selector */}
+              <div className="hidden xl:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200 text-xs transition-colors">
+                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <select
+                  value={currentCity}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'ALL') {
+                      router.push('/properties');
+                    } else {
+                      router.push(`/properties?city=${encodeURIComponent(val)}`);
+                    }
+                  }}
+                  className="bg-transparent font-bold text-neutral-800 focus:outline-none cursor-pointer pr-1 text-xs"
+                  title="Select City (All 9 Indian Metros)"
+                >
+                  <option value="ALL">All 9 Metros</option>
+                  {PAN_INDIA_CITIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Desktop Navigation Links (Clean, Centered & Professional) */}
@@ -152,12 +183,12 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
             </nav>
 
             {/* Desktop Right Actions: Post Requirement, Smart Match & Compare */}
-            <div className="hidden lg:flex items-center gap-2.5">
+            <div className="hidden lg:flex items-center gap-2">
               {/* Post Requirement Button */}
               <button
                 type="button"
                 onClick={() => setRequirementModalOpen(true)}
-                className="group px-3.5 py-2 rounded-xl text-xs font-bold bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 border border-amber-400/80 shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="group px-3 py-2 rounded-xl text-xs font-bold bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 border border-amber-400/80 shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                 title="Tell Us Your Property Requirement"
               >
                 <ClipboardEdit className="w-3.5 h-3.5 text-neutral-950" />
@@ -168,7 +199,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               <button
                 type="button"
                 onClick={handleOpenMatcher}
-                className="group px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-50 via-amber-100/60 to-amber-50 text-amber-900 border border-amber-300 hover:border-amber-400 hover:shadow-xs active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                className="group px-3 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-50 via-amber-100/60 to-amber-50 text-amber-900 border border-amber-300 hover:border-amber-400 hover:shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                 title="AI Smart Property Matcher"
               >
                 <div className="w-5 h-5 rounded-md bg-amber-500/20 flex items-center justify-center text-[#D4A017] group-hover:scale-110 transition-transform">
@@ -180,12 +211,12 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               {/* Compare Button */}
               <Link
                 href="/compare"
-                className="group relative px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-all active:scale-95"
+                className="group relative px-3 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
                 title="Property Comparison"
               >
-                <Scale className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
+                <Scale className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform" />
                 <span>Compare</span>
-                <span className="min-w-5 h-5 px-1.5 rounded-full bg-[#D4A017] text-neutral-950 font-extrabold text-[11px] flex items-center justify-center shadow-xs">
+                <span className="min-w-4.5 h-4.5 px-1 rounded-full bg-[#D4A017] text-neutral-950 font-extrabold text-[10px] flex items-center justify-center shadow-xs">
                   {compareCount}
                 </span>
               </Link>
@@ -194,7 +225,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`group px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-2xs ${
+                className={`group px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-2xs ${
                   mobileMenuOpen
                     ? 'bg-neutral-950 text-white border-neutral-900 ring-2 ring-[#D4A017]/30'
                     : 'bg-white hover:bg-neutral-100 hover:border-neutral-300 text-neutral-800 border-neutral-200'
@@ -203,11 +234,11 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
                 title="Hamburger Menu"
               >
                 {mobileMenuOpen ? (
-                  <X className="w-4 h-4 text-amber-400" />
+                  <X className="w-3.5 h-3.5 text-amber-400" />
                 ) : (
-                  <Menu className="w-4 h-4 text-neutral-700 group-hover:text-[#D4A017] transition-colors" />
+                  <Menu className="w-3.5 h-3.5 text-neutral-700 group-hover:text-[#D4A017] transition-colors" />
                 )}
-                <span>{mobileMenuOpen ? 'Close Menu' : 'Menu'}</span>
+                <span>{mobileMenuOpen ? 'Close' : 'Menu'}</span>
               </button>
             </div>
 

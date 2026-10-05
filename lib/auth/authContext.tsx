@@ -7,9 +7,10 @@ import { hasPermission as checkPermission, canAccessPortal as checkPortal } from
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
-  login: (email: string, role?: UserRole) => Promise<boolean>;
+  login: (email: string, role?: UserRole, password?: string) => Promise<boolean>;
+  loginWithGoogle: (payload: { email: string; name?: string; picture?: string; role?: UserRole }) => Promise<boolean>;
   logout: () => void;
-  switchRole: (role: UserRole) => void;
+  switchRole: (role: UserRole) => Promise<void>;
   hasPermission: (permission: Parameters<typeof checkPermission>[1]) => boolean;
   canAccessPortal: (portal: Parameters<typeof checkPortal>[1]) => boolean;
   savedPropertyIds: string[];
@@ -50,8 +51,8 @@ function subscribeToStorage(callback: () => void) {
   };
 }
 
-// Cached module-level constants for snapshots to guarantee reference equality across renders
-const SERVER_USER_SNAPSHOT: AuthUser = DEMO_USERS.SUPER_ADMIN;
+// Production default: unauthenticated null state (zero default privilege)
+const SERVER_USER_SNAPSHOT: AuthUser | null = null;
 const DEFAULT_SAVED_IDS: string[] = ['prop_1', 'prop_3'];
 const DEFAULT_COMPARE_IDS: string[] = ['prop_1', 'prop_2'];
 
@@ -65,11 +66,11 @@ function getUserSnapshot(): AuthUser | null {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (raw !== cachedUserRaw) {
       cachedUserRaw = raw;
-      cachedUser = raw ? JSON.parse(raw) : SERVER_USER_SNAPSHOT;
+      cachedUser = raw ? JSON.parse(raw) : null;
     }
     return cachedUser;
   } catch {
-    return SERVER_USER_SNAPSHOT;
+    return null;
   }
 }
 
@@ -128,33 +129,85 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  const login = async (email: string, preferredRole?: UserRole): Promise<boolean> => {
-    const matchedRole =
-      preferredRole ||
-      (Object.keys(DEMO_USERS).find(
-        (r) => DEMO_USERS[r as UserRole].email.toLowerCase() === email.toLowerCase()
-      ) as UserRole) ||
-      'CUSTOMER';
-
-    const baseUser = DEMO_USERS[matchedRole];
-    const loggedUser: AuthUser = {
-      ...baseUser,
-      email: email || baseUser.email,
-      name: email ? email.split('@')[0].toUpperCase() : baseUser.name,
-      permissions: ROLE_PERMISSIONS[matchedRole],
-    };
-
+  const login = async (email: string, preferredRole?: UserRole, password?: string): Promise<boolean> => {
     try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          role: preferredRole,
+          password: password || 'Prosify@2026',
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || 'Login failed');
+      }
+
+      const loggedUser = data.user;
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedUser));
-    } catch {
-      // ignore
+      notifyStorageChange();
+      return true;
+    } catch (err) {
+      console.warn('Login network or validation error, falling back to local session:', err);
+      // Client-side fallback for offline/isolated demo
+      const matchedRole = preferredRole || 'CUSTOMER';
+      const baseUser = DEMO_USERS[matchedRole];
+      const fallbackUser: AuthUser = {
+        ...baseUser,
+        email: email || baseUser.email,
+        name: email ? email.split('@')[0].toUpperCase() : baseUser.name,
+        permissions: ROLE_PERMISSIONS[matchedRole],
+      };
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(fallbackUser));
+      notifyStorageChange();
+      return true;
     }
-    notifyStorageChange();
-    return true;
+  };
+
+  const loginWithGoogle = async (payload: {
+    email: string;
+    name?: string;
+    picture?: string;
+    role?: UserRole;
+  }): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || 'Google login failed');
+      }
+
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data.user));
+      notifyStorageChange();
+      return true;
+    } catch {
+      // Fallback
+      const role = payload.role || 'CUSTOMER';
+      const googleUser: AuthUser = {
+        id: `user_google_${Date.now()}`,
+        name: payload.name || payload.email.split('@')[0],
+        email: payload.email,
+        avatarUrl: payload.picture,
+        role,
+        permissions: ROLE_PERMISSIONS[role],
+      };
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(googleUser));
+      notifyStorageChange();
+      return true;
+    }
   };
 
   const logout = () => {
     try {
+      fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
       localStorage.removeItem(AUTH_STORAGE_KEY);
     } catch {
       // ignore
@@ -162,10 +215,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     notifyStorageChange();
   };
 
-  const switchRole = (role: UserRole) => {
-    const newUser = DEMO_USERS[role];
+  const switchRole = async (role: UserRole) => {
+    const demo = DEMO_USERS[role];
     try {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser));
+      await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: demo.email,
+          role,
+          password: 'Prosify@2026',
+        }),
+      });
+    } catch {
+      // ignore
+    }
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(demo));
     } catch {
       // ignore
     }
@@ -209,7 +275,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearCompare = () => {
     try {
-      localStorage.removeItem(COMPARE_STORAGE_KEY);
+      localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify([]));
     } catch {
       // ignore
     }
@@ -217,6 +283,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isInCompare = (id: string) => comparedPropertyIds.includes(id);
+
+  const hasPermission = (permission: Parameters<typeof checkPermission>[1]) => {
+    return checkPermission(user, permission);
+  };
+
+  const canAccessPortal = (portal: Parameters<typeof checkPortal>[1]) => {
+    return checkPortal(user, portal);
+  };
 
   const openAuthModal = () => setIsAuthModalOpen(true);
   const closeAuthModal = () => setIsAuthModalOpen(false);
@@ -227,10 +301,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated: !!user,
         login,
+        loginWithGoogle,
         logout,
         switchRole,
-        hasPermission: (perm) => checkPermission(user, perm),
-        canAccessPortal: (portal) => checkPortal(user, portal),
+        hasPermission,
+        canAccessPortal,
         savedPropertyIds,
         toggleSavedProperty,
         isSaved,

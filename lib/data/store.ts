@@ -39,183 +39,49 @@ import {
   INITIAL_DEVELOPERS,
   INITIAL_PROJECTS,
   INITIAL_PROPERTIES,
-  INITIAL_CHANNEL_PARTNERS,
-  INITIAL_LEADS,
-  INITIAL_SITE_VISITS,
-  INITIAL_BOOKINGS,
-  INITIAL_COMMISSIONS,
-  INITIAL_SYNC_SOURCES,
-  INITIAL_SYNC_JOBS,
   INITIAL_INTEGRATIONS,
-  INITIAL_AUDIT_LOGS,
   INITIAL_UNITS,
-  INITIAL_TRACKING_LINKS,
   INITIAL_RERA_RECORDS,
-  INITIAL_BUYER_REQUIREMENTS,
-  INITIAL_CRM_SYNC_LOGS,
-  INITIAL_AI_AGENT_ACTIONS,
-  INITIAL_AFFILIATES,
-  INITIAL_AFFILIATE_CONVERSIONS,
-  INITIAL_AFFILIATE_PAYOUTS,
   INITIAL_AFFILIATE_CREATIVES,
   INITIAL_AFFILIATE_SETTINGS,
 } from './mockData';
+import {
+  PAN_INDIA_CITIES,
+  PanIndiaCity,
+  PAN_INDIA_PROJECTS,
+  PAN_INDIA_PROPERTIES,
+} from './panIndiaData';
+
+export { PAN_INDIA_CITIES };
+export type { PanIndiaCity };
 
 // Global singleton in-memory state that persists during dev/eval runtime
 class RealEstateStore {
   private developers: Developer[] = [...INITIAL_DEVELOPERS];
-  private projects: Project[] = [...INITIAL_PROJECTS];
-  private properties: Property[] = [...INITIAL_PROPERTIES];
+  private projects: Project[] = [...INITIAL_PROJECTS, ...PAN_INDIA_PROJECTS];
+  private properties: Property[] = [...INITIAL_PROPERTIES, ...PAN_INDIA_PROPERTIES];
   private units: Unit[] = [...INITIAL_UNITS];
-  private partners: ChannelPartner[] = [...INITIAL_CHANNEL_PARTNERS];
-  private leads: Lead[] = [...INITIAL_LEADS];
-  private siteVisits: SiteVisit[] = [...INITIAL_SITE_VISITS];
-  private bookings: Booking[] = [...INITIAL_BOOKINGS];
-  private commissions: Commission[] = [...INITIAL_COMMISSIONS];
-  private syncSources: DeveloperSyncSource[] = [...INITIAL_SYNC_SOURCES];
-  private syncJobs: SyncJob[] = [...INITIAL_SYNC_JOBS];
+  private partners: ChannelPartner[] = [];
+  private leads: Lead[] = [];
+  private siteVisits: SiteVisit[] = [];
+  private bookings: Booking[] = [];
+  private commissions: Commission[] = [];
+  private syncSources: DeveloperSyncSource[] = [];
+  private syncJobs: SyncJob[] = [];
   private integrations: IntegrationAdapter[] = [...INITIAL_INTEGRATIONS];
-  private trackingLinks: TrackingLink[] = [...INITIAL_TRACKING_LINKS];
-  private auditLogs: AuditLogItem[] = [...INITIAL_AUDIT_LOGS];
-  private affiliates: AffiliateUser[] = [...INITIAL_AFFILIATES];
-  private affiliateConversions: AffiliateConversion[] = [...INITIAL_AFFILIATE_CONVERSIONS];
-  private affiliatePayouts: AffiliatePayoutRequest[] = [...INITIAL_AFFILIATE_PAYOUTS];
+  private trackingLinks: TrackingLink[] = [];
+  private auditLogs: AuditLogItem[] = [];
+  private affiliates: AffiliateUser[] = [];
+  private affiliateConversions: AffiliateConversion[] = [];
+  private affiliatePayouts: AffiliatePayoutRequest[] = [];
   private affiliateCreatives: AffiliateCreative[] = [...INITIAL_AFFILIATE_CREATIVES];
   private affiliateSettings: AffiliateProgramSettings = { ...INITIAL_AFFILIATE_SETTINGS };
-  private developerApiConnections: DeveloperApiConnection[] = [
-    {
-      id: 'dac-1',
-      developerId: 'dev-1',
-      developerName: 'Godrej Properties Ltd',
-      apiType: 'INBOUND_PUSH',
-      inboundApiKey: 'eni_dev_live_godrej_98f24a1b80c3',
-      webhookSecret: 'sec_wh_godrej_erp_91a0',
-      syncFrequency: 'REALTIME',
-      status: 'ACTIVE',
-      lastSyncAt: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
-      lastSyncStatus: 'SUCCESS',
-      lastSyncMessage: 'Auto-synced 3 projects and 48 inventory units via ERP webhook',
-      totalProjectsSynced: 6,
-      totalUnitsSynced: 120,
-      autoApproveNewProjects: true,
-      createdAt: '2026-08-15T10:00:00.000Z',
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'dac-2',
-      developerId: 'dev-2',
-      developerName: 'Lodha Group (Macrotech)',
-      apiType: 'INBOUND_PUSH',
-      inboundApiKey: 'eni_dev_live_lodha_77d12c8a994e',
-      webhookSecret: 'sec_wh_lodha_feed_12b8',
-      syncFrequency: 'REALTIME',
-      status: 'ACTIVE',
-      lastSyncAt: new Date(Date.now() - 1000 * 60 * 115).toISOString(),
-      lastSyncStatus: 'SUCCESS',
-      lastSyncMessage: 'Inventory live price matrix and tower availability updated',
-      totalProjectsSynced: 5,
-      totalUnitsSynced: 95,
-      autoApproveNewProjects: true,
-      createdAt: '2026-08-20T11:30:00.000Z',
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'dac-3',
-      developerId: 'dev-3',
-      developerName: 'Kalpataru Group',
-      apiType: 'OUTBOUND_PULL',
-      pullEndpointUrl: 'https://api.kalpataru.com/v2/inventory/feed.json',
-      authType: 'BEARER',
-      authToken: 'kalpataru_oauth_token_7190',
-      inboundApiKey: 'eni_dev_live_kalpataru_54a83e01cd82',
-      syncFrequency: 'HOURLY',
-      status: 'ACTIVE',
-      lastSyncAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-      lastSyncStatus: 'SUCCESS',
-      lastSyncMessage: 'Hourly inventory poll completed: 4 projects synced',
-      totalProjectsSynced: 4,
-      totalUnitsSynced: 84,
-      autoApproveNewProjects: false,
-      createdAt: '2026-09-01T08:00:00.000Z',
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'dac-4',
-      developerId: 'dev-4',
-      developerName: 'Hiranandani Communities',
-      apiType: 'OUTBOUND_PULL',
-      pullEndpointUrl: 'https://erp.hiranandani.com/api/projects/export.json',
-      authType: 'API_KEY',
-      authToken: 'hir_api_key_44321',
-      inboundApiKey: 'eni_dev_live_hiranandani_12b99d45ef33',
-      syncFrequency: 'DAILY',
-      status: 'ACTIVE',
-      lastSyncAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-      lastSyncStatus: 'SUCCESS',
-      lastSyncMessage: 'Daily catalogue sync executed successfully',
-      totalProjectsSynced: 3,
-      totalUnitsSynced: 62,
-      autoApproveNewProjects: false,
-      createdAt: '2026-09-10T14:15:00.000Z',
-      updatedAt: new Date().toISOString(),
-    },
-  ];
+  private developerApiConnections: DeveloperApiConnection[] = [];
   private reraRecords: ReraRecord[] = [...INITIAL_RERA_RECORDS];
-  private buyerRequirements: BuyerRequirement[] = [...INITIAL_BUYER_REQUIREMENTS];
-  private crmSyncLogs: CrmSyncLog[] = [...INITIAL_CRM_SYNC_LOGS];
-  private aiAgentActions: AiAgentAction[] = [...INITIAL_AI_AGENT_ACTIONS];
-  private notifications: AdminNotification[] = [
-    {
-      id: 'notif-1',
-      title: '🔥 High-Priority Lead Ingested',
-      message: 'Sneha Chawla registered for Piramal Vaikunth (Budget: ₹1.5 - 2.0 Cr) - Score: 85 (HOT). Immediate callback recommended.',
-      category: 'LEAD',
-      severity: 'CRITICAL',
-      timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-      isRead: false,
-      actionUrl: '/admin?tab=crm',
-    },
-    {
-      id: 'notif-p1',
-      title: '🛡️ ProVerify™ Review Needed',
-      message: 'Piramal Vaikunth MahaRERA record flagged for human verification by ProVerify Agent.',
-      category: 'PROVERIFY',
-      severity: 'WARNING',
-      timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-      isRead: false,
-      actionUrl: '/admin?tab=verification',
-    },
-    {
-      id: 'notif-2',
-      title: 'Booking Token Received',
-      message: 'Booking confirmed for Unit A-1402 (Godrej Riviera). Agreement Value: ₹1.45 Cr. Token Advance: ₹10,00,000.',
-      category: 'DEAL',
-      severity: 'SUCCESS',
-      timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-      isRead: false,
-      actionUrl: '/admin?tab=inventory',
-    },
-    {
-      id: 'notif-3',
-      title: 'Channel Partner Payout Approved',
-      message: 'Commission payout of ₹3,42,000 ready for RTGS disbursement to Square Yards Ltd (CP101).',
-      category: 'PAYOUT',
-      severity: 'WARNING',
-      timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-      isRead: false,
-      actionUrl: '/admin?tab=commissions',
-    },
-    {
-      id: 'notif-4',
-      title: 'MahaRERA Quarterly Audit Due',
-      message: 'Q3 Escrow 70:30 compliance certificate upload deadline approaching for Piramal Vaikunth.',
-      category: 'COMPLIANCE',
-      severity: 'WARNING',
-      timestamp: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-      isRead: true,
-      actionUrl: '/admin?tab=verification',
-    },
-  ];
+  private buyerRequirements: BuyerRequirement[] = [];
+  private crmSyncLogs: CrmSyncLog[] = [];
+  private aiAgentActions: AiAgentAction[] = [];
+  private notifications: AdminNotification[] = [];
 
   // Default matching weights (Exact 100% total according to Section 6 of specification)
   private matchingWeights: MatchingWeights = {
@@ -238,10 +104,162 @@ class RealEstateStore {
   private leadByIdIndex = new Map<string, Lead>();
   private partnerByIdIndex = new Map<string, ChannelPartner>();
   private partnerByCodeIndex = new Map<string, ChannelPartner>();
+  private listeners: Set<() => void> = new Set();
+  private broadcastChannel: any = null;
 
   constructor() {
     this.rebuildAllIndexes();
     this.initializeProVerifyAndProLeadDefaults();
+    this.initClientSync();
+  }
+
+  public subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  public notifyListeners(): void {
+    this.listeners.forEach((fn) => {
+      try {
+        fn();
+      } catch (e) {
+        console.error('[Store] Listener error:', e);
+      }
+    });
+  }
+
+  public rehydrateFromStorage(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      // Clear legacy storage containing mock/demo leads and records
+      localStorage.removeItem('prosify_live_store_v3');
+      localStorage.removeItem('prosify_live_store_v2');
+
+      const saved = localStorage.getItem('prosify_real_store_v1');
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed.properties) && parsed.properties.length > 0) {
+        this.properties = parsed.properties;
+      }
+      if (Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+        this.projects = parsed.projects;
+      }
+      if (Array.isArray(parsed.leads)) {
+        this.leads = parsed.leads.filter((l: any) => !l.id?.startsWith('lead-'));
+      }
+      if (Array.isArray(parsed.units)) {
+        this.units = parsed.units;
+      }
+      if (Array.isArray(parsed.partners)) {
+        this.partners = parsed.partners.filter((p: any) => !p.id?.startsWith('cp-'));
+      }
+      if (Array.isArray(parsed.bookings)) {
+        this.bookings = parsed.bookings.filter((b: any) => !b.id?.startsWith('bk-'));
+      }
+      if (Array.isArray(parsed.commissions)) {
+        this.commissions = parsed.commissions.filter((c: any) => !c.id?.startsWith('comm-'));
+      }
+      this.rebuildAllIndexes();
+    } catch (e) {
+      console.warn('[Store] Rehydration warning:', e);
+    }
+  }
+
+  public notifyChanges(entity: string, action: string, data?: any): void {
+    if (typeof window !== 'undefined') {
+      try {
+        const payload = {
+          properties: this.properties,
+          projects: this.projects,
+          leads: this.leads,
+          units: this.units,
+          partners: this.partners,
+          bookings: this.bookings,
+          commissions: this.commissions,
+          lastUpdated: Date.now(),
+        };
+        localStorage.setItem('prosify_real_store_v1', JSON.stringify(payload));
+
+        if (this.broadcastChannel) {
+          this.broadcastChannel.postMessage({
+            type: 'PROSIFY_SYNC',
+            entity,
+            action,
+            timestamp: Date.now(),
+          });
+        }
+
+        window.dispatchEvent(
+          new CustomEvent('prosify:store-updated', {
+            detail: { entity, action, data },
+          })
+        );
+      } catch (err) {
+        console.warn('[Store] Sync broadcast error:', err);
+      }
+    }
+    this.notifyListeners();
+  }
+
+  public initClientSync(): void {
+    if (typeof window === 'undefined') return;
+
+    this.rehydrateFromStorage();
+
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        this.broadcastChannel = new BroadcastChannel('prosify_real_sync_v1');
+        this.broadcastChannel.onmessage = (ev: MessageEvent) => {
+          if (ev.data?.type === 'PROSIFY_SYNC') {
+            this.rehydrateFromStorage();
+            this.notifyListeners();
+          }
+        };
+      }
+    } catch (e) {
+      console.warn('[Store] BroadcastChannel setup skipped:', e);
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'prosify_real_store_v1') {
+        this.rehydrateFromStorage();
+        this.notifyListeners();
+      }
+    });
+  }
+
+  public ingestLead(lead: Lead): Lead {
+    const idx = this.leads.findIndex((l) => l.id === lead.id);
+    if (idx !== -1) {
+      this.leads[idx] = { ...this.leads[idx], ...lead };
+    } else {
+      this.leads.unshift(lead);
+      this.leadByIdIndex.set(lead.id, lead);
+    }
+
+    this.addNotification({
+      title: `⚡ New Lead Ingested: ${lead.name}`,
+      message: `${lead.name} (${lead.phone}) submitted an enquiry for ${lead.propertyTitle || lead.projectName || lead.location || 'Indian properties'}. [Source: ${lead.source}]`,
+      category: 'LEAD',
+      severity: lead.qualification === 'HOT' ? 'CRITICAL' : 'WARNING',
+      actionUrl: '/admin?tab=crm',
+    });
+
+    this.notifyChanges('LEAD', 'CREATE', lead);
+    return lead;
+  }
+
+  public ingestSiteVisit(visit: SiteVisit): SiteVisit {
+    const idx = this.siteVisits.findIndex((v) => v.id === visit.id);
+    if (idx !== -1) {
+      this.siteVisits[idx] = { ...this.siteVisits[idx], ...visit };
+    } else {
+      this.siteVisits.unshift(visit);
+    }
+    this.notifyChanges('SITE_VISIT', 'CREATE', visit);
+    return visit;
   }
 
   private initializeProVerifyAndProLeadDefaults(): void {
@@ -497,6 +515,7 @@ class RealEstateStore {
     this.propertyByIdIndex.set(newProp.id, newProp);
     if (newProp.slug) this.propertyBySlugIndex.set(newProp.slug, newProp);
     this.addAuditLog('PROPERTY_CREATE', 'Property', `Created property "${newProp.title}" in ${newProp.city}`, newProp.id);
+    this.notifyChanges('PROPERTY', 'CREATE', newProp);
     return newProp;
   }
 
@@ -508,6 +527,7 @@ class RealEstateStore {
     this.propertyByIdIndex.set(id, updated);
     if (updated.slug) this.propertyBySlugIndex.set(updated.slug, updated);
     this.addAuditLog('PROPERTY_UPDATE', 'Property', `Updated property ${updated.title}`, id);
+    this.notifyChanges('PROPERTY', 'UPDATE', updated);
     return updated;
   }
 
@@ -518,6 +538,7 @@ class RealEstateStore {
     this.propertyByIdIndex.delete(id);
     if (prop.slug) this.propertyBySlugIndex.delete(prop.slug);
     this.addAuditLog('PROPERTY_DELETE', 'Property', `Deleted property ${prop.title}`, id);
+    this.notifyChanges('PROPERTY', 'DELETE', { id });
     return true;
   }
 
@@ -539,6 +560,7 @@ class RealEstateStore {
       });
     }
     this.addAuditLog('PROPERTY_BULK_ACTION', 'Property', `Bulk action ${action} executed on ${affected} properties`);
+    this.notifyChanges('PROPERTY', 'BULK_UPDATE', { ids, action });
     return affected;
   }
 
@@ -585,6 +607,7 @@ class RealEstateStore {
     this.projectByIdIndex.set(newProj.id, newProj);
     if (newProj.slug) this.projectBySlugIndex.set(newProj.slug, newProj);
     this.addAuditLog('PROJECT_CREATE', 'Project', `Created project "${newProj.name}" by ${newProj.developerName}`, newProj.id);
+    this.notifyChanges('PROJECT', 'CREATE', newProj);
     return newProj;
   }
 
@@ -596,6 +619,7 @@ class RealEstateStore {
     this.projectByIdIndex.set(id, updated);
     if (updated.slug) this.projectBySlugIndex.set(updated.slug, updated);
     this.addAuditLog('PROJECT_UPDATE', 'Project', `Updated project ${updated.name}`, id);
+    this.notifyChanges('PROJECT', 'UPDATE', updated);
     return updated;
   }
 
@@ -800,10 +824,16 @@ class RealEstateStore {
 
   public processDeveloperInboundPush(apiKey: string, payload: any): any {
     const conn = this.getDeveloperApiConnectionByApiKey(apiKey);
+    if (!conn) {
+      throw new Error('Unauthorized: Invalid or revoked developer API key.');
+    }
+    if (conn.status !== 'ACTIVE') {
+      throw new Error('Forbidden: Developer API connection is currently inactive or suspended.');
+    }
     return {
       success: true,
       message: 'Developer payload successfully processed',
-      developerName: conn?.developerName || 'Verified Developer',
+      developerName: conn.developerName || 'Verified Developer',
       action: payload.action || 'SYNC_PROJECT',
       synced: {
         projectsCreated: payload.project ? 1 : 0,
@@ -1023,6 +1053,7 @@ class RealEstateStore {
       `Unit ${this.units[idx].unitNumber} status changed from ${oldStatus} to ${status}`,
       unitId
     );
+    this.notifyChanges('UNIT', 'STATUS_CHANGE', this.units[idx]);
     return this.units[idx];
   }
 
@@ -1131,6 +1162,7 @@ class RealEstateStore {
       `New partner registered: ${newPartner.companyName} (${newPartner.code})`,
       newPartner.id
     );
+    this.notifyChanges('PARTNER', 'CREATE', newPartner);
     return newPartner;
   }
 
@@ -1142,6 +1174,7 @@ class RealEstateStore {
     this.partnerByIdIndex.set(id, updated);
     this.partnerByCodeIndex.set(updated.code.toUpperCase(), updated);
     this.addAuditLog('PARTNER_STATUS_UPDATE', 'ChannelPartner', `Partner ${this.partners[idx].code} marked ${status}`, id);
+    this.notifyChanges('PARTNER', 'STATUS_CHANGE', updated);
     return updated;
   }
 
@@ -1153,6 +1186,7 @@ class RealEstateStore {
     this.partnerByIdIndex.set(id, updated);
     this.partnerByCodeIndex.set(updated.code.toUpperCase(), updated);
     this.addAuditLog('PARTNER_UPDATE', 'ChannelPartner', `Updated partner ${this.partners[idx].code}`, id);
+    this.notifyChanges('PARTNER', 'UPDATE', updated);
     return updated;
   }
 
@@ -1475,6 +1509,7 @@ class RealEstateStore {
     });
 
     this.addAuditLog('LEAD_CREATE', 'Lead', `New lead "${newLead.name}" via ${newLead.source} [Score: ${score}, ${qualification}]`, newLead.id);
+    this.notifyChanges('LEAD', 'CREATE', newLead);
     return newLead;
   }
 
@@ -1490,6 +1525,7 @@ class RealEstateStore {
     const updated = this.leads[idx];
     this.leadByIdIndex.set(id, updated);
     this.addAuditLog('LEAD_STATUS_UPDATE', 'Lead', `Lead ${updated.name} updated to ${status}`, id);
+    this.notifyChanges('LEAD', 'UPDATE', updated);
     return updated;
   }
 
@@ -1503,7 +1539,8 @@ class RealEstateStore {
     };
     const updated = this.leads[idx];
     this.leadByIdIndex.set(id, updated);
-    this.addAuditLog('LEAD_ASSIGNMENT', 'Lead', `Lead ${updated.name} assigned to ${salesExecName}`, id);
+    this.addAuditLog('LEAD_ASSIGN', 'Lead', `Assigned lead ${updated.name} to ${salesExecName}`, id);
+    this.notifyChanges('LEAD', 'ASSIGN', updated);
     return updated;
   }
 
@@ -2134,6 +2171,7 @@ class RealEstateStore {
     if (!proj) return false;
     this.projects = this.projects.filter((p) => p.id !== id);
     this.addAuditLog('PROJECT_DELETE', 'Project', `Deleted project "${proj.name}"`, id);
+    this.notifyChanges('PROJECT', 'DELETE', { id });
     return true;
   }
 
@@ -2142,6 +2180,7 @@ class RealEstateStore {
     if (!dev) return false;
     this.developers = this.developers.filter((d) => d.id !== id);
     this.addAuditLog('DEVELOPER_DELETE', 'Developer', `Deleted developer "${dev.name}"`, id);
+    this.notifyChanges('DEVELOPER', 'DELETE', { id });
     return true;
   }
 
@@ -2152,6 +2191,7 @@ class RealEstateStore {
     };
     this.units.unshift(newUnit);
     this.addAuditLog('UNIT_CREATE', 'Unit', `Added Unit ${newUnit.unitNumber} (${newUnit.tower})`, newUnit.id);
+    this.notifyChanges('UNIT', 'CREATE', newUnit);
     return newUnit;
   }
 
@@ -2160,6 +2200,7 @@ class RealEstateStore {
     if (idx === -1) return undefined;
     this.units[idx] = { ...this.units[idx], ...updates };
     this.addAuditLog('UNIT_UPDATE', 'Unit', `Updated Unit ${this.units[idx].unitNumber}`, id);
+    this.notifyChanges('UNIT', 'UPDATE', this.units[idx]);
     return this.units[idx];
   }
 
@@ -2168,6 +2209,7 @@ class RealEstateStore {
     if (!unit) return false;
     this.units = this.units.filter((u) => u.id !== id);
     this.addAuditLog('UNIT_DELETE', 'Unit', `Deleted Unit ${unit.unitNumber}`, id);
+    this.notifyChanges('UNIT', 'DELETE', { id });
     return true;
   }
 
@@ -2176,6 +2218,7 @@ class RealEstateStore {
     if (idx === -1) return undefined;
     this.leads[idx] = { ...this.leads[idx], ...updates, updatedAt: new Date().toISOString() };
     this.addAuditLog('LEAD_UPDATE', 'Lead', `Updated lead profile for ${this.leads[idx].name}`, id);
+    this.notifyChanges('LEAD', 'UPDATE', this.leads[idx]);
     return this.leads[idx];
   }
 

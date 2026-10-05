@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { getStoredAttribution } from '@/lib/attribution';
 import { useToast } from '@/components/ui/toast';
+import { store } from '@/lib/data/store';
 
 interface PropertyRequirementModalProps {
   isOpen: boolean;
@@ -198,6 +199,9 @@ export function PropertyRequirementModal({
       const data = await res.json();
 
       if (res.ok && data.success) {
+        if (data.data) {
+          store.ingestLead(data.data);
+        }
         setLeadReference(data.data?.id || `REQ-${Date.now().toString().slice(-6)}`);
         setSubmitted(true);
         toast({

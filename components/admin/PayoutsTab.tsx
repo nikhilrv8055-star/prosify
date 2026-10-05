@@ -297,7 +297,9 @@ export function PayoutsTab({ commissions, onRefresh }: PayoutsTabProps) {
 
         <div className="bg-[#1E293B]/70 p-4 rounded-xl border border-slate-700/60">
           <span className="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">Disbursement Rate</span>
-          <span className="text-xl font-bold text-white mt-1 block">99.8%</span>
+          <span className="text-xl font-bold text-white mt-1 block">
+            {commissions.length > 0 ? ((commissions.filter((c) => c.status === 'PAID').length / commissions.length) * 100).toFixed(1) + '%' : '100%'}
+          </span>
           <span className="text-[10px] text-emerald-400 mt-1 block">Avg Turnaround: 24 Hours</span>
         </div>
       </div>

@@ -71,6 +71,8 @@ export type LeadSourceType =
   | 'API'
   | 'MANUAL'
   | 'WHATSAPP'
+  | 'LOCALITY_GUIDE'
+  | 'LOCAL_SEO'
   | 'OTHER';
 
 export type SiteVisitStatus =
@@ -287,6 +289,7 @@ export interface ChannelPartner {
   email: string;
   phone: string;
   address: string;
+  city?: string;
   gstNumber?: string;
   panNumber: string;
   reraNumber?: string;
@@ -298,6 +301,7 @@ export interface ChannelPartner {
   tier?: string;
   commissionRate?: number;
   successfulBookings?: number;
+  totalBookings?: number;
   totalLeadsSubmitted?: number;
   status: PartnerStatus;
   clicksCount: number;
@@ -345,10 +349,13 @@ export interface Lead {
   projectId?: string;
   projectName?: string;
   developerName?: string;
+  city?: string;
+  referralCode?: string;
+  affiliateId?: string;
   partnerId?: string;
   partnerCode?: string;
   partnerName?: string;
-  budget: string;
+  budget?: string;
   budgetNum?: number;
   bhk?: string;
   propertyType?: string;

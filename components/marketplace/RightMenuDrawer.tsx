@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { X, ChevronDown, Layers, Share2, Shield, Briefcase, HardHat, Building2 } from 'lucide-react';
 import { brandConfig } from '@/src/config/brand';
 
 interface RightMenuDrawerProps {
@@ -65,6 +66,49 @@ export function RightMenuDrawer({
 
         {/* 16 Menu Items in EXACT order matching screenshot */}
         <div className="flex flex-col divide-y divide-neutral-100">
+          {/* Core Marketplace Direct Page Routes */}
+          <div className="bg-neutral-50/70 p-3 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 px-3 block">
+              Marketplace Direct
+            </span>
+            <Link
+              href="/properties?type=BUY"
+              onClick={onClose}
+              className="w-full text-left py-2 px-3 text-xs font-semibold text-neutral-800 hover:text-[#0EA5E9] hover:bg-neutral-100 rounded-lg transition-colors flex items-center justify-between"
+            >
+              <span>Buy Properties</span>
+              <span className="text-[10px] font-mono text-neutral-400">9 Metros</span>
+            </Link>
+            <Link
+              href="/projects"
+              onClick={onClose}
+              className="w-full text-left py-2 px-3 text-xs font-semibold text-neutral-800 hover:text-[#0EA5E9] hover:bg-neutral-100 rounded-lg transition-colors flex items-center justify-between"
+            >
+              <span>Projects & Townships</span>
+              <span className="text-[10px] font-mono text-emerald-600">RERA Verified</span>
+            </Link>
+            <Link
+              href="/guides"
+              onClick={onClose}
+              className="w-full text-left py-2 px-3 text-xs font-bold text-[#0EA5E9] hover:text-[#0284c7] hover:bg-cyan-50/70 rounded-lg transition-colors flex items-center justify-between"
+            >
+              <span>Locality Guides & E-Books</span>
+              <span className="text-[9px] bg-[#0EA5E9] text-white px-1.5 py-0.5 rounded font-black">
+                NEW
+              </span>
+            </Link>
+            <Link
+              href="/micro-markets"
+              onClick={onClose}
+              className="w-full text-left py-2 px-3 text-xs font-bold text-[#10B981] hover:text-[#0da674] hover:bg-emerald-50/70 rounded-lg transition-colors flex items-center justify-between"
+            >
+              <span>Micro-Market Consultants</span>
+              <span className="text-[9px] bg-[#10B981] text-slate-950 px-1.5 py-0.5 rounded font-black">
+                4.9★
+              </span>
+            </Link>
+          </div>
+
           {/* 1. Post Your Property */}
           <button
             type="button"
@@ -72,9 +116,12 @@ export function RightMenuDrawer({
               onClose();
               onOpenPostProperty();
             }}
-            className="w-full text-left py-3 px-6 text-[13px] font-normal text-neutral-700 hover:text-[#D4A017] hover:bg-neutral-50/70 transition-colors cursor-pointer"
+            className="w-full text-left py-3 px-6 text-[13px] font-semibold text-neutral-800 hover:text-[#10B981] hover:bg-neutral-50/70 transition-colors cursor-pointer flex items-center justify-between"
           >
             <span>Post Your Property</span>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+              Free Listing
+            </span>
           </button>
 
           {/* 1b. Tell Us Your Property Requirement */}

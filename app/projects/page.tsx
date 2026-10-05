@@ -15,9 +15,11 @@ import { Navbar } from '@/components/marketplace/Navbar';
 import { Footer } from '@/components/marketplace/Footer';
 import { ProjectCard } from '@/components/marketplace/ProjectCard';
 import { store } from '@/lib/data/store';
+import { useLiveStore } from '@/lib/data/useLiveStore';
 
 function ProjectsListContent() {
   const searchParams = useSearchParams();
+  const { projects: allLiveProjects, cities } = useLiveStore();
   const [city, setCity] = useState(searchParams?.get('city') || 'ALL');
   const [query, setQuery] = useState(searchParams?.get('q') || '');
 
@@ -26,7 +28,7 @@ function ProjectsListContent() {
       city: city === 'ALL' ? undefined : city,
       search: query || undefined,
     });
-  }, [city, query]);
+  }, [city, query, allLiveProjects]);
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50/50">
@@ -37,13 +39,13 @@ function ProjectsListContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#F4C430]">
-              MahaRERA Registered Developments
+              RERA Registered Developments Across India
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
               Integrated Townships & Residential Projects
             </h1>
             <p className="text-sm text-neutral-400">
-              Browse masterplanned communities from India’s foremost developers with complete floor plans and real-time inventory.
+              Browse masterplanned communities from India’s foremost developers across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi NCR, and Ahmedabad.
             </p>
           </div>
 
@@ -65,13 +67,12 @@ function ProjectsListContent() {
               onChange={(e) => setCity(e.target.value)}
               className="w-full sm:w-48 py-2 px-3 text-xs sm:text-sm rounded-xl bg-neutral-900 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
             >
-              <option value="ALL">All Locations</option>
-              <option value="Mumbai">Mumbai MMR</option>
-              <option value="Thane">Thane</option>
-              <option value="Dombivli">Dombivli</option>
-              <option value="Kalyan">Kalyan</option>
-              <option value="Pune">Pune</option>
-              <option value="Nagpur">Nagpur</option>
+              <option value="ALL">All 9 Indian Metros</option>
+              {cities.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
         </div>

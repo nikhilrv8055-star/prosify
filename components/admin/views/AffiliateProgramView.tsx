@@ -42,6 +42,7 @@ import {
   INITIAL_AFFILIATE_PAYOUTS,
   INITIAL_AFFILIATE_CREATIVES,
 } from '@/lib/data/affiliateStore';
+import { store } from '@/lib/data/store';
 import { useToast } from '@/components/ui/toast';
 
 interface AffiliateProgramViewProps {
@@ -68,9 +69,9 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
 
   // State
   const [settings, setSettings] = useState<AffiliateSettings>(INITIAL_AFFILIATE_SETTINGS);
-  const [members, setMembers] = useState<AffiliateUser[]>(INITIAL_AFFILIATE_MEMBERS);
-  const [conversions, setConversions] = useState<AffiliateConversion[]>(INITIAL_AFFILIATE_CONVERSIONS);
-  const [payouts, setPayouts] = useState<AffiliatePayoutRecord[]>(INITIAL_AFFILIATE_PAYOUTS);
+  const [members, setMembers] = useState<AffiliateUser[]>(() => store.getAffiliates());
+  const [conversions, setConversions] = useState<AffiliateConversion[]>(() => store.getAffiliateConversions());
+  const [payouts, setPayouts] = useState<AffiliatePayoutRecord[]>(() => (store.getAffiliatePayoutRequests() as any));
   const [creatives, setCreatives] = useState<AffiliateCreative[]>(INITIAL_AFFILIATE_CREATIVES);
 
   // Search & Filter state

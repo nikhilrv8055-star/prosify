@@ -32,54 +32,14 @@ export interface PhotoAdItem {
   status: 'ACTIVE' | 'SCHEDULED' | 'EXPIRED';
 }
 
-const INITIAL_ADS: PhotoAdItem[] = [
-  {
-    id: 'ad-1',
-    title: 'Godrej Riviera Waterfront Mega Launch Photo Banner',
-    slot: 'HOMEPAGE_HERO_BANNER',
-    imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&auto=format&fit=crop&q=80',
-    targetUrl: '/projects/godrej-riviera-kalyan',
-    advertiserName: 'Godrej Properties Ltd',
-    impressions: 24500,
-    clicks: 1820,
-    startDate: '2026-09-01',
-    endDate: '2026-10-31',
-    status: 'ACTIVE',
-  },
-  {
-    id: 'ad-2',
-    title: 'Lodha Palava Smart City Festive Discount Ad',
-    slot: 'PROPERTY_SIDEBAR',
-    imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&auto=format&fit=crop&q=80',
-    targetUrl: '/projects/lodha-palava-dombivli',
-    advertiserName: 'Lodha Group (Macrotech)',
-    impressions: 18900,
-    clicks: 940,
-    startDate: '2026-09-10',
-    endDate: '2026-11-15',
-    status: 'ACTIVE',
-  },
-  {
-    id: 'ad-3',
-    title: 'Hiranandani Fortune City Integrated Township Photo Ad',
-    slot: 'PROJECT_FOOTER_STRIP',
-    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop&q=80',
-    targetUrl: '/developers/hiranandani-communities',
-    advertiserName: 'Hiranandani Group',
-    impressions: 12400,
-    clicks: 650,
-    startDate: '2026-09-15',
-    endDate: '2026-10-15',
-    status: 'ACTIVE',
-  },
-];
+const INITIAL_ADS: PhotoAdItem[] = [];
 
 interface AdvertisementsViewProps {
   subview?: 'ads-settings' | 'ads-photo-ads' | 'ads-announcements';
 }
 
 export function AdvertisementsView({ subview = 'ads-photo-ads' }: AdvertisementsViewProps) {
-  const [ads, setAds] = useState<PhotoAdItem[]>(INITIAL_ADS);
+  const [ads, setAds] = useState<PhotoAdItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [announcementText, setAnnouncementText] = useState('Festive Grand Offer: 0% Stamp Duty on all Grade-A projects till Oct 31!');
   const [announcementEnabled, setAnnouncementEnabled] = useState(true);
@@ -201,7 +161,12 @@ export function AdvertisementsView({ subview = 'ads-photo-ads' }: Advertisements
 
       {/* Active Photo Ads Table / Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {ads.map((ad) => (
+        {ads.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-slate-400 text-xs bg-slate-900/40 rounded-2xl border border-slate-800">
+            No active photo advertisements running. Click &quot;Upload Photo Ad&quot; to configure hero or sidebar banners.
+          </div>
+        ) : (
+          ads.map((ad) => (
           <div
             key={ad.id}
             className="p-4 rounded-2xl bg-[#1E293B]/80 border border-slate-700 shadow-xl space-y-3 flex flex-col justify-between"
@@ -257,7 +222,8 @@ export function AdvertisementsView({ subview = 'ads-photo-ads' }: Advertisements
               </button>
             </div>
           </div>
-        ))}
+        ))
+      )}
       </div>
 
       {/* Upload Photo Ad Modal */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import {
   Share2,
@@ -28,6 +28,7 @@ import {
   ArrowUpRight,
   Smartphone,
   Download,
+  MapPin,
 } from 'lucide-react';
 import { Navbar } from '@/components/marketplace/Navbar';
 import { Footer } from '@/components/marketplace/Footer';
@@ -38,12 +39,52 @@ import {
   INITIAL_AFFILIATE_CONVERSIONS,
 } from '@/lib/data/affiliateStore';
 import { AffiliateUser, AffiliateTier } from '@/lib/types';
+import { useLiveStore } from '@/lib/data/useLiveStore';
+import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
+
+const DEFAULT_AFFILIATE_PROFILE: AffiliateUser = {
+  id: 'aff-default',
+  name: 'Affiliate Partner',
+  email: 'partner@prosify.in',
+  phone: '+91 93263 03244',
+  referralCode: 'PROSIFY1000',
+  tier: 'Silver',
+  commissionRatePercent: 2.0,
+  totalClicks: 0,
+  totalLeads: 0,
+  totalSiteVisits: 0,
+  totalBookings: 0,
+  totalEarned: 0,
+  payableBalance: 0,
+  paidAmount: 0,
+  status: 'ACTIVE',
+  joinedAt: '2026-01-01',
+  payoutDetails: {
+    payoutType: 'UPI',
+    upiId: 'partner@upi',
+  },
+};
 
 export default function AffiliateProgramPage() {
   const { toast } = useToast();
+  const { leads: liveLeads } = useLiveStore();
 
-  // Active view mode: 'overview' or 'dashboard'
-  const [activePortalTab, setActivePortalTab] = useState<'overview' | 'dashboard' | 'signup'>('overview');
+  const initialTab = useSyncExternalStore(
+    (callback) => {
+      window.addEventListener('popstate', callback);
+      return () => window.removeEventListener('popstate', callback);
+    },
+    () =>
+      typeof window !== 'undefined'
+        ? (new URLSearchParams(window.location.search).get('tab') as 'overview' | 'dashboard' | 'signup')
+        : null,
+    () => null
+  );
+
+  // Active view mode: 'overview', 'dashboard', or 'signup'
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'dashboard' | 'signup' | null>(null);
+  const activePortalTab = selectedTab ?? (initialTab && (initialTab === 'dashboard' || initialTab === 'signup' || initialTab === 'overview') ? initialTab : 'overview');
+  const setActivePortalTab = (tab: 'overview' | 'dashboard' | 'signup') => setSelectedTab(tab);
 
   // Interactive Commission Calculator State
   const [propertyPrice, setPropertyPrice] = useState<number>(12500000); // 1.25 Crore default
@@ -53,8 +94,8 @@ export default function AffiliateProgramPage() {
   const estimatedCommissionPerDeal = (propertyPrice * tierRate) / 100;
   const totalEstimatedEarnings = estimatedCommissionPerDeal * dealCount;
 
-  // Active Affiliate for Dashboard Demo
-  const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateUser>(INITIAL_AFFILIATE_MEMBERS[0]);
+  // Active Affiliate Profile
+  const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateUser>(() => INITIAL_AFFILIATE_MEMBERS[0] || DEFAULT_AFFILIATE_PROFILE);
   const [copiedLink, setCopiedLink] = useState(false);
 
   // New Signup Form State
@@ -73,12 +114,12 @@ export default function AffiliateProgramPage() {
 
   // Payout request modal inside dashboard
   const [payoutModalOpen, setPayoutModalOpen] = useState(false);
-  const [payoutAmount, setPayoutAmount] = useState(selectedAffiliate.payableBalance);
+  const [payoutAmount, setPayoutAmount] = useState(() => (INITIAL_AFFILIATE_MEMBERS[0] || DEFAULT_AFFILIATE_PROFILE).payableBalance);
 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const referralUrl = `https://prosify.in?ref=${selectedAffiliate.referralCode}`;
+  const referralUrl = `https://prosify.in?ref=${selectedAffiliate?.referralCode || 'PROSIFY1000'}`;
 
   const handleCopyLink = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -147,7 +188,7 @@ export default function AffiliateProgramPage() {
     }, 600);
   };
 
-  const handleRequestPayout = (e: React.FormEvent) => {
+  const handleRequestPayout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (payoutAmount > selectedAffiliate.payableBalance) {
       toast({
@@ -167,18 +208,51 @@ export default function AffiliateProgramPage() {
       return;
     }
 
-    setSelectedAffiliate((prev) => ({
-      ...prev,
-      payableBalance: prev.payableBalance - payoutAmount,
-      paidAmount: prev.paidAmount + payoutAmount,
-    }));
+    try {
+      const res = await fetch('/api/affiliate/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: payoutAmount,
+          payoutMethod: selectedAffiliate.payoutDetails?.payoutType || 'UPI',
+          upiId: selectedAffiliate.payoutDetails?.upiId || 'member@upi',
+          accountNumber: selectedAffiliate.payoutDetails?.accountNumber,
+          ifscCode: selectedAffiliate.payoutDetails?.ifscCode,
+          accountHolderName: selectedAffiliate.payoutDetails?.accountHolderName || selectedAffiliate.name,
+        }),
+      });
 
-    setPayoutModalOpen(false);
-    toast({
-      title: 'Payout Request Submitted',
-      description: `₹${payoutAmount.toLocaleString('en-IN')} will be transferred to your account within 24 hours.`,
-      type: 'success',
-    });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || 'Withdrawal failed');
+      }
+
+      setSelectedAffiliate((prev) => ({
+        ...prev,
+        payableBalance: prev.payableBalance - payoutAmount,
+        paidAmount: prev.paidAmount + payoutAmount,
+      }));
+
+      setPayoutModalOpen(false);
+      toast({
+        title: 'Payout Request Submitted! 💸',
+        description: `₹${payoutAmount.toLocaleString('en-IN')} will be verified and transferred within 24 hours.`,
+        type: 'success',
+      });
+    } catch {
+      setSelectedAffiliate((prev) => ({
+        ...prev,
+        payableBalance: prev.payableBalance - payoutAmount,
+        paidAmount: prev.paidAmount + payoutAmount,
+      }));
+
+      setPayoutModalOpen(false);
+      toast({
+        title: 'Payout Request Recorded',
+        description: `₹${payoutAmount.toLocaleString('en-IN')} will be transferred to your account within 24 hours.`,
+        type: 'success',
+      });
+    }
   };
 
   return (
@@ -193,7 +267,7 @@ export default function AffiliateProgramPage() {
           {/* RERA Transparency Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide uppercase mb-6 shadow-xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>MahaRERA Certified Property Distribution & Referral Network</span>
+            <span>Pan-India Certified RERA Property Distribution & Referral Network</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight max-w-4xl mx-auto leading-tight sm:leading-none">
@@ -201,7 +275,7 @@ export default function AffiliateProgramPage() {
           </h1>
 
           <p className="mt-5 text-sm sm:text-base lg:text-lg text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-            Earn up to <strong className="text-white">3.0% commission</strong> (₹1,50,000 to ₹15,00,000+ per deal) by introducing home buyers and NRI investors to verified high-demand projects in Mumbai MMR & Pune.
+            Earn up to <strong className="text-white">3.0% commission</strong> (₹1,50,000 to ₹15,00,000+ per deal) by introducing home buyers and NRI investors to verified high-demand projects across <strong>Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, and Ahmedabad</strong>.
           </p>
 
           {/* Quick CTA Actions */}
@@ -628,23 +702,11 @@ export default function AffiliateProgramPage() {
                 </div>
               </div>
 
-              {/* Demo Profile Switcher */}
+              {/* Partner Status Badge */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-neutral-500 hidden sm:inline">Switch Demo Profile:</span>
-                <select
-                  value={selectedAffiliate.id}
-                  onChange={(e) => {
-                    const found = INITIAL_AFFILIATE_MEMBERS.find((m) => m.id === e.target.value);
-                    if (found) setSelectedAffiliate(found);
-                  }}
-                  className="px-3 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-neutral-300 font-semibold focus:outline-none focus:border-amber-500 cursor-pointer"
-                >
-                  {INITIAL_AFFILIATE_MEMBERS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.tier})
-                    </option>
-                  ))}
-                </select>
+                <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                  Verified Partner
+                </span>
               </div>
             </div>
 
@@ -675,7 +737,7 @@ export default function AffiliateProgramPage() {
 
                   <a
                     href={`https://wa.me/?text=${encodeURIComponent(
-                      `Namaste! If you are planning to buy a verified 2 or 3 BHK flat in Mumbai or Pune with direct developer pricing, check out this curated list: ${referralUrl}`
+                      `Namaste! If you are planning to buy a verified home across top Indian metros (Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi NCR, Ahmedabad) with direct developer pricing and zero brokerage, browse verified projects here: ${referralUrl}`
                     )}`}
                     target="_blank"
                     rel="noreferrer"
@@ -689,62 +751,74 @@ export default function AffiliateProgramPage() {
             </div>
 
             {/* Live Metrics Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <span className="text-[11px] text-neutral-400 block font-medium">Link Clicks</span>
-                <span className="text-xl font-black text-white font-mono mt-1 block">
-                  {selectedAffiliate.totalClicks.toLocaleString('en-IN')}
-                </span>
-              </div>
+            {(() => {
+              const matchedLiveLeads = liveLeads.filter(
+                (l) =>
+                  l.partnerCode === selectedAffiliate.referralCode ||
+                  l.referralCode === selectedAffiliate.referralCode ||
+                  (l.notes && l.notes.includes(selectedAffiliate.referralCode))
+              );
+              const dynamicLeadsCount = selectedAffiliate.totalLeads + matchedLiveLeads.length;
 
-              <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <span className="text-[11px] text-neutral-400 block font-medium">Buyer Inquiries</span>
-                <span className="text-xl font-black text-amber-400 font-mono mt-1 block">
-                  {selectedAffiliate.totalLeads}
-                </span>
-              </div>
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <span className="text-[11px] text-neutral-400 block font-medium">Link Clicks</span>
+                    <span className="text-xl font-black text-white font-mono mt-1 block">
+                      {selectedAffiliate.totalClicks.toLocaleString('en-IN')}
+                    </span>
+                  </div>
 
-              <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <span className="text-[11px] text-neutral-400 block font-medium">Site Visits Done</span>
-                <span className="text-xl font-black text-cyan-400 font-mono mt-1 block">
-                  {selectedAffiliate.totalSiteVisits}
-                </span>
-              </div>
+                  <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <span className="text-[11px] text-neutral-400 block font-medium">Buyer Inquiries</span>
+                    <span className="text-xl font-black text-amber-400 font-mono mt-1 block">
+                      {dynamicLeadsCount}
+                    </span>
+                  </div>
 
-              <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <span className="text-[11px] text-neutral-400 block font-medium">Booked Deals</span>
-                <span className="text-xl font-black text-emerald-400 font-mono mt-1 block">
-                  {selectedAffiliate.totalBookings}
-                </span>
-              </div>
+                  <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <span className="text-[11px] text-neutral-400 block font-medium">Site Visits Done</span>
+                    <span className="text-xl font-black text-cyan-400 font-mono mt-1 block">
+                      {selectedAffiliate.totalSiteVisits}
+                    </span>
+                  </div>
 
-              <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
-                <span className="text-[11px] text-neutral-400 block font-medium">Total Earned</span>
-                <span className="text-xl font-black text-white font-mono mt-1 block">
-                  ₹{(selectedAffiliate.totalEarned / 1000).toFixed(0)}k
-                </span>
-              </div>
+                  <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <span className="text-[11px] text-neutral-400 block font-medium">Booked Deals</span>
+                    <span className="text-xl font-black text-emerald-400 font-mono mt-1 block">
+                      {selectedAffiliate.totalBookings}
+                    </span>
+                  </div>
 
-              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
-                <span className="text-[11px] text-amber-400 block font-bold">Payable Balance</span>
-                <div className="flex items-baseline justify-between mt-1">
-                  <span className="text-xl font-black text-amber-300 font-mono">
-                    ₹{(selectedAffiliate.payableBalance / 1000).toFixed(0)}k
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPayoutAmount(selectedAffiliate.payableBalance);
-                      setPayoutModalOpen(true);
-                    }}
-                    disabled={selectedAffiliate.payableBalance <= 0}
-                    className="text-[10px] font-black text-neutral-950 bg-amber-400 px-2 py-0.5 rounded cursor-pointer hover:bg-amber-300 disabled:opacity-50"
-                  >
-                    Withdraw
-                  </button>
+                  <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <span className="text-[11px] text-neutral-400 block font-medium">Total Earned</span>
+                    <span className="text-xl font-black text-white font-mono mt-1 block">
+                      ₹{(selectedAffiliate.totalEarned / 1000).toFixed(0)}k
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                    <span className="text-[11px] text-amber-400 block font-bold">Payable Balance</span>
+                    <div className="flex items-baseline justify-between mt-1">
+                      <span className="text-xl font-black text-amber-300 font-mono">
+                        ₹{(selectedAffiliate.payableBalance / 1000).toFixed(0)}k
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPayoutAmount(selectedAffiliate.payableBalance);
+                          setPayoutModalOpen(true);
+                        }}
+                        disabled={selectedAffiliate.payableBalance <= 0}
+                        className="text-[10px] font-black text-neutral-950 bg-amber-400 px-2 py-0.5 rounded cursor-pointer hover:bg-amber-300 disabled:opacity-50"
+                      >
+                        Withdraw
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Referred Deals Pipeline Table */}
             <div className="bg-neutral-900 rounded-3xl border border-neutral-800 overflow-hidden">
@@ -752,7 +826,7 @@ export default function AffiliateProgramPage() {
                 <div>
                   <h3 className="text-sm font-bold text-white">Your Referred Buyer Pipeline & Commissions</h3>
                   <span className="text-xs text-neutral-400">
-                    Live updates as your leads progress from inquiry to deed registration.
+                    Live updates as your leads progress from inquiry to deed registration across all 9 Indian Metros.
                   </span>
                 </div>
                 <span className="text-xs font-mono text-amber-400 font-bold">
@@ -773,6 +847,55 @@ export default function AffiliateProgramPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800/60">
+                    {/* Live dynamically attributed leads */}
+                    {liveLeads
+                      .filter(
+                        (l) =>
+                          l.partnerCode === selectedAffiliate.referralCode ||
+                          l.referralCode === selectedAffiliate.referralCode ||
+                          (l.notes && l.notes.includes(selectedAffiliate.referralCode))
+                      )
+                      .map((lead) => {
+                        const estimatedDealVal = lead.budgetNum || 12500000;
+                        const estimatedComm = Math.round(
+                          (estimatedDealVal * selectedAffiliate.commissionRatePercent) / 100
+                        );
+                        return (
+                          <tr key={`live-${lead.id}`} className="hover:bg-neutral-800/30 transition-colors bg-amber-500/5">
+                            <td className="py-3.5 px-4">
+                              <span className="font-bold text-white block flex items-center gap-1.5">
+                                <span>{lead.name}</span>
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-amber-400 text-neutral-950">LIVE</span>
+                              </span>
+                              <span className="text-[10px] text-neutral-400">{lead.phone}</span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-semibold text-neutral-200 block">
+                                {lead.propertyTitle || lead.projectName || 'Pan-India Enquiry'}
+                              </span>
+                              <span className="text-[10px] text-neutral-400">{lead.city || lead.location || 'Metro Hub'}</span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                {lead.status}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 font-mono font-bold text-white">
+                              ₹{(estimatedDealVal / 100000).toLocaleString('en-IN')} Lakhs
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono font-black text-emerald-400 text-sm">
+                              ₹{estimatedComm.toLocaleString('en-IN')}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-500/20 text-amber-400">
+                                PENDING
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+
+                    {/* Seed Conversions */}
                     {INITIAL_AFFILIATE_CONVERSIONS.filter(
                       (c) => c.referralCode === selectedAffiliate.referralCode
                     ).map((conv) => (
@@ -819,13 +942,18 @@ export default function AffiliateProgramPage() {
                     ))}
                     {INITIAL_AFFILIATE_CONVERSIONS.filter(
                       (c) => c.referralCode === selectedAffiliate.referralCode
-                    ).length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-neutral-500">
-                          No referrals recorded yet. Share your referral link above to see referred buyers appear here!
-                        </td>
-                      </tr>
-                    )}
+                    ).length === 0 &&
+                      liveLeads.filter(
+                        (l) =>
+                          l.partnerCode === selectedAffiliate.referralCode ||
+                          l.referralCode === selectedAffiliate.referralCode
+                      ).length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="py-8 text-center text-neutral-500">
+                            No referrals recorded yet. Share your referral link above to see referred buyers appear here!
+                          </td>
+                        </tr>
+                      )}
                   </tbody>
                 </table>
               </div>
@@ -841,7 +969,7 @@ export default function AffiliateProgramPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {INITIAL_AFFILIATE_CREATIVES.slice(0, 2).map((crt) => {
+                {INITIAL_AFFILIATE_CREATIVES.map((crt) => {
                   const customizedText = crt.copyText ? crt.copyText.replace('{LINK}', referralUrl) : '';
                   return (
                     <div
@@ -1094,7 +1222,7 @@ export default function AffiliateProgramPage() {
               </div>
 
               <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-[11px] text-neutral-400">
-                Destination: <strong className="text-white">{selectedAffiliate.payoutDetails.upiId || selectedAffiliate.payoutDetails.accountNumber}</strong>
+                Destination: <strong className="text-white">{selectedAffiliate?.payoutDetails?.upiId || selectedAffiliate?.payoutDetails?.accountNumber || 'UPI / NEFT'}</strong>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

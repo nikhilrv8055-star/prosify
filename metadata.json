@@ -1,6 +1,6 @@
 {
   "name": "Prosify - Indian Real Estate Marketplace & Channel Partner Platform",
-  "description": "Prosify - Comprehensive Indian real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform for Maharashtra properties.",
+  "description": "Prosify - Comprehensive Indian real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, and Ahmedabad.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

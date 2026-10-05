@@ -1,8 +1,25 @@
-import { NextResponse } from 'next/server';
-import { DEMO_USERS } from '@/lib/auth/types';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerUser } from '@/lib/auth/serverAuth';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const user = getServerUser(req);
+
+  if (!user) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'UNAUTHENTICATED',
+          message: 'No active authenticated session found.',
+        },
+        user: null,
+      },
+      { status: 401 }
+    );
+  }
+
   return NextResponse.json({
-    user: DEMO_USERS.SUPER_ADMIN,
+    success: true,
+    user,
   });
 }

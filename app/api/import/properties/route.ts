@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data/store';
 import { Unit, UnitStatus, ImportValidationReport, ImportFieldMapping } from '@/lib/types';
+import { requireRole } from '@/lib/auth/serverAuth';
+import { applyRateLimit } from '@/lib/security/rateLimit';
 
 // Alias dictionary for smart field auto-detection
 const TARGET_FIELD_CONFIG: Array<{
@@ -60,6 +62,14 @@ const TARGET_FIELD_CONFIG: Array<{
 ];
 
 export async function POST(req: NextRequest) {
+  // Rate limiting (10 imports per minute per IP)
+  const rateLimitResponse = applyRateLimit(req, { limit: 10, windowMs: 60 * 1000 }, 'inventory_import');
+  if (rateLimitResponse) return rateLimitResponse;
+
+  // Authorization: Only Super Admin, Admin, and Developer can import inventory
+  const auth = requireRole(req, ['SUPER_ADMIN', 'ADMIN', 'DEVELOPER']);
+  if (auth.errorResponse) return auth.errorResponse;
+
   try {
     const body = await req.json();
     const {
@@ -75,6 +85,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { success: false, error: { code: 'INVALID_INPUT', message: 'csvText is required' } },
         { status: 400 }
+      );
+    }
+
+    if (csvText.length > 5 * 1024 * 1024) {
+      return NextResponse.json(
+        { success: false, error: { code: 'PAYLOAD_TOO_LARGE', message: 'CSV file exceeds maximum allowed size of 5 MB' } },
+        { status: 413 }
       );
     }
 

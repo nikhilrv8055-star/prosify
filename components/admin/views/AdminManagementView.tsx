@@ -35,40 +35,13 @@ interface LanguageItem {
 
 const INITIAL_ADMINS: AdminUserRecord[] = [
   {
-    id: 'adm-1',
+    id: 'adm-root',
     name: 'Super Administrator',
-    username: 'superadmin',
-    email: 'superadmin@prosify.in',
+    username: 'admin',
+    email: 'admin@prosify.in',
     role: 'SUPER_ADMIN',
     status: 'ACTIVE',
-    lastLogin: '2026-09-30 09:12',
-  },
-  {
-    id: 'adm-2',
-    name: 'Operations Director',
-    username: 'opsadmin',
-    email: 'operations@prosify.in',
-    role: 'ADMIN',
-    status: 'ACTIVE',
-    lastLogin: '2026-09-29 16:45',
-  },
-  {
-    id: 'adm-3',
-    name: 'Chief RERA Legal Officer',
-    username: 'compliance',
-    email: 'compliance@prosify.in',
-    role: 'COMPLIANCE_OFFICER',
-    status: 'ACTIVE',
-    lastLogin: '2026-09-28 11:20',
-  },
-  {
-    id: 'adm-4',
-    name: 'Treasury & Payouts Head',
-    username: 'finance',
-    email: 'accounts@prosify.in',
-    role: 'FINANCE_OFFICER',
-    status: 'ACTIVE',
-    lastLogin: '2026-09-25 14:00',
+    lastLogin: 'Active Now',
   },
 ];
 

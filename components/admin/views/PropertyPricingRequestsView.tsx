@@ -28,67 +28,10 @@ export interface PricingRequestItem {
   adminNotes?: string;
 }
 
-const INITIAL_REQUESTS: PricingRequestItem[] = [
-  {
-    id: 'pr-1',
-    requestId: 'PR-2026-081',
-    propertyTitle: 'Godrej Riviera 3BHK Waterfront Tower A #1402',
-    developerOrVendor: 'Godrej Properties Limited',
-    buyerName: 'Vikramaditya Singhania',
-    buyerPhone: '+91 98201 99881',
-    basePrice: 16500000,
-    offeredPrice: 15800000,
-    paymentMode: 'FULL_DOWNPAYMENT',
-    status: 'PENDING',
-    submittedDate: '2026-09-30',
-    adminNotes: 'Buyer is paying 90% upfront via RTGS escrow within 14 days.',
-  },
-  {
-    id: 'pr-2',
-    requestId: 'PR-2026-079',
-    propertyTitle: 'Lodha Palava Smart 2BHK Golfview #0804',
-    developerOrVendor: 'Lodha Group (Macrotech)',
-    buyerName: 'Ananya Deshmukh',
-    buyerPhone: '+91 98334 11223',
-    basePrice: 7200000,
-    offeredPrice: 6900000,
-    paymentMode: 'BANK_LOAN_PRE_APPROVED',
-    status: 'ACCEPTED',
-    submittedDate: '2026-09-28',
-    adminNotes: 'Developer accepted festive rate deduction. HDFC sanction letter attached.',
-  },
-  {
-    id: 'pr-3',
-    requestId: 'PR-2026-072',
-    propertyTitle: 'Hiranandani Fortune City 4BHK Penthouse #2801',
-    developerOrVendor: 'Hiranandani Communities',
-    buyerName: 'Kunal Kapoor',
-    buyerPhone: '+91 99200 88776',
-    basePrice: 38500000,
-    offeredPrice: 31000000,
-    paymentMode: 'FLEXIBLE_CONSTRUCTION_LINKED',
-    status: 'REJECTED',
-    submittedDate: '2026-09-25',
-    adminNotes: 'Offer is 19.5% below floor minimum reserve price; rejected by developer treasury.',
-  },
-  {
-    id: 'pr-4',
-    requestId: 'PR-2026-085',
-    propertyTitle: 'Oberoi Sky City 3BHK Sky Residences #3204',
-    developerOrVendor: 'Oberoi Realty',
-    buyerName: 'Sanjay Chawla',
-    buyerPhone: '+91 97690 33445',
-    basePrice: 42000000,
-    offeredPrice: 40500000,
-    paymentMode: 'FULL_DOWNPAYMENT',
-    status: 'PENDING',
-    submittedDate: '2026-09-30',
-    adminNotes: 'Corporate executive purchase. Fast-track title registration requested.',
-  },
-];
+const INITIAL_REQUESTS: PricingRequestItem[] = [];
 
 export function PropertyPricingRequestsView({ subview = 'prop-pricing-all' }: { subview?: string }) {
-  const [requests, setRequests] = useState<PricingRequestItem[]>(INITIAL_REQUESTS);
+  const [requests, setRequests] = useState<PricingRequestItem[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'accepted' | 'rejected'>(
     subview === 'prop-pricing-pending'
       ? 'pending'
@@ -211,7 +154,14 @@ export function PropertyPricingRequestsView({ subview = 'prop-pricing-all' }: { 
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
-            {filteredRequests.map((r) => {
+            {filteredRequests.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-12 text-center text-slate-400 text-xs">
+                  No pricing counter-offers or discount requests received yet.
+                </td>
+              </tr>
+            ) : (
+              filteredRequests.map((r) => {
               const diffPercent = (((r.offeredPrice - r.basePrice) / r.basePrice) * 100).toFixed(1);
               return (
                 <tr key={r.id} className="hover:bg-slate-800/40">
@@ -275,7 +225,8 @@ export function PropertyPricingRequestsView({ subview = 'prop-pricing-all' }: { 
                   </td>
                 </tr>
               );
-            })}
+            })
+          )}
           </tbody>
         </table>
       </div>

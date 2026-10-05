@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -31,13 +31,50 @@ import { store } from '@/lib/data/store';
 import { ChannelPartner, Lead, SiteVisit, Booking, Commission } from '@/lib/types';
 import { formatIndianPrice } from '@/lib/utils';
 
+const DEFAULT_PARTNER: ChannelPartner = {
+  id: 'cp-default',
+  code: 'CP-PROSIFY',
+  partnerName: 'Channel Partner',
+  name: 'Channel Partner',
+  companyName: 'Prosify Verified Partner Network',
+  email: 'partner@prosify.in',
+  phone: '+91 93263 03244',
+  address: 'Mumbai, Maharashtra',
+  panNumber: 'AABCP1234M',
+  tier: 'GOLD',
+  status: 'ACTIVE',
+  commissionRate: 2.5,
+  reraNumber: 'A51800049281',
+  clicksCount: 0,
+  leadsCount: 0,
+  siteVisitsCount: 0,
+  bookingsCount: 0,
+  totalCommissionEarned: 0,
+  totalCommissionPaid: 0,
+  pendingCommission: 0,
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+
 export default function PartnerPortalPage() {
   const [, setRefreshKey] = useState(0);
 
-  // Use mock active partner
+  // Subscribe to live multi-panel updates
+  useEffect(() => {
+    const unsub = store.subscribe(() => {
+      setRefreshKey((k) => k + 1);
+    });
+    const handleUpdate = () => setRefreshKey((k) => k + 1);
+    window.addEventListener('prosify:store-updated', handleUpdate);
+    return () => {
+      unsub();
+      window.removeEventListener('prosify:store-updated', handleUpdate);
+    };
+  }, []);
+
+  // Channel partner data
   const partners = store.getChannelPartners();
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string>(partners[0]?.id || 'cp-1');
-  const activePartner = partners.find((p) => p.id === selectedPartnerId) || partners[0];
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string>(partners[0]?.id || 'cp-default');
+  const activePartner = partners.find((p) => p.id === selectedPartnerId) || partners[0] || DEFAULT_PARTNER;
 
   // Data for active partner - Strictly isolated by partnerId
   const leads = store.getLeads({ partnerId: activePartner?.id });

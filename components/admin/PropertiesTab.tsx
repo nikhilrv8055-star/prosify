@@ -30,6 +30,7 @@ import { Property, PropertyType, ListingType, PossessionStatus } from '@/lib/typ
 import { formatIndianPrice } from '@/lib/utils';
 import { store } from '@/lib/data/store';
 import { useToast } from '@/components/ui/toast';
+import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
 
 interface PropertiesTabProps {
   properties: Property[];
@@ -455,12 +456,12 @@ export function PropertiesTab({ properties, onRefresh, subview }: PropertiesTabP
             onChange={(e) => setCityFilter(e.target.value)}
             className="px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-slate-200 focus:outline-none focus:border-[#10B981]"
           >
-            <option value="ALL">All Cities</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Thane">Thane</option>
-            <option value="Dombivli">Dombivli</option>
-            <option value="Kalyan">Kalyan</option>
-            <option value="Pune">Pune</option>
+            <option value="ALL">All 9 Metros</option>
+            {PAN_INDIA_CITIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
 
           <select
@@ -942,12 +943,11 @@ export function PropertiesTab({ properties, onRefresh, subview }: PropertiesTabP
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white focus:outline-none focus:border-[#10B981]"
                     >
-                      <option value="Mumbai">Mumbai</option>
-                      <option value="Thane">Thane</option>
-                      <option value="Dombivli">Dombivli</option>
-                      <option value="Kalyan">Kalyan</option>
-                      <option value="Pune">Pune</option>
-                      <option value="Navi Mumbai">Navi Mumbai</option>
+                      {PAN_INDIA_CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

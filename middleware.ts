@@ -40,7 +40,17 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // Add security headers to response
+  const response = NextResponse.next();
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/admin')) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  }
+
+  return response;
 }
 
 export const config = {

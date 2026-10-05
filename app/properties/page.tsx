@@ -32,6 +32,7 @@ import {
   DEFAULT_FILTER_CRITERIA,
 } from '@/components/marketplace/MobileFilterOverlay';
 import { store } from '@/lib/data/store';
+import { useLiveStore } from '@/lib/data/useLiveStore';
 import { Property } from '@/lib/types';
 import { formatIndianPrice } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
@@ -41,6 +42,7 @@ function PropertiesContent() {
   const searchParams = useSearchParams();
   const { toggleCompareProperty, comparedPropertyIds } = useAuth();
   const { toast } = useToast();
+  const { properties: allLiveProperties, cities } = useLiveStore();
 
   // URL parameters init
   const initialCity = searchParams?.get('city') || 'ALL';
@@ -172,7 +174,7 @@ function PropertiesContent() {
       searchQuery: query || undefined,
       sort,
     });
-  }, [criteria, query, sort]);
+  }, [criteria, query, sort, allLiveProperties]);
 
   const resetFilters = () => {
     setCriteria(DEFAULT_FILTER_CRITERIA);
@@ -395,13 +397,12 @@ function PropertiesContent() {
                   onChange={(e) => handleApplyCriteria({ ...criteria, city: e.target.value })}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-300 bg-neutral-50"
                 >
-                  <option value="ALL">All Cities</option>
-                  <option value="Mumbai">Mumbai MMR</option>
-                  <option value="Thane">Thane</option>
-                  <option value="Dombivli">Dombivli</option>
-                  <option value="Kalyan">Kalyan</option>
-                  <option value="Pune">Pune</option>
-                  <option value="Nagpur">Nagpur</option>
+                  <option value="ALL">All 9 Indian Metros</option>
+                  {cities.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
 

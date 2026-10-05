@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data/store';
 import { DeveloperPushPayload } from '@/lib/types';
+import { applyRateLimit, getClientIp } from '@/lib/security/rateLimit';
+import { recordAuditEvent } from '@/lib/security/auditLog';
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+
+  // Rate limiting (60 push syncs per minute per IP)
+  const rateLimitResponse = applyRateLimit(
+    req,
+    { limit: 60, windowMs: 60 * 1000 },
+    'developer_push'
+  );
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     // 1. Extract API Key from headers (x-api-key or Authorization: Bearer ...)
     const apiKeyHeader =
@@ -27,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     const cleanApiKey = apiKeyHeader.trim().replace(/^Bearer\s+/i, '');
 
-    // 2. Parse request body
+    // 2. Parse request body with size check
     let body: DeveloperPushPayload;
     try {
       body = await req.json();
@@ -61,10 +73,26 @@ export async function POST(req: NextRequest) {
     // 3. Process push in store
     const result = store.processDeveloperInboundPush(cleanApiKey, body);
 
+    recordAuditEvent({
+      action: 'DEVELOPER_PUSH_SYNC',
+      resource: '/api/developer-api/push',
+      status: 'SUCCESS',
+      details: `Processed push for ${result.developerName} (action: ${result.action})`,
+      ipAddress: ip,
+    });
+
     return NextResponse.json(result, { status: 200 });
   } catch (err: any) {
     const isAuth = err.message?.toLowerCase().includes('unauthorized') || err.message?.toLowerCase().includes('invalid');
-    const isPerm = err.message?.toLowerCase().includes('permission denied');
+    const isPerm = err.message?.toLowerCase().includes('forbidden') || err.message?.toLowerCase().includes('inactive');
+
+    recordAuditEvent({
+      action: 'DEVELOPER_PUSH_SYNC',
+      resource: '/api/developer-api/push',
+      status: 'FAILURE',
+      details: `Inbound push rejected: ${err.message}`,
+      ipAddress: ip,
+    });
 
     return NextResponse.json(
       {

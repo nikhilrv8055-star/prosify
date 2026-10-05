@@ -14,9 +14,11 @@ import {
 import { Navbar } from '@/components/marketplace/Navbar';
 import { Footer } from '@/components/marketplace/Footer';
 import { brandConfig } from '@/src/config/brand';
+import { store } from '@/lib/data/store';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -25,9 +27,56 @@ export default function ContactPage() {
     message: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          source: 'WEBSITE',
+          requirement: formData.subject,
+          notes: formData.message,
+          location: 'Pan-India',
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        store.ingestLead(data.data);
+      } else {
+        const fallbackLead = store.createLead({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          source: 'WEBSITE',
+          requirement: formData.subject,
+          notes: formData.message,
+          location: 'Pan-India',
+          budget: 'Flexible',
+        });
+        store.ingestLead(fallbackLead);
+      }
+      setSubmitted(true);
+    } catch {
+      const fallbackLead = store.createLead({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        source: 'WEBSITE',
+        requirement: formData.subject,
+        notes: formData.message,
+        location: 'Pan-India',
+        budget: 'Flexible',
+      });
+      store.ingestLead(fallbackLead);
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

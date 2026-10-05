@@ -133,7 +133,14 @@ export function CommissionsTab({ commissions, onRefresh }: CommissionsTabProps) 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-300">
-              {filtered.map((c) => {
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                    No commission ledger records found. New entries are created automatically when property deals are confirmed.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((c) => {
                 const tds = c.tdsDeducted || Math.round(c.amount * 0.05);
                 const net = c.netPayable || (c.amount - tds);
                 const title = c.propertyTitle || c.projectName || 'Property Deal';
@@ -204,7 +211,7 @@ export function CommissionsTab({ commissions, onRefresh }: CommissionsTabProps) 
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

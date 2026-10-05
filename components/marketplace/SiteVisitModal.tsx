@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Calendar, Clock, MapPin, CheckCircle2, ShieldCheck, Car } from 'lucide-react';
 import { Property, Project } from '@/lib/types';
 import { getStoredAttribution, PartnerAttribution } from '@/lib/attribution';
+import { store } from '@/lib/data/store';
 
 interface SiteVisitModalProps {
   isOpen: boolean;
@@ -59,6 +60,10 @@ export function SiteVisitModal({ isOpen, onClose, property, project }: SiteVisit
 
       const data = await res.json();
       if (data.success) {
+        if (data.data) {
+          if (data.data.lead) store.ingestLead(data.data.lead);
+          if (data.data.visit) store.ingestSiteVisit(data.data.visit);
+        }
         setIsSuccess(true);
         setTimeout(() => {
           setIsSuccess(false);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -75,7 +75,21 @@ const STATUS_CONFIG: Record<
 
 export default function InventoryPage() {
   const { toast } = useToast();
-  const allProjects = useMemo(() => store.getProjects(), []);
+  const [syncKey, setSyncKey] = useState(0);
+
+  useEffect(() => {
+    const unsub = store.subscribe(() => {
+      setSyncKey((k) => k + 1);
+    });
+    const handleUpdate = () => setSyncKey((k) => k + 1);
+    window.addEventListener('prosify:store-updated', handleUpdate);
+    return () => {
+      unsub();
+      window.removeEventListener('prosify:store-updated', handleUpdate);
+    };
+  }, []);
+
+  const allProjects = useMemo(() => store.getProjects(), [syncKey]);
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>(allProjects[0]?.id || 'proj-1');
   const selectedProject = useMemo(
@@ -104,11 +118,11 @@ export default function InventoryPage() {
   const [newUnitPrice, setNewUnitPrice] = useState('8500000');
   const [newUnitFacing, setNewUnitFacing] = useState('East');
 
-  // Load units from store
+  // Load units from store with syncKey
   const allUnitsForProject = useMemo(
-    () => store.getUnits(selectedProject.id, selectedTower),
+    () => store.getUnits(selectedProject?.id, selectedTower),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedProject.id, selectedTower, inspectedUnit]
+    [selectedProject?.id, selectedTower, inspectedUnit, syncKey]
   );
 
   // Group by floor in descending order (stacking plan)

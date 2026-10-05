@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Building2, Phone, Mail, User, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Property, Project } from '@/lib/types';
 import { getStoredAttribution, PartnerAttribution } from '@/lib/attribution';
+import { store } from '@/lib/data/store';
 
 interface EnquiryModalProps {
   isOpen: boolean;
@@ -71,6 +72,9 @@ export function EnquiryModal({ isOpen, onClose, property, project, propertyTitle
 
       const data = await res.json();
       if (data.success) {
+        if (data.data) {
+          store.ingestLead(data.data);
+        }
         setIsSuccess(true);
         setTimeout(() => {
           setIsSuccess(false);

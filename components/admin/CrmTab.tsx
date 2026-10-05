@@ -55,13 +55,13 @@ export function CrmTab({ leads, onRefresh }: CrmTabProps) {
     notes: string;
   }>({
     name: '',
-    phone: '+91 98201 12345',
-    email: 'client@example.com',
-    source: 'META_ADS',
-    budget: '₹80 Lakh - ₹1.2 Cr',
-    location: 'Kalyan West',
-    propertyTitle: 'Godrej Riviera',
-    notes: 'Inquired about 2 BHK with river view.',
+    phone: '',
+    email: '',
+    source: 'WEBSITE',
+    budget: '',
+    location: '',
+    propertyTitle: '',
+    notes: '',
   });
 
   const stages: LeadStatus[] = [

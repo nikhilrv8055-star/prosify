@@ -36,63 +36,13 @@ export interface SubscriberItem {
   status: 'SUBSCRIBED' | 'UNSUBSCRIBED';
 }
 
-const INITIAL_USERS: UserItem[] = [
-  {
-    id: 'usr-1',
-    name: 'Rajesh Mehra',
-    email: 'rajesh.mehra@gmail.com',
-    phone: '+91 98201 12345',
-    role: 'INVESTOR',
-    city: 'Mumbai',
-    status: 'ACTIVE',
-    joinedDate: '2026-08-14',
-    savedProperties: 8,
-  },
-  {
-    id: 'usr-2',
-    name: 'Pooja Singhania',
-    email: 'pooja.s@singhaniaholdings.in',
-    phone: '+91 98334 55678',
-    role: 'BUYER',
-    city: 'Thane',
-    status: 'ACTIVE',
-    joinedDate: '2026-09-02',
-    savedProperties: 4,
-  },
-  {
-    id: 'usr-3',
-    name: 'Vikram Joshi',
-    email: 'vikram.realty@outlook.com',
-    phone: '+91 97690 99881',
-    role: 'BROKER',
-    city: 'Navi Mumbai',
-    status: 'PENDING_KYC',
-    joinedDate: '2026-09-18',
-    savedProperties: 19,
-  },
-  {
-    id: 'usr-4',
-    name: 'Aman Deshmukh',
-    email: 'aman.d@techmahindra.com',
-    phone: '+91 99200 44321',
-    role: 'BUYER',
-    city: 'Pune',
-    status: 'ACTIVE',
-    joinedDate: '2026-09-22',
-    savedProperties: 6,
-  },
-];
+const INITIAL_USERS: UserItem[] = [];
 
-const INITIAL_SUBSCRIBERS: SubscriberItem[] = [
-  { id: 'sub-1', email: 'aditya.investments@gmail.com', subscribedDate: '2026-09-25', source: 'FOOTER_FORM', status: 'SUBSCRIBED' },
-  { id: 'sub-2', email: 'priya.sharma99@yahoo.co.in', subscribedDate: '2026-09-24', source: 'POPUP_MODAL', status: 'SUBSCRIBED' },
-  { id: 'sub-3', email: 'rohit.buildergroup@gmail.com', subscribedDate: '2026-09-21', source: 'NEW_LAUNCH_PAGE', status: 'SUBSCRIBED' },
-  { id: 'sub-4', email: 'meenal.k@rediffmail.com', subscribedDate: '2026-09-19', source: 'FOOTER_FORM', status: 'SUBSCRIBED' },
-];
+const INITIAL_SUBSCRIBERS: SubscriberItem[] = [];
 
 export function UsersManagementView({ subview = 'users-registered' }: { subview?: string }) {
-  const [users, setUsers] = useState<UserItem[]>(INITIAL_USERS);
-  const [subscribers, setSubscribers] = useState<SubscriberItem[]>(INITIAL_SUBSCRIBERS);
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [subscribers, setSubscribers] = useState<SubscriberItem[]>([]);
   const [activeTab, setActiveTab] = useState<'registered' | 'add' | 'subscribers'>(
     subview === 'users-add' ? 'add' : subview === 'users-subscribers' ? 'subscribers' : 'registered'
   );
@@ -243,7 +193,14 @@ export function UsersManagementView({ subview = 'users-registered' }: { subview?
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredUsers.map((u) => (
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-slate-400 text-xs">
+                      No registered user accounts found. New customer signups will appear here automatically.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
@@ -294,7 +251,8 @@ export function UsersManagementView({ subview = 'users-registered' }: { subview?
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
               </tbody>
             </table>
           </div>
@@ -411,7 +369,14 @@ export function UsersManagementView({ subview = 'users-registered' }: { subview?
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {subscribers.map((s) => (
+                {subscribers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-slate-400 text-xs">
+                      No active newsletter subscribers yet. Subscribers from website forms will appear here.
+                    </td>
+                  </tr>
+                ) : (
+                  subscribers.map((s) => (
                   <tr key={s.id} className="hover:bg-slate-800/40">
                     <td className="p-3.5 font-medium text-white flex items-center gap-2">
                       <Mail className="w-3.5 h-3.5 text-blue-400" />
@@ -441,7 +406,8 @@ export function UsersManagementView({ subview = 'users-registered' }: { subview?
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
               </tbody>
             </table>
           </div>

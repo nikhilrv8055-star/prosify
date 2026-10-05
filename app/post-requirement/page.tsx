@@ -25,6 +25,7 @@ import { Footer } from '@/components/marketplace/Footer';
 import { useToast } from '@/components/ui/toast';
 import { getStoredAttribution } from '@/lib/attribution';
 import { brandConfig } from '@/src/config/brand';
+import { store } from '@/lib/data/store';
 
 export default function PostRequirementPage() {
   const router = useRouter();
@@ -153,6 +154,9 @@ export default function PostRequirementPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        if (data.data) {
+          store.ingestLead(data.data);
+        }
         const refId = data.data?.id || `REQ-${Date.now().toString().slice(-6)}`;
         setLeadReference(refId);
         setSubmitted(true);

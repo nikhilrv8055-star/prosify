@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Project } from '@/lib/types';
 import { store } from '@/lib/data/store';
+import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
 
 interface ProjectsTabProps {
   projects: Project[];
@@ -27,6 +28,7 @@ interface ProjectsTabProps {
 
 export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [cityFilter, setCityFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDismissed, setModalDismissed] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -51,13 +53,14 @@ export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) 
   });
 
   const filteredProjects = projects.filter((p) => {
+    const matchesCity = cityFilter === 'ALL' || p.city.toLowerCase() === cityFilter.toLowerCase();
     const q = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       p.name.toLowerCase().includes(q) ||
       p.developerName.toLowerCase().includes(q) ||
       p.city.toLowerCase().includes(q) ||
-      (p.reraNumber && p.reraNumber.toLowerCase().includes(q))
-    );
+      (p.reraNumber && p.reraNumber.toLowerCase().includes(q));
+    return matchesCity && matchesSearch;
   });
 
   const handleOpenAdd = () => {
@@ -164,16 +167,30 @@ export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) 
         </button>
       </div>
 
-      {/* Search */}
-      <div className="p-4 rounded-2xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700 flex items-center gap-3">
-        <Search className="w-4 h-4 text-slate-400" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Filter projects by title, builder, or RERA ID..."
-          className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
-        />
+      {/* Search & City Filter */}
+      <div className="p-4 rounded-2xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="flex-1 flex items-center gap-3">
+          <Search className="w-4 h-4 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Filter projects by title, builder, or RERA ID..."
+            className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
+          />
+        </div>
+        <select
+          value={cityFilter}
+          onChange={(e) => setCityFilter(e.target.value)}
+          className="px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-[#0EA5E9]"
+        >
+          <option value="ALL">All 9 Metros</option>
+          {PAN_INDIA_CITIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Projects Grid */}
@@ -306,6 +323,30 @@ export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) 
                     type="text"
                     value={formData.possessionDate}
                     onChange={(e) => setFormData({ ...formData, possessionDate: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white focus:outline-none focus:border-[#0EA5E9]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">City *</label>
+                  <select
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white focus:outline-none focus:border-[#0EA5E9]"
+                  >
+                    {PAN_INDIA_CITIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Locality *</label>
+                  <input
+                    type="text"
+                    value={formData.locality}
+                    onChange={(e) => setFormData({ ...formData, locality: e.target.value })}
+                    placeholder="e.g. Whitefield / Baner / Cyber City"
                     className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white focus:outline-none focus:border-[#0EA5E9]"
                   />
                 </div>

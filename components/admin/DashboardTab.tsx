@@ -150,20 +150,10 @@ export function DashboardTab({
         type: 'HOT_LEAD',
         title: `🔥 High-Intent Lead Alert: ${hot.name}`,
         desc: `Score: ${hot.leadScore || 85}/100 (HOT). High budget (${hot.budget}) inquiring for ${hot.propertyTitle || hot.location}. Immediate callback required.`,
-        time: '12m ago',
+        time: 'Just now',
         severity: 'critical',
       });
     }
-
-    // Property mismatch / inventory threshold
-    list.push({
-      id: 'alert-prop-mismatch',
-      type: 'PROPERTY_MISMATCH',
-      title: 'ProMatch Inventory Alignment Notice',
-      desc: 'Buyer demand for 3 BHK in Majiwada exceeds current verified ready inventory by 24%. Syndication feed update recommended.',
-      time: '1h ago',
-      severity: 'warning',
-    });
 
     return list;
   }, [projects, leads]);
@@ -229,7 +219,7 @@ export function DashboardTab({
             <Users className="w-3.5 h-3.5 text-blue-400" />
           </div>
           <div className="text-xl font-bold text-white tracking-tight">{totalLeadsCount}</div>
-          <span className="text-[10px] text-emerald-400 font-medium">+14% this week</span>
+          <span className="text-[10px] text-slate-400 font-medium">Real-time Pipeline</span>
         </div>
 
         {/* KPI 2: Hot Leads */}
@@ -375,25 +365,33 @@ export function DashboardTab({
           </div>
 
           <div className="space-y-2.5">
-            {aiAlerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`p-3 rounded-xl border text-xs space-y-1 ${
-                  alert.severity === 'critical'
-                    ? 'bg-red-500/10 border-red-500/30 text-red-300'
-                    : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                }`}
-              >
-                <div className="flex items-center justify-between font-bold">
-                  <span className="flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                    <span>{alert.title}</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono font-normal">{alert.time}</span>
-                </div>
-                <p className="text-[11px] text-slate-300 pl-5 leading-relaxed">{alert.desc}</p>
+            {aiAlerts.length === 0 ? (
+              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-center space-y-1">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" />
+                <p className="text-xs font-semibold text-slate-300">All systems normal</p>
+                <p className="text-[11px] text-slate-500">No critical anomalies or RERA compliance issues detected.</p>
               </div>
-            ))}
+            ) : (
+              aiAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`p-3 rounded-xl border text-xs space-y-1 ${
+                    alert.severity === 'critical'
+                      ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{alert.title}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono font-normal">{alert.time}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 pl-5 leading-relaxed">{alert.desc}</p>
+                </div>
+              ))
+            )}
           </div>
 
           <button
@@ -424,29 +422,35 @@ export function DashboardTab({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-          {auditLogs.map((log) => (
-            <div
-              key={log.id}
-              className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1.5 text-xs"
-            >
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
-                  {log.action}
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
+        {auditLogs.length === 0 ? (
+          <div className="py-8 text-center text-slate-400 text-xs bg-slate-900/40 rounded-xl border border-slate-800">
+            No audit events recorded yet. Real-time system actions and status changes will be logged here.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+            {auditLogs.map((log) => (
+              <div
+                key={log.id}
+                className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1.5 text-xs"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">
+                    {log.action}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <p className="text-slate-200 text-[11px] leading-snug line-clamp-2">
+                  {log.details || log.metadata || `${log.entity} updated`}
+                </p>
+                <div className="text-[10px] text-slate-400 font-mono truncate">
+                  Actor: {log.user}
+                </div>
               </div>
-              <p className="text-slate-200 text-[11px] leading-snug line-clamp-2">
-                {log.details || log.metadata || `${log.entity} updated`}
-              </p>
-              <div className="text-[10px] text-slate-400 font-mono truncate">
-                Actor: {log.user}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

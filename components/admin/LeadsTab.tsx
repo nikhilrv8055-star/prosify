@@ -23,6 +23,7 @@ import {
 import { Lead, LeadStatus, LeadSourceType } from '@/lib/types';
 import { store } from '@/lib/data/store';
 import { useToast } from '@/components/ui/toast';
+import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
 
 interface LeadsTabProps {
   leads: Lead[];
@@ -34,6 +35,7 @@ export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [cityFilter, setCityFilter] = useState<string>('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
@@ -86,13 +88,17 @@ export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
   const filteredLeads = leads.filter((l) => {
     const matchesSource = sourceFilter === 'ALL' || l.source === sourceFilter;
     const matchesStatus = statusFilter === 'ALL' || l.status === statusFilter;
+    const matchesCity =
+      cityFilter === 'ALL' ||
+      (l.city && l.city.toLowerCase() === cityFilter.toLowerCase()) ||
+      (l.location && l.location.toLowerCase().includes(cityFilter.toLowerCase()));
     const propTitle = l.propertyTitle || l.projectName || '';
     const matchesSearch =
       l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       l.phone.includes(searchTerm) ||
       l.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       propTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSource && matchesStatus && matchesSearch;
+    return matchesSource && matchesStatus && matchesCity && matchesSearch;
   });
 
   // Handle fast status change
@@ -270,7 +276,9 @@ export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
           <span className="text-2xl font-bold text-[#10B981] mt-1 block">
             {leads.filter((l) => l.status === 'BOOKED' || l.status === 'CLOSED').length}
           </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Conversion: 18.4%</span>
+          <span className="text-[10px] text-slate-400 mt-1 block">
+            Conversion: {leads.length > 0 ? ((leads.filter((l) => l.status === 'BOOKED' || l.status === 'CLOSED').length / leads.length) * 100).toFixed(1) + '%' : '0%'}
+          </span>
         </div>
       </div>
 
@@ -287,7 +295,20 @@ export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-[#10B981]"
+          >
+            <option value="ALL">All 9 Metros</option>
+            {PAN_INDIA_CITIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
           <select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
@@ -370,6 +391,18 @@ export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
                         {lead.source === 'BUY_REQUIREMENT' ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 border border-amber-400/40 text-amber-300">
                             BUY REQUIREMENT
+                          </span>
+                        ) : lead.source === 'META_ADS' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-rose-500/20 to-purple-500/20 border border-rose-400/40 text-rose-300">
+                            META INSTANT FORM
+                          </span>
+                        ) : lead.source === 'LOCALITY_GUIDE' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0EA5E9]/20 border border-[#0EA5E9]/40 text-[#0EA5E9]">
+                            LOCALITY GUIDE
+                          </span>
+                        ) : lead.source === 'LOCAL_SEO' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#10B981]/20 border border-[#10B981]/40 text-[#10B981]">
+                            LOCAL SEO INBOUND
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-900 border border-slate-700 text-slate-300">

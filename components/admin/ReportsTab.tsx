@@ -93,11 +93,11 @@ export function ReportsTab({
         l.id,
         l.name,
         l.phone,
-        l.email,
-        l.source,
-        l.budget,
+        l.email || '',
+        l.source || '',
+        l.budget || '',
         l.propertyTitle || '',
-        l.status,
+        l.status || '',
         new Date(l.createdAt).toISOString().split('T')[0],
       ]);
       downloadCSV(`Omnichannel_Leads_Attribution_${Date.now()}.csv`, headers, rows);

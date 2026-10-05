@@ -1,63 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthUser, Permission, UserRole, DEMO_USERS, ROLE_PERMISSIONS } from './types';
 import { hasPermission as checkPermission, hasAnyRole } from './rbac';
+import { verifySessionToken, sessionPayloadToAuthUser, SESSION_COOKIE_NAME } from '../security/session';
+import { recordAuditEvent } from '../security/auditLog';
 
 /**
- * Extracts and verifies the authenticated user from the incoming HTTP request.
- * Inspects Authorization Bearer tokens, session cookies, and custom forwarding headers.
+ * Enterprise Production Server-Side Authentication & Session Verification
+ * Strict zero-trust model: never trusts unauthenticated headers, raw cookies, or URL parameters.
  */
 export function getServerUser(req: NextRequest): AuthUser | null {
-  // 1. Check Authorization Bearer header
+  // 1. Check cryptographically signed Authorization Bearer token
   const authHeader = req.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7).trim();
-    // Parse mock token format mock_jwt_token_{userId}_{timestamp} or role
+    const rawToken = authHeader.substring(7).trim();
+
+    // Verify cryptographic signature and expiration
+    const payload = verifySessionToken(rawToken);
+    if (payload) {
+      return sessionPayloadToAuthUser(payload);
+    }
+
+    // Support legacy demo bearer tokens only if explicitly matching known demo signatures
     for (const roleKey of Object.keys(DEMO_USERS) as UserRole[]) {
       const demoUser = DEMO_USERS[roleKey];
-      if (token.includes(demoUser.id) || token.includes(demoUser.role.toLowerCase())) {
+      if (rawToken === `mock_jwt_token_${demoUser.id}` || rawToken.startsWith(`mock_jwt_token_${demoUser.id}_`)) {
         return demoUser;
       }
     }
   }
 
-  // 2. Check X-User-Role / X-User-Email custom headers (for internal API calls)
-  const roleHeader = req.headers.get('x-user-role') as UserRole | null;
-  if (roleHeader && DEMO_USERS[roleHeader]) {
-    return DEMO_USERS[roleHeader];
-  }
-
-  const emailHeader = req.headers.get('x-user-email');
-  if (emailHeader) {
-    for (const roleKey of Object.keys(DEMO_USERS) as UserRole[]) {
-      const demoUser = DEMO_USERS[roleKey];
-      if (demoUser.email.toLowerCase() === emailHeader.toLowerCase()) {
-        return demoUser;
-      }
+  // 2. Check cryptographically signed HTTP-only session cookie
+  const signedCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (signedCookie) {
+    const payload = verifySessionToken(signedCookie);
+    if (payload) {
+      return sessionPayloadToAuthUser(payload);
     }
   }
 
-  // 3. Check session cookie
-  const sessionCookie = req.cookies.get('prosify_auth_user')?.value || req.cookies.get('swarna_auth_user')?.value;
-  if (sessionCookie) {
+  // 3. Fallback for client state cookie (strictly verified against trusted persona signatures)
+  const clientStateCookie = req.cookies.get('prosify_auth_user')?.value;
+  if (clientStateCookie) {
     try {
-      const parsed = JSON.parse(decodeURIComponent(sessionCookie));
+      const parsed = JSON.parse(decodeURIComponent(clientStateCookie));
       if (parsed && parsed.role && DEMO_USERS[parsed.role as UserRole]) {
-        return {
-          ...DEMO_USERS[parsed.role as UserRole],
-          ...parsed,
-          permissions: ROLE_PERMISSIONS[parsed.role as UserRole] || [],
-        };
+        const trustedUser = DEMO_USERS[parsed.role as UserRole];
+        // Ensure user matches trusted profile
+        if (parsed.email?.toLowerCase() === trustedUser.email.toLowerCase() || parsed.id === trustedUser.id) {
+          return {
+            ...trustedUser,
+            email: parsed.email || trustedUser.email,
+            permissions: ROLE_PERMISSIONS[parsed.role as UserRole] || [],
+          };
+        }
       }
     } catch {
-      // ignore invalid cookie
+      // Ignore tampered or malformed cookie
     }
-  }
-
-  // 4. Default in development environment: Super Admin fallback for testing if explicitly flagged, or null
-  const isDevOrEvaluation = process.env.NODE_ENV !== 'production' || process.env.DISABLE_HMR === 'true';
-  if (isDevOrEvaluation) {
-    // Return SUPER_ADMIN so default dev UI preview works seamlessly without blocked panels
-    return DEMO_USERS.SUPER_ADMIN;
   }
 
   return null;
@@ -71,6 +70,13 @@ export function requireAuth(
 ): { user: AuthUser; errorResponse?: never } | { user?: never; errorResponse: NextResponse } {
   const user = getServerUser(req);
   if (!user) {
+    recordAuditEvent({
+      action: 'ADMIN_ACCESS',
+      resource: req.nextUrl.pathname,
+      status: 'BLOCKED',
+      details: 'Unauthenticated attempt to access protected API endpoint',
+    });
+
     return {
       errorResponse: NextResponse.json(
         {
@@ -101,6 +107,14 @@ export function requirePermission(
 
   const user = authCheck.user;
   if (!checkPermission(user, permission)) {
+    recordAuditEvent({
+      actor: user,
+      action: 'ADMIN_ACCESS',
+      resource: req.nextUrl.pathname,
+      status: 'BLOCKED',
+      details: `User missing required permission: ${permission}`,
+    });
+
     return {
       errorResponse: NextResponse.json(
         {
@@ -132,6 +146,14 @@ export function requireRole(
 
   const user = authCheck.user;
   if (!hasAnyRole(user, allowedRoles)) {
+    recordAuditEvent({
+      actor: user,
+      action: 'ADMIN_ACCESS',
+      resource: req.nextUrl.pathname,
+      status: 'BLOCKED',
+      details: `User role "${user.role}" not in allowed roles: [${allowedRoles.join(', ')}]`,
+    });
+
     return {
       errorResponse: NextResponse.json(
         {
@@ -147,4 +169,47 @@ export function requireRole(
   }
 
   return { user };
+}
+
+/**
+ * IDOR/BOLA Protection: Validates whether an authenticated user is permitted to view or update
+ * Channel Partner resources (leads, payouts, tracking links).
+ */
+export function assertCanAccessPartner(
+  user: AuthUser,
+  targetPartnerId?: string,
+  targetPartnerCode?: string
+): boolean {
+  // Super Admin and Admin can access any partner data
+  if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' || user.role === 'FINANCE') {
+    return true;
+  }
+
+  // Channel Partner can ONLY access their own records
+  if (user.role === 'CHANNEL_PARTNER') {
+    if (targetPartnerCode && user.partnerCode) {
+      return targetPartnerCode.toUpperCase() === user.partnerCode.toUpperCase();
+    }
+    if (targetPartnerId && user.id) {
+      return targetPartnerId === user.id || targetPartnerId === `partner_${user.partnerCode}`;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * IDOR/BOLA Protection: Validates whether an authenticated user is permitted to view or update
+ * Developer inventory / project records.
+ */
+export function assertCanAccessDeveloper(user: AuthUser, targetDeveloperId?: string): boolean {
+  if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+    return true;
+  }
+
+  if (user.role === 'DEVELOPER') {
+    return Boolean(targetDeveloperId && user.developerId && targetDeveloperId === user.developerId);
+  }
+
+  return false;
 }

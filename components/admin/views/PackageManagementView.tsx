@@ -39,7 +39,7 @@ const INITIAL_PACKAGES: PlanItem[] = [
     listingsLimit: 10,
     featuredLimit: 2,
     supportLevel: 'BASIC',
-    activeSubscribers: 142,
+    activeSubscribers: 0,
     badgeText: 'Basic',
   },
   {
@@ -50,7 +50,7 @@ const INITIAL_PACKAGES: PlanItem[] = [
     listingsLimit: 50,
     featuredLimit: 10,
     supportLevel: 'PRIORITY',
-    activeSubscribers: 86,
+    activeSubscribers: 0,
     badgeText: 'Most Popular',
     isPopular: true,
   },
@@ -62,7 +62,7 @@ const INITIAL_PACKAGES: PlanItem[] = [
     listingsLimit: 250,
     featuredLimit: 50,
     supportLevel: 'DEDICATED_VIP',
-    activeSubscribers: 28,
+    activeSubscribers: 0,
     badgeText: 'Enterprise',
   },
   {
@@ -73,7 +73,7 @@ const INITIAL_PACKAGES: PlanItem[] = [
     listingsLimit: 1000,
     featuredLimit: 200,
     supportLevel: 'DEDICATED_VIP',
-    activeSubscribers: 12,
+    activeSubscribers: 0,
     badgeText: 'Syndicate',
   },
 ];

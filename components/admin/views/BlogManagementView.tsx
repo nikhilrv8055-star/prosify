@@ -39,38 +39,7 @@ const INITIAL_CATEGORIES: BlogCategory[] = [
   { id: 'bcat-4', name: 'Grade-A Builder Spotlight', slug: 'builder-spotlight', postsCount: 16 },
 ];
 
-const INITIAL_POSTS: BlogPost[] = [
-  {
-    id: 'bp-1',
-    title: 'Navi Mumbai International Airport Launch: High-Yield Real Estate Impact in Panvel & Ulwe',
-    slug: 'navi-mumbai-airport-real-estate-impact',
-    category: 'Micro-Market Investment Reports',
-    author: 'Chief Research Analyst',
-    status: 'PUBLISHED',
-    views: 8940,
-    publishedDate: '2026-09-24',
-  },
-  {
-    id: 'bp-2',
-    title: 'How Section 54F Capital Gains Exemption Works for Luxury Penthouse Buyers in 2026',
-    slug: 'section-54f-capital-gains-luxury-homes',
-    category: 'Home Loan & Tax Optimization',
-    author: 'CA Rajesh Varma',
-    status: 'PUBLISHED',
-    views: 5210,
-    publishedDate: '2026-09-21',
-  },
-  {
-    id: 'bp-3',
-    title: 'Complete 2026 Checklist for Verifying Developer Title Deeds & Encumbrance Certificates',
-    slug: 'title-deed-verification-checklist-mumbai',
-    category: 'MahaRERA & Legal Guidelines',
-    author: 'RERA Compliance Auditor',
-    status: 'PUBLISHED',
-    views: 12400,
-    publishedDate: '2026-09-15',
-  },
-];
+const INITIAL_POSTS: BlogPost[] = [];
 
 export function BlogManagementView({ subview = 'blog-posts' }: { subview?: string }) {
   const [categories, setCategories] = useState<BlogCategory[]>(INITIAL_CATEGORIES);

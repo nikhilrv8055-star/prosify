@@ -49,14 +49,28 @@ export default function DeveloperPortalPage() {
   const activeProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
 
   const [refreshUnitsCounter, setRefreshUnitsCounter] = useState(0);
+
+  useEffect(() => {
+    const unsub = store.subscribe(() => {
+      setRefreshUnitsCounter((c) => c + 1);
+    });
+    const handleUpdate = () => setRefreshUnitsCounter((c) => c + 1);
+    window.addEventListener('prosify:store-updated', handleUpdate);
+    return () => {
+      unsub();
+      window.removeEventListener('prosify:store-updated', handleUpdate);
+    };
+  }, []);
+
   const units = useMemo(() => {
     void refreshUnitsCounter;
     return store.getUnits(activeProject?.id);
   }, [activeProject?.id, refreshUnitsCounter]);
 
   const leads = useMemo(() => {
+    void refreshUnitsCounter;
     return store.getLeads().filter((l) => l.projectId === activeProject?.id || l.developerName?.includes(activeDev?.name));
-  }, [activeProject, activeDev]);
+  }, [activeProject, activeDev, refreshUnitsCounter]);
 
   const [activeTab, setActiveTab] = useState<'inventory' | 'import' | 'sync' | 'leads'>('inventory');
   const [syncLoading, setSyncLoading] = useState(false);

@@ -146,7 +146,14 @@ export function PartnersTab({ partners, onRefresh }: PartnersTabProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-300">
-              {filtered.map((p) => {
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                    No channel partners registered yet. Click &quot;Register Channel Partner&quot; above to onboard an affiliate or agency.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((p) => {
                 const partnerName = p.partnerName || p.name || 'Partner';
                 const partnerCode = p.code || p.partnerCode || 'CP';
                 const rera = p.reraNumber || p.reraRegistrationNumber || 'RERA Applied';
@@ -213,7 +220,7 @@ export function PartnersTab({ partners, onRefresh }: PartnersTabProps) {
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>

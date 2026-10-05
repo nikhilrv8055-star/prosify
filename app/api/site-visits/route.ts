@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true, message: 'Site visit scheduled successfully!', data: created },
+      { success: true, message: 'Site visit scheduled successfully!', data: { visit: created, lead: finalLead } },
       { status: 201 }
     );
   } catch (err: any) {

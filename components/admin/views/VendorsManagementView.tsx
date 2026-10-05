@@ -31,63 +31,10 @@ export interface VendorRecord {
   joinedDate: string;
 }
 
-const INITIAL_VENDORS: VendorRecord[] = [
-  {
-    id: 'vnd-1',
-    companyName: 'Godrej Properties Limited',
-    contactPerson: 'Adarsh Malhotra',
-    email: 'vendor@eni.com',
-    phone: '+91 22 6169 8500',
-    category: 'DEVELOPER',
-    grade: 'GRADE_A',
-    projectsCount: 14,
-    propertiesCount: 42,
-    status: 'VERIFIED',
-    joinedDate: '2026-06-12',
-  },
-  {
-    id: 'vnd-2',
-    companyName: 'Lodha Group (Macrotech Developers)',
-    contactPerson: 'Sandeep Poddar',
-    email: 'sandeep.p@lodhagroup.com',
-    phone: '+91 22 2302 4400',
-    category: 'DEVELOPER',
-    grade: 'GRADE_A',
-    projectsCount: 22,
-    propertiesCount: 88,
-    status: 'VERIFIED',
-    joinedDate: '2026-05-20',
-  },
-  {
-    id: 'vnd-3',
-    companyName: 'Hiranandani Communities',
-    contactPerson: 'Meera Hiranandani',
-    email: 'meera.h@hiranandani.net',
-    phone: '+91 22 2576 6800',
-    category: 'DEVELOPER',
-    grade: 'GRADE_A',
-    projectsCount: 9,
-    propertiesCount: 31,
-    status: 'VERIFIED',
-    joinedDate: '2026-07-04',
-  },
-  {
-    id: 'vnd-4',
-    companyName: 'UltraTech Cement & Construction Solutions',
-    contactPerson: 'Rajiv Singhal',
-    email: 'rajiv.s@ultratech.adityabirla.com',
-    phone: '+91 22 6691 7800',
-    category: 'MATERIAL_SUPPLIER',
-    grade: 'PREMIUM',
-    projectsCount: 0,
-    propertiesCount: 18,
-    status: 'VERIFIED',
-    joinedDate: '2026-08-11',
-  },
-];
+const INITIAL_VENDORS: VendorRecord[] = [];
 
 export function VendorsManagementView({ subview = 'vendors-registered' }: { subview?: string }) {
-  const [vendors, setVendors] = useState<VendorRecord[]>(INITIAL_VENDORS);
+  const [vendors, setVendors] = useState<VendorRecord[]>([]);
   const [activeTab, setActiveTab] = useState<'registered' | 'add' | 'settings'>(
     subview === 'vendors-add' ? 'add' : subview === 'vendors-settings' ? 'settings' : 'registered'
   );
@@ -256,7 +203,14 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredVendors.map((v) => (
+                {filteredVendors.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                      No corporate vendors registered yet. Use the "Add Vendor" tab to register builders, suppliers, or legal partners.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredVendors.map((v) => (
                   <tr key={v.id} className="hover:bg-slate-800/40">
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
@@ -307,7 +261,8 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
               </tbody>
             </table>
           </div>

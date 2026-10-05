@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -49,6 +49,7 @@ import {
 import { useToast } from '@/components/ui/toast';
 import { formatIndianPrice } from '@/lib/utils';
 import { store } from '@/lib/data/store';
+import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
 import {
   PortalUser,
   authenticatePortalUser,
@@ -121,6 +122,8 @@ interface AgentProperty {
   coverImage: string;
   images?: string[];
   inquiriesCount: number;
+  inquiries?: number;
+  views?: number;
   createdAt: string;
 }
 
@@ -144,15 +147,16 @@ interface AgentProject {
 
 interface PropertyMessage {
   id: string;
-  propertyId: string;
+  propertyId?: string;
   propertyTitle: string;
   buyerName: string;
   buyerPhone: string;
   buyerEmail: string;
   message: string;
-  preferredTime: string;
-  status: 'NEW' | 'CONTACTED' | 'SITE_VISIT_BOOKED';
-  createdAt: string;
+  preferredTime?: string;
+  submittedAt?: string;
+  status: 'NEW' | 'CONTACTED' | 'SITE_VISIT_BOOKED' | 'RESOLVED' | string;
+  createdAt?: string;
 }
 
 interface AgentProfileData {
@@ -830,7 +834,7 @@ export default function AgentAdminPage() {
         possessionStatus: (created.possessionStatus as any) || 'UNDER_CONSTRUCTION',
         possessionDate: created.possessionDate,
         isVerified: true,
-        isFeatured: created.isFeatured,
+        isFeatured: Boolean(created.isFeatured),
         isPublished: true,
         reraNumber: created.reraNumber,
         city: created.city,
@@ -907,6 +911,37 @@ export default function AgentAdminPage() {
     };
 
     setProjects([created, ...projects]);
+
+    // Register into global store so it reflects on public website & admin panel
+    try {
+      store.createProject({
+        name: created.name,
+        slug: created.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        developerId: 'dev-1',
+        developerName: created.developerName,
+        city: created.city,
+        locality: created.locality,
+        address: `${created.locality}, ${created.city}`,
+        startingPrice: created.minPrice,
+        priceRange: `₹${(created.minPrice / 100000).toFixed(0)} Lakh - ₹${(created.maxPrice / 10000000).toFixed(1)} Cr`,
+        configurations: '1 BHK, 2 BHK & 3 BHK',
+        totalUnits: created.totalUnits,
+        availableUnits: Math.round(created.totalUnits * 0.4),
+        possessionDate: created.possessionDate,
+        constructionStatus: (created.constructionStatus as any) || 'UNDER_CONSTRUCTION',
+        reraNumber: created.reraNumber,
+        description: `${created.name} in ${created.locality}, ${created.city}. Masterplanned community with certified lifestyle amenities.`,
+        coverImage: created.featuredImage,
+        gallery: [created.featuredImage],
+        amenities: ['Clubhouse', 'Swimming Pool', 'Gym', '24/7 Security'],
+        towers: ['Tower 1', 'Tower 2', 'Tower 3'],
+        floorPlans: [],
+        isFeatured: true,
+      });
+    } catch (err) {
+      console.warn('Agent project store sync', err);
+    }
+
     setActiveMenu('proj-manage');
     toast({
       title: 'Project Registered Successfully!',
@@ -1032,8 +1067,119 @@ export default function AgentAdminPage() {
     return matchesSearch && matchesCity;
   });
 
-  // Filtered Messages
-  const filteredMessages = messages.filter((m) => {
+  const [syncKey, setSyncKey] = useState(0);
+
+  // Subscribe to multi-panel live sync
+  useEffect(() => {
+    const handleSync = () => {
+      setSyncKey((k) => k + 1);
+
+      const storeProps = store.getProperties();
+      if (storeProps && storeProps.length > 0) {
+        setProperties((prev) => {
+          const map = new Map<string, AgentProperty>();
+          for (const p of prev) map.set(p.id, p);
+          for (const sp of storeProps) {
+            const existing = map.get(sp.id);
+            map.set(sp.id, {
+              id: sp.id,
+              title: sp.title,
+              developerName: sp.developerName || 'Godrej Properties',
+              projectName: sp.projectName || sp.title,
+              city: sp.city,
+              locality: sp.locality || sp.city,
+              price: sp.price,
+              carpetArea: sp.carpetArea,
+              bhk: sp.bhk || '2 BHK',
+              propertyType: sp.propertyType,
+              possessionStatus: sp.possessionStatus,
+              possessionDate: sp.possessionDate || 'Dec 2026',
+              reraNumber: sp.reraNumber || 'P51700032441',
+              status: (existing?.status as any) || 'ACTIVE',
+              views: existing?.views || 135,
+              inquiries: existing?.inquiries || 5,
+              inquiriesCount: existing?.inquiriesCount || 5,
+              coverImage:
+                sp.coverImage ||
+                sp.images?.[0] ||
+                'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+              images: sp.images && sp.images.length > 0 ? sp.images : [sp.coverImage],
+              isFeatured: Boolean(sp.isFeatured),
+              createdAt: existing?.createdAt || sp.createdAt || '2026-10-01T00:00:00.000Z',
+            });
+          }
+          return Array.from(map.values());
+        });
+      }
+
+      const storeProjs = store.getProjects();
+      if (storeProjs && storeProjs.length > 0) {
+        setProjects((prev) => {
+          const map = new Map<string, AgentProject>();
+          for (const p of prev) map.set(p.id, p);
+          for (const sp of storeProjs) {
+            const existing = map.get(sp.id);
+            map.set(sp.id, {
+              id: sp.id,
+              name: sp.name,
+              developerName: sp.developerName,
+              city: sp.city,
+              locality: sp.locality,
+              reraNumber: sp.reraNumber,
+              totalTowers: sp.towers ? sp.towers.length : existing?.totalTowers || 4,
+              totalUnits: sp.totalUnits || 380,
+              minPrice: sp.startingPrice || 7500000,
+              maxPrice: existing?.maxPrice || (sp.startingPrice ? Math.round(sp.startingPrice * 2.2) : 25000000),
+              launchYear: existing?.launchYear || 2023,
+              possessionDate: sp.possessionDate || existing?.possessionDate || 'Dec 2027',
+              constructionStatus: sp.constructionStatus,
+              featuredImage:
+                sp.coverImage ||
+                existing?.featuredImage ||
+                'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&auto=format&fit=crop&q=80',
+              brochureUrl: existing?.brochureUrl,
+            });
+          }
+          return Array.from(map.values());
+        });
+      }
+    };
+
+    const unsub = store.subscribe(handleSync);
+    window.addEventListener('prosify:store-updated', handleSync);
+    return () => {
+      unsub();
+      window.removeEventListener('prosify:store-updated', handleSync);
+    };
+  }, []);
+
+  // Filtered Messages (Website Inquiries & Leads synced with store)
+  const allMessages = useMemo(() => {
+    const storeLeads = store.getLeads().map((l) => ({
+      id: l.id,
+      buyerName: l.name,
+      buyerPhone: l.phone,
+      buyerEmail: l.email || 'lead@prosify.in',
+      propertyTitle: l.propertyTitle || l.projectName || l.location || 'Real Estate Inquiry',
+      submittedAt: new Date(l.createdAt || '2026-10-01T00:00:00.000Z').toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }),
+      message: `${l.notes || l.requirement || 'Prospective buyer expressed high interest.'} [Budget: ${l.budget || 'Flexible'}]`,
+      status: l.status === 'NEW' || l.status === 'CONTACTED' ? 'NEW' : l.status === 'SITE_VISIT_SCHEDULED' ? 'SITE_VISIT_BOOKED' : 'RESOLVED',
+    })) as PropertyMessage[];
+
+    const combined = [...storeLeads];
+    for (const m of messages) {
+      if (!combined.some((c) => c.id === m.id)) {
+        combined.push(m);
+      }
+    }
+    return combined;
+  }, [messages, syncKey]);
+
+  const filteredMessages = allMessages.filter((m) => {
     return (
       m.buyerName.toLowerCase().includes(messageSearch.toLowerCase()) ||
       m.propertyTitle.toLowerCase().includes(messageSearch.toLowerCase()) ||
@@ -1691,12 +1837,11 @@ export default function AgentAdminPage() {
                       onChange={(e) => setNewPropForm({ ...newPropForm, city: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-semibold focus:outline-none focus:border-amber-500"
                     >
-                      <option>Mumbai</option>
-                      <option>Thane</option>
-                      <option>Dombivli</option>
-                      <option>Kalyan</option>
-                      <option>Pune</option>
-                      <option>Navi Mumbai</option>
+                      {PAN_INDIA_CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -2102,12 +2247,12 @@ export default function AgentAdminPage() {
                     onChange={(e) => setPropCityFilter(e.target.value)}
                     className="px-3 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-neutral-300 font-semibold cursor-pointer"
                   >
-                    <option value="ALL">All Cities</option>
-                    <option value="Mumbai">Mumbai</option>
-                    <option value="Thane">Thane</option>
-                    <option value="Dombivli">Dombivli</option>
-                    <option value="Kalyan">Kalyan</option>
-                    <option value="Pune">Pune</option>
+                    <option value="ALL">All 9 Metros</option>
+                    {PAN_INDIA_CITIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
 
                   <select
@@ -2303,6 +2448,31 @@ export default function AgentAdminPage() {
                             <option value="SOLD">SOLD</option>
                             <option value="PENDING">PENDING</option>
                           </select>
+                        </div>
+
+                        <div>
+                          <label className="block font-semibold text-neutral-300 mb-1">City</label>
+                          <select
+                            value={editingProperty.city}
+                            onChange={(e) => setEditingProperty({ ...editingProperty, city: e.target.value })}
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white"
+                          >
+                            {PAN_INDIA_CITIES.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block font-semibold text-neutral-300 mb-1">Locality</label>
+                          <input
+                            type="text"
+                            value={editingProperty.locality}
+                            onChange={(e) => setEditingProperty({ ...editingProperty, locality: e.target.value })}
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white"
+                          />
                         </div>
                       </div>
 
@@ -2634,12 +2804,11 @@ export default function AgentAdminPage() {
                       onChange={(e) => setNewProjForm({ ...newProjForm, city: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-semibold focus:outline-none focus:border-cyan-500"
                     >
-                      <option>Mumbai</option>
-                      <option>Thane</option>
-                      <option>Dombivli</option>
-                      <option>Kalyan</option>
-                      <option>Pune</option>
-                      <option>Navi Mumbai</option>
+                      {PAN_INDIA_CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

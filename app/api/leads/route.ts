@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data/store';
 import { z } from 'zod';
 import { getServerUser } from '@/lib/auth/serverAuth';
-import { applyRateLimit } from '@/lib/security/rateLimit';
+import { applyRateLimit, getClientIp } from '@/lib/security/rateLimit';
+import { sanitizeUserInput } from '@/lib/security/sanitizer';
+import { recordAuditEvent } from '@/lib/security/auditLog';
 
 const createLeadSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: z.string().min(10, 'Phone must be a valid 10-digit number'),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  phone: z.string().regex(/^[0-9+() -]{10,20}$/, 'Phone must be a valid contact number'),
   email: z.string().email().optional().or(z.literal('')),
   source: z.enum([
     'WEBSITE',
@@ -29,32 +31,32 @@ const createLeadSchema = z.object({
     'MAGICBRICKS',
     'HOUSING',
   ]).default('WEBSITE'),
-  propertyId: z.string().optional(),
-  propertyTitle: z.string().optional(),
-  projectId: z.string().optional(),
-  projectName: z.string().optional(),
-  developerName: z.string().optional(),
-  partnerId: z.string().optional(),
-  partnerCode: z.string().optional(),
-  partnerName: z.string().optional(),
-  propertyType: z.string().optional(),
-  bhk: z.string().optional(),
-  purpose: z.string().optional(),
-  budget: z.string().optional(),
-  requirement: z.string().optional(),
-  location: z.string().optional(),
-  preferredLocations: z.array(z.string()).optional(),
-  notes: z.string().optional(),
+  propertyId: z.string().max(100).optional(),
+  propertyTitle: z.string().max(200).optional(),
+  projectId: z.string().max(100).optional(),
+  projectName: z.string().max(200).optional(),
+  developerName: z.string().max(200).optional(),
+  partnerId: z.string().max(100).optional(),
+  partnerCode: z.string().max(50).optional(),
+  partnerName: z.string().max(100).optional(),
+  propertyType: z.string().max(50).optional(),
+  bhk: z.string().max(50).optional(),
+  purpose: z.string().max(50).optional(),
+  budget: z.string().max(100).optional(),
+  requirement: z.string().max(500).optional(),
+  location: z.string().max(100).optional(),
+  preferredLocations: z.array(z.string().max(100)).max(10).optional(),
+  notes: z.string().max(1000).optional(),
   hasBrochureDownload: z.boolean().optional(),
   hasWhatsappEngagement: z.boolean().optional(),
   hasSiteVisitRequest: z.boolean().optional(),
-  utmSource: z.string().optional(),
-  utmMedium: z.string().optional(),
-  utmCampaign: z.string().optional(),
+  utmSource: z.string().max(100).optional(),
+  utmMedium: z.string().max(100).optional(),
+  utmCampaign: z.string().max(100).optional(),
 });
 
 export async function GET(req: NextRequest) {
-  // Rate limiting
+  // Rate limiting (120 req/min for leads get)
   const rateLimitResponse = applyRateLimit(req, { limit: 120, windowMs: 60 * 1000 }, 'leads_get');
   if (rateLimitResponse) return rateLimitResponse;
 
@@ -73,10 +75,23 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get('q') || undefined;
   const source = searchParams.get('source') || undefined;
 
-  // Channel Partner can only view leads attributed to their own partnerCode/partnerId
+  // Strict RBAC & Resource Scoping (Prevent IDOR)
   if (user.role === 'CHANNEL_PARTNER') {
     const partner = user.partnerCode ? store.getPartnerByCode(user.partnerCode) : null;
     partnerId = partner?.id || 'NO_ACCESS';
+  } else if (user.role === 'SALES_AGENT' || user.role === 'SALES_EXECUTIVE') {
+    // Sales agents only get assigned leads
+    const allLeads = store.getLeads({ status, search, source });
+    const assigned = allLeads.filter(
+      (l) => l.assignedTo?.toLowerCase().includes(user.name.toLowerCase()) || l.assignedTo === user.id
+    );
+    return NextResponse.json({ success: true, count: assigned.length, data: assigned });
+  } else if (!['SUPER_ADMIN', 'ADMIN', 'SALES_MANAGER', 'MARKETING_MANAGER'].includes(user.role)) {
+    // Customers or other unauthorized roles cannot view CRM leads
+    return NextResponse.json(
+      { success: false, error: { code: 'FORBIDDEN', message: 'You do not have permission to view CRM leads.' } },
+      { status: 403 }
+    );
   }
 
   const leads = store.getLeads({ partnerId, status, search, source });
@@ -84,17 +99,19 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  // Rate limiting (20 submissions per minute per IP to prevent spam)
+  const ip = getClientIp(req);
+
+  // Rate limiting (20 submissions per minute per IP to prevent lead injection spam)
   const rateLimitResponse = applyRateLimit(req, { limit: 20, windowMs: 60 * 1000 }, 'leads_submit');
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
 
     // Check for partner attribution in cookie or body
-    let partnerId = body.partnerId;
-    let partnerCode = body.partnerCode;
-    let partnerName = body.partnerName;
+    let partnerId = rawBody.partnerId;
+    let partnerCode = rawBody.partnerCode;
+    let partnerName = rawBody.partnerName;
 
     // Check cookie fallback if partner was set in session
     const partnerCookie = req.cookies.get('prosify_partner_ref')?.value || req.cookies.get('swarna_partner_ref')?.value;
@@ -114,11 +131,14 @@ export async function POST(req: NextRequest) {
     }
 
     const validated = createLeadSchema.safeParse({
-      ...body,
+      ...rawBody,
+      name: sanitizeUserInput(rawBody.name || ''),
+      notes: rawBody.notes ? sanitizeUserInput(rawBody.notes) : undefined,
+      requirement: rawBody.requirement ? sanitizeUserInput(rawBody.requirement) : undefined,
       partnerId,
       partnerCode,
       partnerName,
-      source: partnerId ? 'CHANNEL_PARTNER' : body.source || 'WEBSITE',
+      source: partnerId ? 'CHANNEL_PARTNER' : rawBody.source || 'WEBSITE',
     });
 
     if (!validated.success) {
@@ -165,17 +185,28 @@ export async function POST(req: NextRequest) {
       assignedTo: 'Amit Sharma (Senior Relationship Mgr)',
     });
 
+    recordAuditEvent({
+      action: 'LEAD_CREATE',
+      resource: `/api/leads/${newLead.id}`,
+      resourceId: newLead.id,
+      status: 'SUCCESS',
+      details: `Inbound lead created from ${newLead.source}`,
+      ipAddress: ip,
+    });
+
     return NextResponse.json(
       {
         success: true,
-        message: newLead.qualification === 'HOT'
-          ? 'Priority inquiry received! A senior property director has been assigned.'
-          : 'Enquiry received! Our property specialist will contact you shortly.',
+        message:
+          newLead.qualification === 'HOT'
+            ? 'Priority inquiry received! A senior property director has been assigned.'
+            : 'Enquiry received! Our property specialist will contact you shortly.',
         data: newLead,
       },
       { status: 201 }
     );
-  } catch {
+  } catch (err: unknown) {
+    console.error('Error creating lead:', err);
     return NextResponse.json(
       { success: false, error: { code: 'SERVER_ERROR', message: 'Failed to submit enquiry' } },
       { status: 500 }

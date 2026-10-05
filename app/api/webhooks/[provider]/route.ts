@@ -56,7 +56,14 @@ export async function GET(
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
 
-    const expectedSecret = process.env.META_WEBHOOK_SECRET || 'meta_lead_wh_secret_xyz';
+    const expectedSecret = process.env.META_WEBHOOK_SECRET;
+
+    if (!expectedSecret) {
+      return NextResponse.json(
+        { success: false, error: 'META_WEBHOOK_SECRET is not configured on the server' },
+        { status: 500 }
+      );
+    }
 
     if (mode === 'subscribe' && token === expectedSecret) {
       return new Response(challenge || 'VERIFIED', {

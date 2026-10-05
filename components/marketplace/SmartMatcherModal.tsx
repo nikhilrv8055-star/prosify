@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { PropertyMatch } from '@/lib/types';
 import { formatIndianPrice, formatArea } from '@/lib/utils';
+import { PAN_INDIA_CITIES } from '@/lib/data/store';
 
 interface SmartMatcherModalProps {
   isOpen: boolean;
@@ -109,12 +110,11 @@ export function SmartMatcherModal({ isOpen, onClose }: SmartMatcherModalProps) {
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 bg-white focus:outline-none focus:border-[#D4A017]"
               >
-                <option value="Thane">Thane</option>
-                <option value="Mumbai">Mumbai MMR</option>
-                <option value="Navi Mumbai">Navi Mumbai</option>
-                <option value="Dombivli">Dombivli</option>
-                <option value="Kalyan">Kalyan</option>
-                <option value="Pune">Pune</option>
+                {PAN_INDIA_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
               </select>
             </div>
 
