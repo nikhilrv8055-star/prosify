@@ -11,7 +11,6 @@ import {
   Sparkles,
   Home,
   KeyRound,
-  Rocket,
   HardHat,
   Briefcase,
   MapPin,
@@ -106,7 +105,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
   const navLinks = [
     { label: 'Buy', href: '/properties?type=BUY', icon: Home, highlight: false },
     { label: 'Projects', href: '/projects', icon: Building2, highlight: false },
-    { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Rocket, highlight: true, badge: 'HOT' },
+    { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Sparkles, highlight: true, badge: 'HOT' },
     { label: 'Guides & E-Books', href: '/guides', icon: BookOpen, highlight: true, badge: 'NEW' },
     { label: 'Micro-Markets', href: '/micro-markets', icon: MapPin, highlight: false },
     { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
@@ -353,7 +352,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               }`}
             >
               <div className="relative">
-                <Building2 className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && (!currentType || currentType === 'BUY') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
+                <KeyRound className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && (!currentType || currentType === 'BUY') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
                 {pathname === '/properties' && (!currentType || currentType === 'BUY') && (
                   <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
                 )}
@@ -373,7 +372,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               }`}
             >
               <div className="relative">
-                <Rocket className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
+                <Sparkles className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
                 {pathname === '/properties' && currentType === 'NEW_LAUNCH' && (
                   <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
                 )}
@@ -393,7 +392,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               }`}
             >
               <div className="relative">
-                <Rocket className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname.startsWith('/projects') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
+                <Building2 className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname.startsWith('/projects') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
                 {pathname.startsWith('/projects') && (
                   <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
                 )}

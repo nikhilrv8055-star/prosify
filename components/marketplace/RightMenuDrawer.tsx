@@ -16,6 +16,7 @@ import {
   Truck,
   Gift,
   ShieldCheck,
+  Sparkles,
   ChevronRight,
   MessageCircle,
 } from 'lucide-react';
@@ -107,6 +108,17 @@ export function RightMenuDrawer({
                 <span>Buy Properties</span>
               </div>
               <span className="text-[10px] font-mono text-neutral-400">9 Metros</span>
+            </Link>
+            <Link
+              href="/properties?possession=NEW_LAUNCH"
+              onClick={onClose}
+              className="w-full text-left py-2 px-3 text-xs font-semibold text-neutral-800 hover:text-amber-600 hover:bg-neutral-100 rounded-lg transition-colors flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>New Launches</span>
+              </div>
+              <span className="text-[10px] font-mono text-amber-600 font-bold">HOT</span>
             </Link>
             <Link
               href="/projects"
