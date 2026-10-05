@@ -30,17 +30,40 @@ import { useToast } from '@/components/ui/toast';
 interface ModalBaseProps {
   isOpen: boolean;
   onClose: () => void;
+  initialService?: string;
 }
 
-export function MobileServicesModal({ isOpen, onClose }: ModalBaseProps) {
+export function MobileServicesModal({ isOpen, onClose, initialService }: ModalBaseProps) {
   const { toast } = useToast();
-  const [selectedService, setSelectedService] = useState<string | null>('loan');
+  const [selectedService, setSelectedService] = useState<string | null>(initialService || 'interiors');
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  React.useEffect(() => {
+    if (initialService) {
+      setSelectedService(initialService);
+    }
+  }, [initialService, isOpen]);
 
   if (!isOpen) return null;
 
   const services = [
+    {
+      id: 'interiors',
+      title: 'Painting, Cleaning & Interiors',
+      icon: Paintbrush,
+      badge: '10-Yr Warranty',
+      desc: 'Complete turnkey modular kitchens, premium Asian Paints painting & deep cleaning.',
+      benefits: ['Free 3D visual designs & site visit', '45-day guaranteed completion', 'Post-service deep sanitization'],
+    },
+    {
+      id: 'movers',
+      title: 'Packers & Movers',
+      icon: Truck,
+      badge: '100% Insured',
+      desc: 'Safe, stress-free inter-city & intra-city verified shifting.',
+      benefits: ['Multi-layer bubble wrap protection', 'Damage transit insurance', 'Dedicated movement manager'],
+    },
     {
       id: 'loan',
       title: 'Home Loan Assistance',
@@ -58,28 +81,12 @@ export function MobileServicesModal({ isOpen, onClose }: ModalBaseProps) {
       benefits: ['RERA compliance verification', 'Encumbrance certificate check', 'Senior property lawyer consultation'],
     },
     {
-      id: 'interiors',
-      title: 'Interiors & Modular Fitouts',
-      icon: Paintbrush,
-      badge: '10-Yr Warranty',
-      desc: 'Complete turnkey modular kitchens, wardrobes & luxury civil works.',
-      benefits: ['Free 3D visual designs', '45-day guaranteed move-in', 'No cost EMI available'],
-    },
-    {
       id: 'property-valuation',
       title: 'Property Valuation & Legal Check',
       icon: ShieldCheck,
       badge: 'Certified',
       desc: 'Government-approved valuation, title verification & RERA clearance.',
       benefits: ['Title search report', 'Market value assessment', 'Legal clearance certificate'],
-    },
-    {
-      id: 'movers',
-      title: 'Packers & Movers',
-      icon: Truck,
-      badge: '100% Insured',
-      desc: 'Safe, stress-free inter-city & intra-city home shifting.',
-      benefits: ['Multi-layer bubble wrap protection', 'Damage transit insurance', 'Dedicated movement manager'],
     },
   ];
 

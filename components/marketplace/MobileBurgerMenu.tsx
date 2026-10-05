@@ -68,6 +68,7 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
   const [postPropertyOpen, setPostPropertyOpen] = useState(false);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
+  const [servicesInitialService, setServicesInitialService] = useState<'interiors' | 'movers' | 'loan' | 'legal'>('interiors');
   const [billsModalOpen, setBillsModalOpen] = useState(false);
 
   // Dedicated custom modals for the requested items
@@ -186,18 +187,22 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
 
   return createPortal(
     <>
-      {isOpen && (
+      {isOpen && !isAnySubModalOpen && (
         <RightMenuDrawer
           onClose={onClose}
           onOpenPostProperty={() => setPostPropertyOpen(true)}
           onOpenRequirement={() => setRequirementModalOpen(true)}
-          onOpenServices={() => setServicesModalOpen(true)}
+          onOpenServices={(serviceType) => {
+            if (serviceType) setServicesInitialService(serviceType);
+            setServicesModalOpen(true);
+          }}
           onOpenReferEarn={() => setReferEarnOpen(true)}
           onOpenPlan={(type) => setPlanTypeOpen(type)}
           onOpenCareers={() => setCareersOpen(true)}
           onOpenCorporateEnquiry={() => setCorporateEnquiryOpen(true)}
           onOpenBlog={() => setBlogOpen(true)}
           onOpenSupport={() => setContactOpen(true)}
+          onOpenContact={() => setContactOpen(true)}
           onCopyEmail={handleCopyEmail}
         />
       )}
@@ -222,6 +227,7 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
       <MobileServicesModal
         isOpen={servicesModalOpen}
         onClose={() => setServicesModalOpen(false)}
+        initialService={servicesInitialService}
       />
 
       {/* 5. Refer & Earn Modal */}

@@ -5,5 +5,6 @@ export default {
     incrementalCache: "dummy",
     tagCache: "dummy",
   }),
-  buildCommand: "echo 'Next.js build step completed'",
+  buildCommand: "npm run build",
 };
+
