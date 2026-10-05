@@ -20,7 +20,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "prosify",        ← YAHAN CHANGE
+      "database_name": "prosify",
       "database_id": "e1e0fd5e-8efa-4b3b-aa83-53518b7d1e60",
       "migrations_dir": "migrations"
     }
