@@ -9,6 +9,8 @@ import {
   X,
   Scale,
   Sparkles,
+  Rocket,
+  Layers,
   Home,
   KeyRound,
   HardHat,
@@ -20,14 +22,12 @@ import {
   Share2,
   Shield,
   UserCheck,
-  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/authContext';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
 import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
 import { MobileBurgerMenu } from './MobileBurgerMenu';
 import { PropertyRequirementModal } from './PropertyRequirementModal';
-import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
 
 interface NavbarProps {
   onOpenEnquiry?: () => void;
@@ -75,7 +75,6 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname() || '';
   const searchParams = useSearchParams();
-  const currentCity = searchParams?.get('city') || 'ALL';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [internalMatcherOpen, setInternalMatcherOpen] = useState(false);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);
@@ -104,9 +103,8 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
   // Primary navigation links for Desktop
   const navLinks = [
     { label: 'Buy', href: '/properties?type=BUY', icon: Home, highlight: false },
-    { label: 'Projects', href: '/projects', icon: Building2, highlight: false },
-    { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Sparkles, highlight: true, badge: 'HOT' },
-    { label: 'Guides & E-Books', href: '/guides', icon: BookOpen, highlight: true, badge: 'NEW' },
+    { label: 'Projects', href: '/projects', icon: Layers, highlight: false },
+    { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Rocket, highlight: true, badge: 'HOT' },
     { label: 'Micro-Markets', href: '/micro-markets', icon: MapPin, highlight: false },
     { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
     { label: 'Commercial', href: '/properties?type=COMMERCIAL', icon: Briefcase, highlight: false },
@@ -123,34 +121,9 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-18 lg:h-20">
-            {/* Brand Logo & City Quick Selector */}
+            {/* Brand Logo */}
             <div className="flex items-center gap-3 shrink-0">
               <ProsifyLogo variant="dark" size="md" href="/" showTagline={false} />
-
-              {/* Quick Pan-India Metro Selector */}
-              <div className="hidden xl:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200 text-xs transition-colors">
-                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <select
-                  value={currentCity}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === 'ALL') {
-                      router.push('/properties');
-                    } else {
-                      router.push(`/properties?city=${encodeURIComponent(val)}`);
-                    }
-                  }}
-                  className="bg-transparent font-bold text-neutral-800 focus:outline-none cursor-pointer pr-1 text-xs"
-                  title="Select City (All 9 Indian Metros)"
-                >
-                  <option value="ALL">All 9 Metros</option>
-                  {PAN_INDIA_CITIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             {/* Desktop Navigation Links (Clean, Centered & Professional) */}
@@ -372,7 +345,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               }`}
             >
               <div className="relative">
-                <Sparkles className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
+                <Rocket className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
                 {pathname === '/properties' && currentType === 'NEW_LAUNCH' && (
                   <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
                 )}
@@ -392,7 +365,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               }`}
             >
               <div className="relative">
-                <Building2 className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname.startsWith('/projects') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
+                <Layers className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname.startsWith('/projects') ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
                 {pathname.startsWith('/projects') && (
                   <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
                 )}

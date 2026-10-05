@@ -30,7 +30,6 @@ import { SiteVisitModal } from '@/components/marketplace/SiteVisitModal';
 import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
 import { PropertyRequirementModal } from '@/components/marketplace/PropertyRequirementModal';
 import { MetaInstantFormModal } from '@/components/leadgen/MetaInstantFormModal';
-import { LocalityGuidesSection } from '@/components/leadgen/LocalityGuidesSection';
 import { LocalSeoConsultantsSection } from '@/components/leadgen/LocalSeoConsultantsSection';
 import { useLiveStore } from '@/lib/data/useLiveStore';
 import { CITY_HUBS } from '@/lib/data/panIndiaData';
@@ -576,11 +575,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* LOCALITY GUIDES & E-BOOKS SECTION */}
-      <div className="bg-[#0B1120] text-slate-100 border-t border-slate-800">
-        <LocalityGuidesSection limit={3} />
-      </div>
 
       {/* LOCAL SEO & MICRO-MARKET CONSULTANTS SECTION */}
       <div className="bg-[#0B1120] text-slate-100 border-t border-slate-800">

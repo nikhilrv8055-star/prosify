@@ -17,6 +17,8 @@ import {
   Gift,
   ShieldCheck,
   Sparkles,
+  Rocket,
+  Layers,
   ChevronRight,
   MessageCircle,
 } from 'lucide-react';
@@ -107,7 +109,7 @@ export function RightMenuDrawer({
                 <Home className="w-3.5 h-3.5 text-[#0EA5E9]" />
                 <span>Buy Properties</span>
               </div>
-              <span className="text-[10px] font-mono text-neutral-400">9 Metros</span>
+              <span className="text-[10px] font-mono text-neutral-400">Verified</span>
             </Link>
             <Link
               href="/properties?possession=NEW_LAUNCH"
@@ -115,7 +117,7 @@ export function RightMenuDrawer({
               className="w-full text-left py-2 px-3 text-xs font-semibold text-neutral-800 hover:text-amber-600 hover:bg-neutral-100 rounded-lg transition-colors flex items-center justify-between"
             >
               <div className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Rocket className="w-3.5 h-3.5 text-amber-500" />
                 <span>New Launches</span>
               </div>
               <span className="text-[10px] font-mono text-amber-600 font-bold">HOT</span>
@@ -126,23 +128,10 @@ export function RightMenuDrawer({
               className="w-full text-left py-2 px-3 text-xs font-semibold text-neutral-800 hover:text-[#0EA5E9] hover:bg-neutral-100 rounded-lg transition-colors flex items-center justify-between"
             >
               <div className="flex items-center gap-2">
-                <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                <Layers className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Projects & Townships</span>
               </div>
               <span className="text-[10px] font-mono text-emerald-600">RERA Verified</span>
-            </Link>
-            <Link
-              href="/guides"
-              onClick={onClose}
-              className="w-full text-left py-2 px-3 text-xs font-bold text-[#0EA5E9] hover:text-[#0284c7] hover:bg-cyan-50/70 rounded-lg transition-colors flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-3.5 h-3.5 text-[#0EA5E9]" />
-                <span>Locality Guides & E-Books</span>
-              </div>
-              <span className="text-[9px] bg-[#0EA5E9] text-white px-1.5 py-0.5 rounded font-black">
-                NEW
-              </span>
             </Link>
             <Link
               href="/micro-markets"

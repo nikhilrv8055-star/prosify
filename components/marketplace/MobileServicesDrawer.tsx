@@ -18,6 +18,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Sparkles,
+  Rocket,
+  Layers,
 } from 'lucide-react';
 
 interface MobileServicesDrawerProps {
@@ -60,7 +62,7 @@ export function MobileServicesDrawer({
       id: 'launches',
       title: 'New Launches',
       desc: 'Early-bird residential launches with pre-booking discounts',
-      icon: Sparkles,
+      icon: Rocket,
       href: '/properties?possession=NEW_LAUNCH',
       color: 'bg-blue-50 text-blue-600',
     },
@@ -68,7 +70,7 @@ export function MobileServicesDrawer({
       id: 'projects',
       title: 'New Projects',
       desc: 'Townships & Grade-A developer launches with RERA certificates',
-      icon: Building2,
+      icon: Layers,
       href: '/projects',
       color: 'bg-purple-50 text-purple-600',
     },

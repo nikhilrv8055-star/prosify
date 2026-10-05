@@ -60,11 +60,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/guides" className="text-[#0EA5E9] font-semibold hover:underline flex items-center gap-1 transition-colors">
-                  <span>★ Locality Guides & E-Books</span>
-                </Link>
-              </li>
-              <li>
                 <Link href="/micro-markets" className="text-[#10B981] font-semibold hover:underline flex items-center gap-1 transition-colors">
                   <span>★ Local Micro-Market Consultants</span>
                 </Link>
