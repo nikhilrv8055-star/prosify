@@ -21,7 +21,7 @@
     {
       "binding": "DB",
       "database_name": "prosify_production",
-      "database_id": "0429eb5c-27a5-4fb8-8fac-c53e09f8036d",
+      "database_id": "e1e0fd5e-8efa-4b3b-aa83-53518b7d1e60",
       "migrations_dir": "migrations"
     }
   ],
@@ -34,7 +34,7 @@
   "r2_buckets": [
     {
       "binding": "R2_UPLOADS",
-      "bucket_name": "prosify-uploads"
+      "bucket_name": "prosify"
     }
   ],
   "images": {
