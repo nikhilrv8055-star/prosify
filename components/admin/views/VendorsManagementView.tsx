@@ -52,6 +52,24 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
   const [toast, setToast] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Vendors state fetched from API
+  const [vendors, setVendors] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchVendors() {
+      try {
+        const res = await fetch('/api/vendors');
+        if (res.ok) {
+          const data = await res.json();
+          setVendors(Array.isArray(data) ? data : data.vendors || []);
+        }
+      } catch (err) {
+        console.warn('Error fetching vendors from /api/vendors:', err);
+      }
+    }
+    fetchVendors();
+  }, []);
+
   // Sync with portal users
   const [portalVendors, setPortalVendors] = useState<PortalUser[]>(() =>
     getPortalUsers().filter((u) => u.role === 'VENDOR')
