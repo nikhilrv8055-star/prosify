@@ -56,6 +56,19 @@ export function PortalAccessTab() {
 
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
+  const handleAutoGenerateCredentials = () => {
+    const code = Math.floor(100 + Math.random() * 900);
+    const cleanRole = createForm.role.toLowerCase();
+    const generatedId = `${cleanRole}_${code}@prosify.in`;
+    const generatedPassword = `Prosify#${createForm.role.slice(0, 3)}${code}!`;
+    setCreateForm((prev) => ({
+      ...prev,
+      username: generatedId,
+      password: generatedPassword,
+      name: prev.name || `${createForm.role === 'VENDOR' ? 'Vendor Enterprise' : createForm.role === 'AGENT' ? 'Senior Channel Partner' : 'Portal User'} #${code}`,
+    }));
+  };
+
   const refreshUsers = () => {
     setUsers(getPortalUsers());
   };
@@ -558,6 +571,18 @@ export function PortalAccessTab() {
                     className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white focus:outline-none focus:border-[#10B981]"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-slate-400">Credentials Provisioning</span>
+                <button
+                  type="button"
+                  onClick={handleAutoGenerateCredentials}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-semibold text-[11px] flex items-center gap-1 border border-emerald-500/30 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Auto-Generate ID & Password</span>
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

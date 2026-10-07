@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   UserPlus,
@@ -15,7 +15,16 @@ import {
   Phone,
   Layers,
   Key,
+  Copy,
+  Sparkles,
+  Lock,
 } from 'lucide-react';
+import {
+  PortalUser,
+  getPortalUsers,
+  createPortalUser,
+  deletePortalUser,
+} from '@/lib/auth/portalUsers';
 
 export interface VendorRecord {
   id: string;
@@ -23,6 +32,8 @@ export interface VendorRecord {
   contactPerson: string;
   email: string;
   phone: string;
+  username: string;
+  password?: string;
   category: 'DEVELOPER' | 'MATERIAL_SUPPLIER' | 'LEGAL_FIRM' | 'INTERIOR_DESIGN';
   grade: 'GRADE_A' | 'GRADE_B' | 'PREMIUM';
   projectsCount: number;
@@ -31,10 +42,7 @@ export interface VendorRecord {
   joinedDate: string;
 }
 
-const INITIAL_VENDORS: VendorRecord[] = [];
-
 export function VendorsManagementView({ subview = 'vendors-registered' }: { subview?: string }) {
-  const [vendors, setVendors] = useState<VendorRecord[]>([]);
   const [activeTab, setActiveTab] = useState<'registered' | 'add' | 'settings'>(
     subview === 'vendors-add' ? 'add' : subview === 'vendors-settings' ? 'settings' : 'registered'
   );
@@ -42,6 +50,22 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [toast, setToast] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Sync with portal users
+  const [portalVendors, setPortalVendors] = useState<PortalUser[]>(() =>
+    getPortalUsers().filter((u) => u.role === 'VENDOR')
+  );
+
+  const refreshVendors = () => {
+    setPortalVendors(getPortalUsers().filter((u) => u.role === 'VENDOR'));
+  };
+
+  useEffect(() => {
+    const handleUpdate = () => refreshVendors();
+    window.addEventListener('eni_portal_users_updated', handleUpdate);
+    return () => window.removeEventListener('eni_portal_users_updated', handleUpdate);
+  }, []);
 
   // Add Vendor State
   const [newVendor, setNewVendor] = useState({
@@ -49,9 +73,24 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
     contactPerson: '',
     email: '',
     phone: '',
+    username: '',
+    password: '',
     category: 'DEVELOPER' as VendorRecord['category'],
     grade: 'GRADE_A' as VendorRecord['grade'],
   });
+
+  const handleGenerateVendorCredentials = () => {
+    const code = Math.floor(100 + Math.random() * 900);
+    const cleanComp = (newVendor.companyName || 'vendor')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 8);
+    setNewVendor((prev) => ({
+      ...prev,
+      username: `vnd_${cleanComp || 'partner'}_${code}@prosify.in`,
+      password: `Prosify#Vnd${code}!`,
+    }));
+  };
 
   // Settings State
   const [vendorSettings, setVendorSettings] = useState({
@@ -67,49 +106,61 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleCopyCredentials = (vendor: PortalUser) => {
+    const text = `Vendor Portal: ${window.location.origin}/vendor\nUsername/ID: ${vendor.username}\nPassword: ${vendor.password}\nRole: Dedicated Vendor Panel`;
+    navigator.clipboard.writeText(text);
+    setCopiedId(vendor.id);
+    showToast(`Copied Vendor credentials for ${vendor.name}!`);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
+
   const handleAddVendor = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newVendor.companyName.trim() || !newVendor.email.trim()) return;
+    if (!newVendor.companyName.trim()) return;
 
-    const v: VendorRecord = {
-      id: `vnd-${Date.now()}`,
-      companyName: newVendor.companyName,
-      contactPerson: newVendor.contactPerson,
-      email: newVendor.email,
-      phone: newVendor.phone,
-      category: newVendor.category,
-      grade: newVendor.grade,
-      projectsCount: 0,
-      propertiesCount: 0,
-      status: 'VERIFIED',
-      joinedDate: new Date().toISOString().split('T')[0],
-    };
+    const code = Math.floor(100 + Math.random() * 900);
+    const finalUsername = newVendor.username.trim() || newVendor.email.trim().toLowerCase() || `vnd_${code}@prosify.in`;
+    const finalPassword = newVendor.password.trim() || `Prosify#Vnd${code}!`;
 
-    setVendors([v, ...vendors]);
+    createPortalUser({
+      name: newVendor.companyName,
+      username: finalUsername,
+      role: 'VENDOR',
+      password: finalPassword,
+      phone: newVendor.phone || '+91 98201 00000',
+      companyOrProject: `${newVendor.companyName} (${newVendor.category.replace('_', ' ')})`,
+      status: 'ACTIVE',
+      portalUrl: '/vendor',
+      assignedCode: `VND-${code}`,
+    });
+
+    refreshVendors();
     setNewVendor({
       companyName: '',
       contactPerson: '',
       email: '',
       phone: '',
+      username: '',
+      password: '',
       category: 'DEVELOPER',
       grade: 'GRADE_A',
     });
     setActiveTab('registered');
-    showToast(`Vendor enterprise "${v.companyName}" successfully enrolled!`);
+    showToast(`Vendor account created! ID: ${finalUsername} Password: ${finalPassword}`);
   };
 
   const handleDeleteVendor = (id: string) => {
-    setVendors(vendors.filter((v) => v.id !== id));
+    deletePortalUser(id);
+    refreshVendors();
     showToast('Vendor record removed.');
   };
 
-  const filteredVendors = vendors.filter((v) => {
+  const filteredVendors = portalVendors.filter((v) => {
     const matchesSearch =
-      v.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCat = categoryFilter === 'ALL' || v.category === categoryFilter;
-    return matchesSearch && matchesCat;
+      v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (v.companyOrProject && v.companyOrProject.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch;
   });
 
   return (
@@ -195,17 +246,16 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
               <thead className="bg-slate-900/80 text-slate-400 font-semibold border-b border-slate-800">
                 <tr>
                   <th className="p-3.5">Vendor Enterprise</th>
-                  <th className="p-3.5">Category & Grade</th>
-                  <th className="p-3.5">Contact Details</th>
-                  <th className="p-3.5">Projects / Units</th>
-                  <th className="p-3.5">Audit Status</th>
+                  <th className="p-3.5">Portal Login ID & Password</th>
+                  <th className="p-3.5">Category & Details</th>
+                  <th className="p-3.5">Status</th>
                   <th className="p-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {filteredVendors.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                    <td colSpan={5} className="py-12 text-center text-slate-400 text-xs">
                       No corporate vendors registered yet. Use the "Add Vendor" tab to register builders, suppliers, or legal partners.
                     </td>
                   </tr>
@@ -215,36 +265,51 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
                     <td className="p-3.5">
                       <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center font-mono">
-                          {v.companyName.charAt(0)}
+                          {v.name.charAt(0)}
                         </div>
                         <div>
                           <div className="font-semibold text-white flex items-center gap-1.5">
-                            <span>{v.companyName}</span>
+                            <span>{v.name}</span>
                             <BadgeCheck className="w-3.5 h-3.5 text-emerald-400" />
                           </div>
-                          <div className="text-[11px] text-slate-400">{v.contactPerson}</div>
+                          <div className="text-[11px] text-slate-400 font-mono">{v.assignedCode || 'VND-PORTAL'}</div>
                         </div>
                       </div>
                     </td>
                     <td className="p-3.5">
-                      <div className="font-semibold text-slate-200">{v.category.replace('_', ' ')}</div>
-                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                        {v.grade}
-                      </span>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-xs font-mono text-slate-200">
+                          <span className="text-slate-500 text-[10px]">ID:</span>
+                          <span className="font-bold text-white">{v.username}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400">
+                          <span className="text-slate-500 text-[10px]">Pass:</span>
+                          <span className="text-amber-300 font-bold">{v.password}</span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyCredentials(v)}
+                            className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3 text-emerald-400" />
+                            <span>{copiedId === v.id ? 'Copied' : 'Copy'}</span>
+                          </button>
+                          <a
+                            href="/vendor"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-[10px] text-emerald-300 font-semibold flex items-center gap-1 transition-colors"
+                          >
+                            <span>Open Panel</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
                     </td>
                     <td className="p-3.5">
-                      <div className="text-slate-300 flex items-center gap-1 font-mono text-[11px]">
-                        <Mail className="w-3 h-3 text-slate-500" />
-                        <span>{v.email}</span>
-                      </div>
-                      <div className="text-slate-400 flex items-center gap-1 font-mono text-[11px] mt-0.5">
-                        <Phone className="w-3 h-3 text-slate-500" />
-                        <span>{v.phone}</span>
-                      </div>
-                    </td>
-                    <td className="p-3.5 font-mono">
-                      <div className="text-white font-semibold">{v.projectsCount} Projects</div>
-                      <div className="text-slate-400 text-[11px]">{v.propertiesCount} Listed Units</div>
+                      <div className="text-slate-300 text-xs font-medium">{v.companyOrProject || 'Vendor Account'}</div>
+                      <div className="text-slate-400 text-[11px] font-mono mt-0.5">{v.phone || 'Phone not set'}</div>
                     </td>
                     <td className="p-3.5">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -272,14 +337,24 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
       {/* VIEW 2: ADD VENDOR */}
       {activeTab === 'add' && (
         <div className="p-6 rounded-2xl bg-[#1E293B]/80 border border-slate-700 shadow-xl max-w-xl space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-emerald-400" />
-            <span>Onboard New Real Estate Vendor</span>
-          </h3>
+          <div className="flex items-center justify-between pb-2 border-b border-slate-700">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-emerald-400" />
+              <span>Provision Dedicated Vendor ID & Password</span>
+            </h3>
+            <button
+              type="button"
+              onClick={handleGenerateVendorCredentials}
+              className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-semibold text-xs flex items-center gap-1 border border-emerald-500/30 transition-colors cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Auto-Generate</span>
+            </button>
+          </div>
 
-          <form onSubmit={handleAddVendor} className="space-y-3 text-xs">
+          <form onSubmit={handleAddVendor} className="space-y-3.5 text-xs">
             <div>
-              <label className="block text-slate-300 font-medium mb-1">Company / Developer Entity Name</label>
+              <label className="block text-slate-300 font-medium mb-1">Company / Developer Entity Name *</label>
               <input
                 type="text"
                 required
@@ -292,10 +367,35 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-300 font-medium mb-1">Primary Representative</label>
+                <label className="block text-slate-300 font-medium mb-1">Vendor Login ID / Username *</label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. vnd_prestige@prosify.in"
+                  value={newVendor.username}
+                  onChange={(e) => setNewVendor({ ...newVendor, username: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-medium mb-1">Generated Password *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Prosify#Vnd842!"
+                  value={newVendor.password}
+                  onChange={(e) => setNewVendor({ ...newVendor, password: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-slate-300 font-medium mb-1">Primary Contact Person</label>
+                <input
+                  type="text"
                   placeholder="e.g. Irfan Razack"
                   value={newVendor.contactPerson}
                   onChange={(e) => setNewVendor({ ...newVendor, contactPerson: e.target.value })}
@@ -304,11 +404,10 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
               </div>
 
               <div>
-                <label className="block text-slate-300 font-medium mb-1">Official Email</label>
+                <label className="block text-slate-300 font-medium mb-1">Official Contact Email</label>
                 <input
                   type="email"
-                  required
-                  placeholder="vendor@company.com"
+                  placeholder="contact@prestige.com"
                   value={newVendor.email}
                   onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-900 rounded-xl border border-slate-700 text-white"
@@ -343,12 +442,17 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
               </div>
             </div>
 
-            <div className="pt-3">
+            <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400">
+              <span className="text-emerald-400 font-semibold block">Isolated Panel Access:</span>
+              This vendor will log into <strong className="text-white">/vendor</strong> using the generated ID and Password. Their dashboard and properties are completely isolated from other vendors and agents.
+            </div>
+
+            <div className="pt-2">
               <button
                 type="submit"
                 className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md cursor-pointer"
               >
-                Enroll Vendor & Provision Portal
+                Generate Credentials & Activate Vendor
               </button>
             </div>
           </form>

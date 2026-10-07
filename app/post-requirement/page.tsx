@@ -199,7 +199,7 @@ Please share direct developer brochures and available floor plans.`
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#F4C430] border border-[#D4A017]/40">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Tell Us Your Requirement • अपनी ज़रूरत बताएं</span>
+            <span>Tell Us Your Requirement • Direct Developer Advisory</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
@@ -544,7 +544,7 @@ Please share direct developer brochures and available floor plans.`
                   ) : (
                     <>
                       <Send className="w-4 h-4 text-[#F4C430]" />
-                      <span>Submit Property Requirement (अपनी ज़रूरत भेजें)</span>
+                      <span>Submit Property Requirement</span>
                     </>
                   )}
                 </button>

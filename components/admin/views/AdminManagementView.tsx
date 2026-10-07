@@ -47,9 +47,9 @@ const INITIAL_ADMINS: AdminUserRecord[] = [
 
 const INITIAL_LANGUAGES: LanguageItem[] = [
   { code: 'en', name: 'English (Indian Business)', nativeName: 'English', isDefault: true, isEnabled: true },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', isDefault: false, isEnabled: true },
-  { code: 'mr', name: 'Marathi (Maharashtra State)', nativeName: 'मराठी', isDefault: false, isEnabled: true },
-  { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી', isDefault: false, isEnabled: true },
+  { code: 'hi', name: 'Hindi', nativeName: 'Hindi', isDefault: false, isEnabled: true },
+  { code: 'mr', name: 'Marathi (Maharashtra State)', nativeName: 'Marathi', isDefault: false, isEnabled: true },
+  { code: 'gu', name: 'Gujarati', nativeName: 'Gujarati', isDefault: false, isEnabled: true },
 ];
 
 export function AdminManagementView({ subview = 'admin-roles' }: { subview?: string }) {

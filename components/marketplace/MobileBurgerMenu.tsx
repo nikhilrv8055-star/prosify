@@ -73,7 +73,6 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
 
   // Dedicated custom modals for the requested items
   const [referEarnOpen, setReferEarnOpen] = useState(false);
-  const [planTypeOpen, setPlanTypeOpen] = useState<'owner' | 'buyer' | 'seller' | 'commercial' | null>(null);
   const [careersOpen, setCareersOpen] = useState(false);
   const [corporateEnquiryOpen, setCorporateEnquiryOpen] = useState(false);
   const [blogOpen, setBlogOpen] = useState(false);
@@ -110,7 +109,6 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
     servicesModalOpen ||
     billsModalOpen ||
     referEarnOpen ||
-    planTypeOpen !== null ||
     careersOpen ||
     corporateEnquiryOpen ||
     blogOpen ||
@@ -131,7 +129,6 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
           setServicesModalOpen(false);
           setBillsModalOpen(false);
           setReferEarnOpen(false);
-          setPlanTypeOpen(null);
           setCareersOpen(false);
           setCorporateEnquiryOpen(false);
           setBlogOpen(false);
@@ -197,7 +194,6 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
             setServicesModalOpen(true);
           }}
           onOpenReferEarn={() => setReferEarnOpen(true)}
-          onOpenPlan={(type) => setPlanTypeOpen(type)}
           onOpenCareers={() => setCareersOpen(true)}
           onOpenCorporateEnquiry={() => setCorporateEnquiryOpen(true)}
           onOpenBlog={() => setBlogOpen(true)}
@@ -308,109 +304,6 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
                 <span>Open Full Affiliate & Broker Portal (Earn 3%)</span>
                 <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
               </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 7, 8, 9, 10, 11: Plans Modals */}
-      {planTypeOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-neutral-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-neutral-900 text-white rounded-3xl shadow-2xl p-6 relative border border-white/10 max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setPlanTypeOpen(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-white/10 text-neutral-400"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-neutral-950 flex items-center justify-center font-bold">
-                <Crown className="w-5 h-5 text-neutral-950" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white uppercase tracking-wide">
-                  {planTypeOpen === 'owner' && 'Owner Assured Sale Plans'}
-                  {planTypeOpen === 'buyer' && 'Buyer VIP Advisory Plans'}
-                  {planTypeOpen === 'seller' && 'Seller Express Sale Plans'}
-                  {planTypeOpen === 'commercial' && 'Commercial Acquisition Plans'}
-                </h3>
-                <span className="text-xs text-[#D4A017] font-semibold">100% Verified Deals • Zero Brokerage</span>
-              </div>
-            </div>
-
-            <div className="space-y-3.5 text-xs">
-              {planTypeOpen === 'owner' && (
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">Owner Fast-Track Property Sale</span>
-                    <span className="text-base font-extrabold text-[#D4A017]">₹1,999 / Until Sold</span>
-                  </div>
-                  <ul className="space-y-1 text-neutral-300 text-[11px]">
-                    <li>✓ Professional high-resolution photography & virtual video tour</li>
-                    <li>✓ Verified buyer screening and genuine investor inquiries</li>
-                    <li>✓ Dedicated relationship manager to handle visits & token closure</li>
-                  </ul>
-                </div>
-              )}
-
-              {planTypeOpen === 'buyer' && (
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">Buyer VIP Priority Pass</span>
-                    <span className="text-base font-extrabold text-[#D4A017]">₹999 / 90 Days</span>
-                  </div>
-                  <ul className="space-y-1 text-neutral-300 text-[11px]">
-                    <li>✓ Dedicated Senior Property Advisor for negotiations</li>
-                    <li>✓ Free legal title search & RERA compliance vetting (Worth ₹4,999)</li>
-                    <li>✓ Complimentary cab pickup for guided site visits</li>
-                  </ul>
-                </div>
-              )}
-
-              {planTypeOpen === 'seller' && (
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">Seller Express 45-Day Sale</span>
-                    <span className="text-base font-extrabold text-[#D4A017]">₹2,499 / Listing</span>
-                  </div>
-                  <ul className="space-y-1 text-neutral-300 text-[11px]">
-                    <li>✓ AI matching blast sent to 10,000+ active pre-qualified buyers</li>
-                    <li>✓ Escrow payment safety guarantee for token advance</li>
-                    <li>✓ Featured placement on top search results</li>
-                  </ul>
-                </div>
-              )}
-
-              {planTypeOpen === 'commercial' && (
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">Commercial Purchase & Investment</span>
-                    <span className="text-base font-extrabold text-[#D4A017]">Custom Retainer</span>
-                  </div>
-                  <ul className="space-y-1 text-neutral-300 text-[11px]">
-                    <li>✓ Grade-A IT Parks, Bare-shell & Pre-leased Commercial Assets</li>
-                    <li>✓ Retail showrooms, high-street shops & warehousing hubs</li>
-                    <li>✓ Title verification, RERA due diligence & legal acquisition advisory</li>
-                  </ul>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  toast({
-                    title: 'VIP Plan Request Received',
-                    description: 'Our senior relationship manager will call you shortly with your activation code.',
-                    type: 'success',
-                  });
-                  setPlanTypeOpen(null);
-                }}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-neutral-950 font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
-              >
-                <span>Activate Plan & Get Advisor Assistance</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
           </div>
         </div>
