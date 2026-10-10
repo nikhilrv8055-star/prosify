@@ -64,6 +64,7 @@ import { PropertyPricingRequestsView } from '@/components/admin/views/PropertyPr
 import { PackageManagementView } from '@/components/admin/views/PackageManagementView';
 import { UsersManagementView } from '@/components/admin/views/UsersManagementView';
 import { VendorsManagementView } from '@/components/admin/views/VendorsManagementView';
+import { AgentsManagementView } from '@/components/admin/views/AgentsManagementView';
 import { SupportTicketsAdminView } from '@/components/admin/views/SupportTicketsAdminView';
 import { HomePageCmsView } from '@/components/admin/views/HomePageCmsView';
 import { FooterCmsView } from '@/components/admin/views/FooterCmsView';
@@ -251,6 +252,7 @@ export default function AdminAppPage() {
     activeTab.startsWith('pkg-') ||
     activeTab.startsWith('users-') ||
     activeTab.startsWith('vendors-') ||
+    activeTab.startsWith('agents-') ||
     activeTab.startsWith('tickets-') ||
     activeTab.startsWith('home-') ||
     activeTab.startsWith('footer-') ||
@@ -458,6 +460,11 @@ export default function AdminAppPage() {
             {/* 8. VENDORS MANAGEMENT */}
             {activeTab.startsWith('vendors-') && (
               <VendorsManagementView subview={activeTab} />
+            )}
+
+            {/* 8B. AGENT PANEL & MANAGEMENT (SYNC VAULT) */}
+            {activeTab.startsWith('agents-') && (
+              <AgentsManagementView subview={activeTab} />
             )}
 
             {/* 9. SUPPORT TICKETS */}

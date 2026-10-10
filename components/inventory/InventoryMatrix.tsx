@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Building2, Layers, CheckCircle2, Lock, Tag, Clock, ShieldAlert } from 'lucide-react';
 import { Unit, UnitStatus } from '@/lib/types';
 import { formatIndianPrice, formatArea } from '@/lib/utils';
+import { UnitPhotoCarousel } from '@/components/inventory/UnitPhotoCarousel';
 
 interface InventoryMatrixProps {
   units: Unit[];
@@ -202,6 +203,16 @@ export function InventoryMatrix({
             >
               Close
             </button>
+          </div>
+
+          {/* Unit HD Photo Carousel with Touch-Swipe */}
+          <div className="pt-1">
+            <UnitPhotoCarousel
+              images={activeUnit.images}
+              unitNumber={`Unit ${activeUnit.unitNumber}`}
+              projectName={projectName}
+              configuration={activeUnit.configuration || activeUnit.bhk}
+            />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">

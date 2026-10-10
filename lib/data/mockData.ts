@@ -981,6 +981,12 @@ export const INITIAL_UNITS: Unit[] = [
     facing: 'East',
     status: 'AVAILABLE',
     possession: 'Dec 2026',
+    images: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1600&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=1600&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&auto=format&fit=crop&q=85',
+    ],
   },
   {
     id: 'u-102',
@@ -996,6 +1002,12 @@ export const INITIAL_UNITS: Unit[] = [
     facing: 'North-East',
     status: 'BOOKED',
     possession: 'Dec 2026',
+    images: [
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=1600&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1600&auto=format&fit=crop&q=85',
+      'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=1600&auto=format&fit=crop&q=85',
+    ],
   },
   {
     id: 'u-103',

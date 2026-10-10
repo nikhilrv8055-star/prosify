@@ -168,6 +168,9 @@ export interface Unit {
   availabilityStatus?: UnitStatus;
   possession?: string;
   possessionDate?: string;
+  images?: string[];
+  image?: string;
+  floorPlanUrl?: string;
   createdAt?: string;
 }
 

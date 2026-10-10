@@ -31,6 +31,7 @@ import { Unit, UnitStatus, Project } from '@/lib/types';
 import { formatIndianPrice } from '@/lib/utils';
 import { useToast } from '@/components/ui/toast';
 import { EnquiryModal } from '@/components/marketplace/EnquiryModal';
+import { UnitPhotoCarousel } from '@/components/inventory/UnitPhotoCarousel';
 
 const STATUS_CONFIG: Record<
   UnitStatus,
@@ -442,7 +443,7 @@ export default function InventoryPage() {
       {/* Unit Inspector Modal */}
       {inspectedUnit && (
         <div className="fixed inset-0 z-50 bg-neutral-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-neutral-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl max-w-xl w-full border border-neutral-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
             {/* Modal Header */}
             <div className="bg-neutral-950 text-white p-5 flex items-start justify-between">
               <div>
@@ -471,8 +472,18 @@ export default function InventoryPage() {
               </button>
             </div>
 
+            {/* Horizontal HD Photo Carousel with Touch-Swipe Support */}
+            <div className="p-4 bg-neutral-900 border-b border-neutral-800">
+              <UnitPhotoCarousel
+                images={inspectedUnit.images}
+                unitNumber={`Unit ${inspectedUnit.unitNumber}`}
+                projectName={selectedProject.name}
+                configuration={inspectedUnit.configuration || inspectedUnit.bhk}
+              />
+            </div>
+
             {/* Specifications Matrix */}
-            <div className="p-6 space-y-4">
+            <div className="p-5 sm:p-6 space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-100">
                   <span className="block text-neutral-500">Configuration</span>

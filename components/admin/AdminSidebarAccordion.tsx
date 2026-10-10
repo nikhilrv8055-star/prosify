@@ -26,6 +26,8 @@ import {
   Workflow,
   Sparkles,
   Share2,
+  UserCheck,
+  Cloud,
 } from 'lucide-react';
 import { AdminMenuKey } from './adminMenuTypes';
 
@@ -128,6 +130,17 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { id: 'vendors-settings', label: 'Settings' },
       { id: 'vendors-registered', label: 'Registered vendors' },
       { id: 'vendors-add', label: 'Add vendor' },
+    ],
+  },
+  {
+    id: 'grp-agents',
+    label: 'Agent Panel & Management',
+    icon: UserCheck,
+    badge: 'Sync Vault',
+    items: [
+      { id: 'agents-management', label: 'Manage Agents & Panel' },
+      { id: 'agents-add', label: 'Add Agent (Auto-Gen ID)' },
+      { id: 'agents-cloud-sync', label: 'Cloud Storage & Sync Vault' },
     ],
   },
   {

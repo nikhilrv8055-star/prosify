@@ -36,6 +36,10 @@ export type AdminMenuKey =
   | 'vendors-settings'
   | 'vendors-registered'
   | 'vendors-add'
+  // Agents Management & Panel
+  | 'agents-management'
+  | 'agents-add'
+  | 'agents-cloud-sync'
   // Support Tickets
   | 'tickets-settings'
   | 'tickets-all'

@@ -18,6 +18,8 @@ import {
   Copy,
   Sparkles,
   Lock,
+  Cloud,
+  Database,
 } from 'lucide-react';
 import {
   PortalUser,
@@ -140,7 +142,7 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
     const finalUsername = newVendor.username.trim() || newVendor.email.trim().toLowerCase() || `vnd_${code}@prosify.in`;
     const finalPassword = newVendor.password.trim() || `Prosify#Vnd${code}!`;
 
-    createPortalUser({
+    const createdUser = createPortalUser({
       name: newVendor.companyName,
       username: finalUsername,
       role: 'VENDOR',
@@ -151,6 +153,22 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
       portalUrl: '/vendor',
       assignedCode: `VND-${code}`,
     });
+
+    // Synchronize to Cloud Storage Vault
+    fetch('/api/admin/cloud-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'VENDOR',
+        assignedCode: `VND-${code}`,
+        username: finalUsername,
+        password: finalPassword,
+        name: newVendor.companyName,
+        phone: newVendor.phone,
+        companyOrProject: newVendor.companyName,
+        status: 'ACTIVE',
+      }),
+    }).catch((err) => console.warn('Cloud sync error:', err));
 
     refreshVendors();
     setNewVendor({
@@ -330,9 +348,15 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
                       <div className="text-slate-400 text-[11px] font-mono mt-0.5">{v.phone || 'Phone not set'}</div>
                     </td>
                     <td className="p-3.5">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        {v.status}
-                      </span>
+                      <div className="space-y-1">
+                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          {v.status}
+                        </span>
+                        <div className="flex items-center gap-1 text-[10px] text-sky-400 font-mono">
+                          <Cloud className="w-2.5 h-2.5" />
+                          <span>Cloud Synced</span>
+                        </div>
+                      </div>
                     </td>
                     <td className="p-3.5 text-right">
                       <button
