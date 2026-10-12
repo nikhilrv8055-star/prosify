@@ -100,8 +100,6 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
     }
   };
 
-  const [portalsOpen, setPortalsOpen] = useState(false);
-
   // Primary navigation links for Desktop
   const navLinks = [
     { label: 'Buy Homes', href: '/properties?type=BUY', icon: Home, highlight: false },
@@ -110,41 +108,6 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
     { label: 'Micro-Markets', href: '/micro-markets', icon: MapPin, highlight: false },
     { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
     { label: 'Commercial', href: '/properties?type=COMMERCIAL', icon: Briefcase, highlight: false },
-  ];
-
-  const portalOptions = [
-    {
-      title: 'Admin Portal',
-      desc: 'Central control, approvals & analytics',
-      href: '/admin',
-      icon: Shield,
-      badge: 'Protected',
-      badgeColor: 'bg-rose-500/10 text-rose-600 border-rose-200',
-    },
-    {
-      title: 'Vendor / Builder Hub',
-      desc: 'Project uploads, unit inventories & leads',
-      href: '/vendor',
-      icon: Building2,
-      badge: 'Developers',
-      badgeColor: 'bg-sky-500/10 text-sky-600 border-sky-200',
-    },
-    {
-      title: 'Agent Network',
-      desc: 'Channel partner bookings & commissions',
-      href: '/agent',
-      icon: UserCheck,
-      badge: 'Brokers',
-      badgeColor: 'bg-amber-500/10 text-amber-700 border-amber-200',
-    },
-    {
-      title: 'Affiliate Program',
-      desc: 'Earn flat 3% on every verified buyer booking',
-      href: '/affiliate?tab=dashboard',
-      icon: Share2,
-      badge: 'Earn 3%',
-      badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
-    },
   ];
 
   return (
@@ -188,81 +151,6 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
                   </Link>
                 );
               })}
-
-              {/* Portals & Solutions Creative Mega-Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => setPortalsOpen(true)}
-                onMouseLeave={() => setPortalsOpen(false)}
-              >
-                <button
-                  type="button"
-                  onClick={() => setPortalsOpen(!portalsOpen)}
-                  className={`px-3 py-2 rounded-xl text-[13px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    portalsOpen || ['/admin', '/vendor', '/agent', '/affiliate'].some((p) => pathname.startsWith(p))
-                      ? 'text-neutral-950 bg-amber-500/15 border border-amber-500/30'
-                      : 'text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100/80'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
-                  <span>Portals</span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 text-neutral-500 ${
-                      portalsOpen ? 'rotate-180 text-neutral-950' : ''
-                    }`}
-                  />
-                </button>
-
-                {/* Dropdown Menu Panel */}
-                {portalsOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-80 bg-white rounded-2xl shadow-2xl border border-neutral-200/90 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-100 flex items-center justify-between">
-                      <span>Prosify Enterprise Portals</span>
-                      <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-bold border border-amber-200">
-                        Select Portal
-                      </span>
-                    </div>
-
-                    <div className="mt-1 space-y-1">
-                      {portalOptions.map((opt) => {
-                        const Icon = opt.icon;
-                        const isOptActive = pathname.startsWith(opt.href.split('?')[0]);
-                        return (
-                          <Link
-                            key={opt.title}
-                            href={opt.href}
-                            onClick={() => setPortalsOpen(false)}
-                            className={`p-2.5 rounded-xl transition-all flex items-start gap-3 group ${
-                              isOptActive
-                                ? 'bg-amber-50/70 text-neutral-950 border border-amber-200/60'
-                                : 'hover:bg-neutral-50 text-neutral-800'
-                            }`}
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-neutral-100 group-hover:bg-amber-100/60 group-hover:text-amber-800 text-neutral-700 flex items-center justify-center shrink-0 transition-colors">
-                              <Icon className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="text-xs font-bold text-neutral-900 group-hover:text-amber-900">
-                                  {opt.title}
-                                </span>
-                                <span
-                                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${opt.badgeColor}`}
-                                >
-                                  {opt.badge}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-neutral-500 line-clamp-1 mt-0.5">
-                                {opt.desc}
-                              </p>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
             </nav>
 
             {/* Desktop Right Actions: Post Requirement, Smart Match & Compare */}

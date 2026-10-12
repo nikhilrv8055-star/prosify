@@ -333,20 +333,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Creative & Attractive Desktop Options & Portals Showcase */}
+      {/* Creative & Attractive Desktop Options & Services Showcase */}
       <section className="py-10 bg-white border-b border-neutral-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-900 border border-amber-500/20 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
-                <span>Marketplace Options & Direct Portals</span>
+                <span>Marketplace Options & Services</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-950 tracking-tight">
-                Explore All Platform Options & Portals
+                Explore All Platform Options & Services
               </h2>
               <p className="text-sm text-neutral-500 mt-1">
-                Direct access to verified buyer inventories, new launches, enterprise portals, and smart advisory tools
+                Direct access to verified buyer inventories, new launches, commercial spaces, and smart advisory tools
               </p>
             </div>
 
@@ -429,35 +429,35 @@ export default function HomePage() {
                 iconBg: 'bg-amber-100 text-amber-900',
               },
               {
-                title: 'Agent Partner Portal',
-                subtitle: 'Channel Partner Network',
-                desc: 'Broker login, live inventory & commissions',
-                badge: 'Brokers',
-                badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
-                icon: UserCheck,
-                href: '/agent',
-                gradient: 'from-amber-500/15 via-yellow-50/40 to-transparent',
-                iconBg: 'bg-amber-100 text-amber-800',
+                title: 'Verified RERA Projects',
+                subtitle: '100% Legal Clearance',
+                desc: 'Curated master developments & township plans',
+                badge: 'RERA Clear',
+                badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                icon: ShieldCheck,
+                href: '/projects',
+                gradient: 'from-emerald-500/15 via-emerald-50/40 to-transparent',
+                iconBg: 'bg-emerald-100 text-emerald-800',
               },
               {
-                title: 'Vendor / Builder Hub',
-                subtitle: 'Developer Direct Hub',
-                desc: 'Manage projects, unit slots & buyer leads',
-                badge: 'Developers',
+                title: 'Luxury Villas & Estates',
+                subtitle: 'Signature Living',
+                desc: 'Private pools, golf estates & penthouses',
+                badge: 'Elite Luxury',
                 badgeColor: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-                icon: Building2,
-                href: '/vendor',
+                icon: Award,
+                href: '/properties?type=BUY',
                 gradient: 'from-cyan-500/15 via-cyan-50/40 to-transparent',
                 iconBg: 'bg-cyan-100 text-cyan-800',
               },
               {
-                title: 'Admin Command Central',
-                subtitle: 'Executive Management',
-                desc: 'Master platform management & audits',
-                badge: 'Master Control',
+                title: 'Top Tier Developers',
+                subtitle: 'Grade-A Builders',
+                desc: 'Godrej, Lodha, Prestige, Sobha & DLF',
+                badge: 'Reputed',
                 badgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
-                icon: Shield,
-                href: '/admin',
+                icon: Building2,
+                href: '/developers',
                 gradient: 'from-slate-500/15 via-slate-50/40 to-transparent',
                 iconBg: 'bg-slate-100 text-slate-800',
               },
