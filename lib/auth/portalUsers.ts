@@ -23,12 +23,12 @@ const STORAGE_KEY = 'eni_portal_users_store_v1';
 const DEFAULT_USERS: PortalUser[] = [
   {
     id: 'user-admin-1',
-    username: 'eni1526',
-    name: 'ENI Central Administrator',
+    username: 'admin@prosify.in',
+    name: 'Prosify Central Administrator',
     role: 'ADMIN',
-    password: 'password123',
+    password: 'prosify@123#',
     phone: '+91 93263 03244',
-    companyOrProject: 'ENI AI BORN HQ',
+    companyOrProject: 'Prosify Technologies HQ',
     status: 'ACTIVE',
     createdAt: '2026-01-01T00:00:00.000Z',
     lastLogin: '2026-09-26T08:30:00.000Z',

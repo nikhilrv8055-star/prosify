@@ -100,6 +100,70 @@ const FESTIVAL_BANNER_PRESETS: Record<FestivalThemeId, Array<{ label: string; ur
     { label: 'Royal Navratri Festive Illuminations', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80' },
     { label: 'Vijayadashami Auspicious Allotments', url: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=2000&q=80' },
   ],
+  makar_sankranti: [
+    { label: 'Kites Floating in Clear Sky', url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Golden Harvest Sunshine Villa', url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  maha_shivratri: [
+    { label: 'Deep Meditative Mountain Glow', url: 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Holy Evening Temple Illuminations', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  ram_navami: [
+    { label: 'Auspicious Saffron Palace Glow', url: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Royal Heritage Courtyard', url: 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  hanuman_jayanti: [
+    { label: 'Courageous Crimson Horizon', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Noble Estate Gates', url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  eid_ul_fitr: [
+    { label: 'Emerald Festive Moonlit Palace', url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Starlit Archways & Gardens', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  akshaya_tritiya: [
+    { label: 'Pure Golden Wealth Architecture', url: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Everlasting Luxury Estate', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  buddha_purnima: [
+    { label: 'Serene Zen Garden Sanctuary', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Lotus Pond Luxury Retreat', url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  rath_yatra: [
+    { label: 'Grand Procession Colors', url: 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Chariot Festival Celebration Lights', url: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  guru_purnima: [
+    { label: 'Full Moon Over Regal Estate', url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Golden Wisdom Library & Residence', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  onam: [
+    { label: 'Lush Green Kerala Backwaters & Villa', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Pookkalam Floral Carpet Glow', url: 'https://images.unsplash.com/photo-1609137144822-263626786c75?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  ganesh_chaturthi: [
+    { label: 'Ganpati Bappa Illuminations', url: 'https://images.unsplash.com/photo-1609137144822-263626786c75?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Auspicious Modak & Floral Grandeur', url: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  durga_puja: [
+    { label: 'Shubho Sharodiya Palace Lights', url: 'https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Kash Flowers & Golden Autumn Skies', url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  karwa_chauth: [
+    { label: 'Romantic Moonlit Penthouse Terrace', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Crimson Rose Festivity Decor', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  bhai_dooj: [
+    { label: 'Cherished Family Sanctuary Estate', url: 'https://images.unsplash.com/photo-1601055283742-8b27e81b5553?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Auspicious Festive Diya Courtyard', url: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  chath_puja: [
+    { label: 'Golden Sunrise Over Serene Waters', url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Sunlight-Bathed Riverside Villa', url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80' },
+  ],
+  guru_nanak_jayanti: [
+    { label: 'Golden Gurpurab Prakash Palace', url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=2000&q=80' },
+    { label: 'Harmonious Peace Sanctuary', url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80' },
+  ],
 };
 
 const POPULAR_ACCENT_COLORS = [
@@ -220,6 +284,27 @@ export function FestivalThemesAdminView({ subview }: FestivalThemesAdminViewProp
     }));
 
     setSelectedHolidayToEdit(themeId);
+
+    // Permanently save and sync theme change immediately to live website
+    const targetConfig: FestivalThemeConfig = {
+      ...draftConfig,
+      activeThemeId: themeId,
+      isEnabled: themeId !== 'default',
+      bannerEnabled: themeId !== 'default',
+      customBannerImage: custom?.bannerImageUrl || targetTheme.defaultBannerImage,
+      accentColorOverride: custom?.accentColor || targetTheme.primaryColor,
+      festiveOverlayOverride: custom?.festiveOverlay || targetTheme.ambientEffectType,
+      customBannerGreeting: custom?.customGreeting || targetTheme.defaultBannerGreeting,
+      customBannerSubtext: custom?.customSubtext || targetTheme.defaultBannerSubtext,
+      customCtaText: custom?.customCtaText || targetTheme.defaultCtaText,
+      customBadgeText: custom?.customBadgeText || targetTheme.defaultBadgeText,
+      updatedAt: new Date().toISOString(),
+    };
+
+    updateConfig(targetConfig);
+    clearPreview();
+    setSavedSuccessToast(true);
+    setTimeout(() => setSavedSuccessToast(false), 4500);
   };
 
   const handleSaveAndSync = () => {
@@ -406,23 +491,38 @@ export function FestivalThemesAdminView({ subview }: FestivalThemesAdminViewProp
         </div>
       </div>
 
-      {/* Success Notification Toast */}
+      {/* Success Notification Confirmation Banner */}
       {savedSuccessToast && (
-        <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-between gap-4 animate-in fade-in duration-300">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-neutral-900 border-2 border-emerald-500 text-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300 shadow-2xl">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/30 text-emerald-300 border border-emerald-400 flex items-center justify-center flex-shrink-0 text-xl font-black">
+              {activeThemeDef.iconEmoji}
+            </div>
             <div>
-              <p className="text-sm font-bold text-white">
-                Festival Theme Successfully Synchronized!
-              </p>
-              <p className="text-xs text-emerald-200/80">
-                Active theme '{activeThemeDef.name}' is now live with all custom banners, color overrides, and festive overlays.
+              <div className="flex items-center gap-2">
+                <p className="text-base font-extrabold text-white">
+                  Theme Successfully Saved & Activated!
+                </p>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-400 text-neutral-950 uppercase tracking-wider">
+                  Permanently Saved
+                </span>
+              </div>
+              <p className="text-xs text-emerald-200/90 mt-0.5">
+                <strong>{activeThemeDef.name} ({activeThemeDef.hindiName})</strong> is now live across the entire website. This configuration is permanently saved.
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500 text-neutral-950">
-            Synced
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href="/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md"
+            >
+              <span>View Website Live</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       )}
 

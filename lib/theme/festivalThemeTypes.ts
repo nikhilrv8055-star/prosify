@@ -8,7 +8,23 @@ export type FestivalThemeId =
   | 'gudi_padwa'
   | 'independence_day'
   | 'raksha_bandhan'
-  | 'navratri_dussehra';
+  | 'navratri_dussehra'
+  | 'makar_sankranti'
+  | 'maha_shivratri'
+  | 'ram_navami'
+  | 'hanuman_jayanti'
+  | 'eid_ul_fitr'
+  | 'akshaya_tritiya'
+  | 'buddha_purnima'
+  | 'rath_yatra'
+  | 'guru_purnima'
+  | 'onam'
+  | 'ganesh_chaturthi'
+  | 'durga_puja'
+  | 'karwa_chauth'
+  | 'bhai_dooj'
+  | 'chath_puja'
+  | 'guru_nanak_jayanti';
 
 export type AmbientEffectType =
   | 'none'
@@ -81,7 +97,6 @@ export interface FestivalThemeConfig {
   customBadgeText?: string;
   festiveModalGreetingEnabled: boolean;
   autoScheduleEnabled: boolean;
-  // Custom Banner Images, Accent Color Overrides, and Festive Overlays
   customBannerImage?: string;
   accentColorOverride?: string;
   festiveOverlayOverride?: AmbientEffectType;

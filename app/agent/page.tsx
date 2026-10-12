@@ -47,6 +47,7 @@ import {
   FolderPlus,
   ArrowRight,
 } from 'lucide-react';
+import { ProsifyAnimatedLogo } from '@/components/brand/ProsifyAnimatedLogo';
 import { useToast } from '@/components/ui/toast';
 import { formatIndianPrice } from '@/lib/utils';
 import { store } from '@/lib/data/store';
@@ -391,10 +392,11 @@ const INITIAL_AGENT_PROFILE: AgentProfileData = {
 export default function AgentAdminPage() {
   const { toast } = useToast();
 
-  // Session & Auth
+  // Session & Auth (Empty by default - no prefilled credentials)
   const [session, setSession] = useState<PortalUser | null>(() => getPortalSession('AGENT'));
-  const [usernameInput, setUsernameInput] = useState('agent@eni.com');
-  const [passwordInput, setPasswordInput] = useState('password123');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -1199,41 +1201,20 @@ export default function AgentAdminPage() {
       <div className="min-h-screen bg-neutral-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-neutral-100 selection:bg-amber-500 selection:text-neutral-950">
         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#d4a017_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none" />
 
-        <div className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10 px-4 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 p-2 flex items-center justify-center shadow-xl mx-auto mb-4">
-            <Briefcase className="w-8 h-8 text-[#D4A017]" />
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            PROSIFY AGENT ADMIN PORTAL
-          </h2>
-          <p className="mt-1 text-xs text-neutral-400">
-            Certified Channel Partner Management, Properties & Projects Hub
-          </p>
-
-          <div className="mt-3 flex items-center justify-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>ROLE: AGENT • ISOLATED MULTI-TENANT ACCESS</span>
-            </span>
-          </div>
-
-          {/* Admin Managed Notification Banner */}
-          <div className="mt-4 p-3.5 rounded-2xl bg-neutral-900/90 border border-amber-500/30 text-amber-200/90 text-xs flex items-start gap-2.5 shadow-lg text-left">
-            <KeyRound className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <div className="font-bold text-amber-300">Admin-Provisioned Agent Accounts</div>
-              <div className="text-[11px] text-neutral-400 leading-relaxed">
-                Agent IDs and passwords are generated exclusively from the Admin Panel (<Link href="/admin" className="text-amber-400 underline font-semibold">/admin</Link> → Agents Management). Each ID accesses its own strictly isolated portfolio, projects, and buyer leads.
-              </div>
-            </div>
-          </div>
+        <div className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10 px-4">
+          <ProsifyAnimatedLogo
+            panelType="agent"
+            welcomeTitle="welcome to prosify agent"
+            subtitle="Certified Channel Partner Management, Properties & Projects Hub"
+          />
         </div>
 
         <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-lg px-4 relative z-10">
           <div className="bg-neutral-900/90 backdrop-blur-md py-7 px-6 shadow-2xl rounded-3xl border border-neutral-800 space-y-5">
             {loginError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
+              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{loginError}</span>
               </div>
@@ -1249,7 +1230,7 @@ export default function AgentAdminPage() {
                   required
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  placeholder="agent@eni.com or AGT-882"
+                  placeholder="Enter agent ID or registered email"
                   className="w-full px-3.5 py-2.5 bg-neutral-950 rounded-xl border border-neutral-800 text-white font-mono placeholder-neutral-500 focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -1259,16 +1240,26 @@ export default function AgentAdminPage() {
                   <label className="block font-semibold text-neutral-300">
                     Password
                   </label>
-                  <span className="text-[10px] text-neutral-400">Issued by Admin</span>
+                  <span className="text-[10px] text-neutral-400">Secure Access</span>
                 </div>
-                <input
-                  type="password"
-                  required
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 bg-neutral-950 rounded-xl border border-neutral-800 text-white font-mono placeholder-neutral-500 focus:outline-none focus:border-amber-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    placeholder="Enter password"
+                    className="w-full pl-3.5 pr-10 py-2.5 bg-neutral-950 rounded-xl border border-neutral-800 text-white font-mono placeholder-neutral-500 focus:outline-none focus:border-amber-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-500 hover:text-neutral-300 cursor-pointer"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2">
@@ -1283,50 +1274,7 @@ export default function AgentAdminPage() {
               </div>
             </form>
 
-            {/* Quick Switcher for Agent Accounts created via Admin */}
-            <div className="pt-4 border-t border-neutral-800 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Admin-Created Agent Accounts ({allAgentAccounts.length})</span>
-                </span>
-                <Link
-                  href="/admin"
-                  className="text-[10px] text-amber-400 hover:underline flex items-center gap-0.5"
-                >
-                  <span>Create in /admin</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
-                </Link>
-              </div>
-
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {allAgentAccounts.map((ag) => (
-                  <button
-                    key={ag.id}
-                    type="button"
-                    onClick={() => handleQuickLoginAs(ag)}
-                    className="w-full text-left p-2.5 rounded-xl bg-neutral-950/90 hover:bg-neutral-800 border border-neutral-800 hover:border-amber-500/40 transition-all group flex items-center justify-between cursor-pointer"
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-white group-hover:text-amber-300 flex items-center gap-1.5">
-                        <span>{ag.name}</span>
-                        <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                          {ag.assignedCode || 'AGT'}
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-neutral-400 font-mono mt-0.5">
-                        ID: {ag.username} • Pass: {ag.password}
-                      </div>
-                    </div>
-                    <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold group-hover:bg-amber-500 group-hover:text-neutral-950 transition-all shrink-0">
-                      Login ID →
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-2 text-center text-xs text-neutral-400 flex items-center justify-between">
+            <div className="pt-2 text-center text-xs text-neutral-400 flex items-center justify-between border-t border-neutral-800 mt-4">
               <Link href="/" className="text-neutral-400 hover:text-white flex items-center gap-1">
                 ← Back to Marketplace
               </Link>

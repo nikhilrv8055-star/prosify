@@ -26,7 +26,16 @@ export function FestivalAnnouncementBar({
 }: FestivalAnnouncementBarProps) {
   const [dismissed, setDismissed] = useState(false);
 
-  if (dismissed || !config.bannerEnabled || !config.isEnabled) {
+  // Completely remove banner when on standard/default theme, disabled, or if it matches the removed banner text
+  if (
+    dismissed ||
+    !config.bannerEnabled ||
+    !config.isEnabled ||
+    theme.id === 'default' ||
+    theme.name.toLowerCase().includes('regular') ||
+    propGreeting?.includes('Verified Developer Inventories') ||
+    propSubtext?.includes('Save up to 2%')
+  ) {
     return null;
   }
 

@@ -82,7 +82,7 @@ export default function AdminAppPage() {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<string>('admin@prosify.local');
+  const [currentUser, setCurrentUser] = useState<string>('admin@prosify.in');
   const [currentRole, setCurrentRole] = useState<AdminRole>('SUPER_ADMIN');
 
   // Navigation State

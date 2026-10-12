@@ -33,8 +33,8 @@ export const brandConfig = {
     address: "Prosify Chambers, Senapati Bapat Marg, Lower Parel, Mumbai, Maharashtra 400013",
   },
   auth: {
-    defaultAdminEmail: "admin@prosify.local",
-    defaultAdminPassword: "1234",
+    defaultAdminEmail: "admin@prosify.in",
+    defaultAdminPassword: "prosify@123#",
     isDevEnv: process.env.NODE_ENV !== "production",
   },
 } as const;
