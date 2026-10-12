@@ -31,6 +31,7 @@ import {
   Sparkles,
   Smartphone,
   Eye,
+  EyeOff,
   X,
   Filter,
   AlertCircle,
