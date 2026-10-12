@@ -5,6 +5,7 @@ import { AuthProvider } from '@/lib/auth/authContext';
 import { ToastProvider } from '@/components/ui/toast';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { AttributionTracker } from '@/components/marketplace/AttributionTracker';
+import { FestivalThemeProvider } from '@/components/theme/FestivalThemeProvider';
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -29,9 +30,11 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <ToastProvider>
-        {children}
-        <AuthModal />
-        <AttributionTracker />
+        <FestivalThemeProvider>
+          {children}
+          <AuthModal />
+          <AttributionTracker />
+        </FestivalThemeProvider>
       </ToastProvider>
     </AuthProvider>
   );

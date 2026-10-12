@@ -37,12 +37,20 @@ import { Property, Project } from '@/lib/types';
 import { formatIndianPrice } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
 import { useToast } from '@/components/ui/toast';
+import { useFestivalTheme } from '@/components/theme/FestivalThemeProvider';
 
 export default function HomePage() {
   const router = useRouter();
   const { toggleCompareProperty, comparedPropertyIds } = useAuth();
   const { toast } = useToast();
   const { properties: allProperties, projects: allProjects, developers: allDevelopers, cities } = useLiveStore();
+  const {
+    config: themeConfig,
+    currentTheme,
+    activeAccentColor,
+    activeBannerImage,
+    activeBadgeText,
+  } = useFestivalTheme();
 
   // Search form state
   const [searchTab, setSearchTab] = useState<'BUY' | 'PROJECTS' | 'COMMERCIAL'>('BUY');
@@ -126,8 +134,12 @@ export default function HomePage() {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0 opacity-25">
           <Image
-            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80"
-            alt="Luxury Architecture"
+            src={
+              themeConfig.isEnabled && activeBannerImage
+                ? activeBannerImage
+                : 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80'
+            }
+            alt={themeConfig.isEnabled ? `${currentTheme.name} Festive Background` : 'Luxury Architecture'}
             fill
             className="object-cover"
             priority
@@ -137,9 +149,25 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="max-w-3xl space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#F4C430] border border-[#D4A017]/40 backdrop-blur-xs">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>India’s Most Trusted Direct Developer Real Estate Marketplace</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#D4A017]/20 text-[#F4C430] border border-[#D4A017]/40 backdrop-blur-xs">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>India’s Most Trusted Direct Developer Real Estate Marketplace</span>
+              </div>
+
+              {themeConfig.isEnabled && (
+                <div
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md"
+                  style={{
+                    backgroundColor: `${activeAccentColor}25`,
+                    color: activeAccentColor,
+                    borderColor: `${activeAccentColor}50`,
+                  }}
+                >
+                  <span>{currentTheme.iconEmoji}</span>
+                  <span>{activeBadgeText || currentTheme.name}</span>
+                </div>
+              )}
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
@@ -267,7 +295,12 @@ export default function HomePage() {
               <div>
                 <button
                   type="submit"
-                  className="w-full py-2.5 px-4 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-xs sm:text-sm transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
+                  style={themeConfig.isEnabled ? { backgroundColor: activeAccentColor } : {}}
+                  className={`w-full py-2.5 px-4 rounded-xl ${
+                    themeConfig.isEnabled
+                      ? 'text-neutral-950 font-black shadow-lg'
+                      : 'bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold shadow-md'
+                  } text-xs sm:text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2`}
                 >
                   <Search className="w-4 h-4" />
                   <span>Search Properties</span>

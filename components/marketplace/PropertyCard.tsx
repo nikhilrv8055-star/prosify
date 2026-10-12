@@ -20,6 +20,7 @@ import { Property } from '@/lib/types';
 import { formatIndianPrice, formatArea } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
 import { useToast } from '@/components/ui/toast';
+import { useFestivalTheme } from '@/components/theme/FestivalThemeProvider';
 
 interface PropertyCardProps {
   property: Property;
@@ -38,6 +39,7 @@ export function PropertyCard({
 }: PropertyCardProps) {
   const { isSaved, toggleSavedProperty, isInCompare, toggleCompareProperty } = useAuth();
   const { toast } = useToast();
+  const { config: festivalConfig, currentTheme: festivalTheme } = useFestivalTheme();
   const [shareSuccess, setShareSuccess] = useState(false);
 
   const isFavorite = isSaved(property.id);
@@ -135,6 +137,12 @@ export function PropertyCard({
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#D4A017] text-neutral-950 shadow-xs">
                 <Sparkles className="w-3 h-3" />
                 Featured
+              </span>
+            )}
+            {festivalConfig.isEnabled && festivalConfig.festiveBadgesEnabled && (
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black border ${festivalTheme.badgeBg} ${festivalTheme.badgeTextColor} ${festivalTheme.badgeBorder} shadow-xs`}>
+                <span>{festivalTheme.iconEmoji}</span>
+                <span>{festivalConfig.customBadgeText || festivalTheme.defaultBadgeText}</span>
               </span>
             )}
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-neutral-900/80 text-neutral-200 backdrop-blur-xs">

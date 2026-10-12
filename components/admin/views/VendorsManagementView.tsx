@@ -26,7 +26,13 @@ import {
   getPortalUsers,
   createPortalUser,
   deletePortalUser,
+  setPortalSession,
 } from '@/lib/auth/portalUsers';
+import {
+  getScopedVendorData,
+  createInitialVendorData,
+  saveScopedVendorData,
+} from '@/lib/auth/scopedPortalStorage';
 
 export interface VendorRecord {
   id: string;
@@ -134,6 +140,11 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
     setTimeout(() => setCopiedId(null), 2500);
   };
 
+  const handleOpenVendorPanel = (vendor: PortalUser) => {
+    setPortalSession('VENDOR', vendor);
+    window.location.href = '/vendor';
+  };
+
   const handleAddVendor = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newVendor.companyName.trim()) return;
@@ -153,6 +164,10 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
       portalUrl: '/vendor',
       assignedCode: `VND-${code}`,
     });
+
+    // Initialize dedicated isolated data storage for this vendor ID
+    const initialData = createInitialVendorData(createdUser);
+    saveScopedVendorData(createdUser.id, initialData);
 
     // Synchronize to Cloud Storage Vault
     fetch('/api/admin/cloud-sync', {
@@ -220,7 +235,7 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
               activeTab === 'registered' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Registered Vendors ({vendors.length})
+            Registered Vendors ({portalVendors.length})
           </button>
           <button
             onClick={() => setActiveTab('add')}
@@ -228,7 +243,7 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
               activeTab === 'add' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Add Vendor
+            Add Vendor (Create ID & Password)
           </button>
           <button
             onClick={() => setActiveTab('settings')}
@@ -238,6 +253,17 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
           >
             Settings
           </button>
+        </div>
+      </div>
+
+      {/* Strict Account & Data Isolation Notice */}
+      <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 text-emerald-200/90 text-xs flex items-start gap-2.5 shadow-lg">
+        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <div className="font-bold text-emerald-300">Har Vendor ID Ka Alag Seperate Private Account (Strict Data Isolation)</div>
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Admin panel se banayi gayi har Vendor ID aur Password ka alag independent account rehta hai. Is ID se jo bhi vendor login karega use sirf usiki properties, projects, client inquiries aur financial details dikhayi dengi.
+          </p>
         </div>
       </div>
 
@@ -331,21 +357,29 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
                             <Copy className="w-3 h-3 text-emerald-400" />
                             <span>{copiedId === v.id ? 'Copied' : 'Copy'}</span>
                           </button>
-                          <a
-                            href="/vendor"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-[10px] text-emerald-300 font-semibold flex items-center gap-1 transition-colors"
+                          <button
+                            type="button"
+                            onClick={() => handleOpenVendorPanel(v)}
+                            className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-[10px] text-emerald-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                            title="Login As this Vendor in isolated portal"
                           >
                             <span>Open Panel</span>
                             <ExternalLink className="w-3 h-3" />
-                          </a>
+                          </button>
                         </div>
                       </div>
                     </td>
                     <td className="p-3.5">
                       <div className="text-slate-300 text-xs font-medium">{v.companyOrProject || 'Vendor Account'}</div>
                       <div className="text-slate-400 text-[11px] font-mono mt-0.5">{v.phone || 'Phone not set'}</div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                          {getScopedVendorData(v.id, v).properties.length} Properties
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                          {getScopedVendorData(v.id, v).messages.length} Inquiries
+                        </span>
+                      </div>
                     </td>
                     <td className="p-3.5">
                       <div className="space-y-1">

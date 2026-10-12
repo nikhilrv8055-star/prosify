@@ -45,6 +45,7 @@ import {
   Link as LinkIcon,
   Camera,
   FolderPlus,
+  ArrowRight,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
 import { formatIndianPrice } from '@/lib/utils';
@@ -56,7 +57,15 @@ import {
   getPortalSession,
   setPortalSession,
   clearPortalSession,
+  getPortalUsers,
+  updatePortalUser,
+  updatePortalUserPassword,
 } from '@/lib/auth/portalUsers';
+import {
+  getScopedAgentData,
+  saveScopedAgentData,
+  ScopedAgentData,
+} from '@/lib/auth/scopedPortalStorage';
 
 // Curated High-Definition Architectural Photos for Agent Properties
 const PRESET_AGENT_PROPERTY_PHOTOS = [
@@ -160,6 +169,7 @@ interface PropertyMessage {
 }
 
 interface AgentProfileData {
+  id?: string;
   name: string;
   agencyName: string;
   phone: string;
@@ -170,11 +180,15 @@ interface AgentProfileData {
   operatingCities: string[];
   specialization: string;
   bio: string;
-  officeAddress: string;
-  avatarUrl: string;
-  rating: number;
-  totalDealsClosed: number;
-  totalVolumeCrores: number;
+  officeAddress?: string;
+  avatarUrl?: string;
+  rating?: number;
+  totalDealsClosed?: number;
+  totalVolumeCrores?: number;
+  assignedCode?: string;
+  tier?: string;
+  commissionRate?: string;
+  status?: 'ACTIVE' | 'SUSPENDED';
 }
 
 // Initial Sample Data for Agent
@@ -370,6 +384,8 @@ const INITIAL_AGENT_PROFILE: AgentProfileData = {
   rating: 4.9,
   totalDealsClosed: 142,
   totalVolumeCrores: 68.5,
+  assignedCode: 'AGT-882',
+  tier: 'PLATINUM',
 };
 
 export default function AgentAdminPage() {
@@ -408,11 +424,70 @@ export default function AgentAdminPage() {
   const [propAccordionOpen, setPropAccordionOpen] = useState(true);
   const [projAccordionOpen, setProjAccordionOpen] = useState(true);
 
-  // Data Collections
-  const [properties, setProperties] = useState<AgentProperty[]>(INITIAL_AGENT_PROPERTIES);
-  const [projects, setProjects] = useState<AgentProject[]>(INITIAL_AGENT_PROJECTS);
-  const [messages, setMessages] = useState<PropertyMessage[]>(INITIAL_PROPERTY_MESSAGES);
+  // Track all registered Agent Accounts from Admin
+  const [allAgentAccounts, setAllAgentAccounts] = useState<PortalUser[]>([]);
+
+  useEffect(() => {
+    const loadAccounts = () => {
+      const users = getPortalUsers();
+      setAllAgentAccounts(users.filter((u) => u.role === 'AGENT'));
+    };
+    loadAccounts();
+    window.addEventListener('eni_portal_users_updated', loadAccounts);
+    return () => window.removeEventListener('eni_portal_users_updated', loadAccounts);
+  }, []);
+
+  // Scoped Data State for this specific Agent ID
+  const [scopedData, setScopedData] = useState<ScopedAgentData | null>(null);
+
+  // Data Collections (strictly isolated to logged-in Agent ID)
+  const [properties, setProperties] = useState<AgentProperty[]>([]);
+  const [projects, setProjects] = useState<AgentProject[]>([]);
+  const [messages, setMessages] = useState<PropertyMessage[]>([]);
   const [profile, setProfile] = useState<AgentProfileData>(INITIAL_AGENT_PROFILE);
+
+  // Sync isolated agent data whenever session changes
+  useEffect(() => {
+    if (session?.id) {
+      const data = getScopedAgentData(session.id, session);
+      setScopedData(data);
+      setProperties(data.properties);
+      setProjects(data.projects);
+      setMessages(data.messages);
+      setProfile(data.profile);
+      setEditProfileForm(data.profile);
+    } else {
+      setScopedData(null);
+      setProperties([]);
+      setProjects([]);
+      setMessages([]);
+      setProfile(INITIAL_AGENT_PROFILE);
+      setEditProfileForm(INITIAL_AGENT_PROFILE);
+    }
+  }, [session?.id]);
+
+  const persistScopedAgentPatch = (patch: Partial<ScopedAgentData>) => {
+    if (!session?.id) return;
+    const current = scopedData || getScopedAgentData(session.id, session);
+    const updated: ScopedAgentData = {
+      ...current,
+      ...patch,
+    };
+    setScopedData(updated);
+    saveScopedAgentData(session.id, updated);
+  };
+
+  const handleQuickLoginAs = (agentUser: PortalUser) => {
+    setUsernameInput(agentUser.username);
+    setPasswordInput(agentUser.password);
+    setPortalSession('AGENT', agentUser);
+    setSession(agentUser);
+    toast({
+      title: 'Switched Agent Account',
+      description: `Logged in as ${agentUser.name} (${agentUser.assignedCode || 'AGT'})`,
+      type: 'success',
+    });
+  };
 
   // Search & Filter state
   const [propSearch, setPropSearch] = useState('');
@@ -639,9 +714,9 @@ export default function AgentAdminPage() {
     e.preventDefault();
     if (!editingProperty) return;
 
-    setProperties((prev) =>
-      prev.map((p) => (p.id === editingProperty.id ? editingProperty : p))
-    );
+    const nextProps = properties.map((p) => (p.id === editingProperty.id ? editingProperty : p));
+    setProperties(nextProps);
+    persistScopedAgentPatch({ properties: nextProps });
 
     // Also update global store
     try {
@@ -817,7 +892,9 @@ export default function AgentAdminPage() {
       createdAt: new Date().toISOString().split('T')[0],
     };
 
-    setProperties([created, ...properties]);
+    const nextProps = [created, ...properties];
+    setProperties(nextProps);
+    persistScopedAgentPatch({ properties: nextProps });
 
     // Also register into global marketplace store
     try {
@@ -910,7 +987,9 @@ export default function AgentAdminPage() {
       featuredImage: newProjForm.featuredImage,
     };
 
-    setProjects([created, ...projects]);
+    const nextProjects = [created, ...projects];
+    setProjects(nextProjects);
+    persistScopedAgentPatch({ projects: nextProjects });
 
     // Register into global store so it reflects on public website & admin panel
     try {
@@ -968,7 +1047,9 @@ export default function AgentAdminPage() {
 
   // Delete Property Handler
   const handleDeleteProperty = (id: string) => {
-    setProperties(properties.filter((p) => p.id !== id));
+    const nextProps = properties.filter((p) => p.id !== id);
+    setProperties(nextProps);
+    persistScopedAgentPatch({ properties: nextProps });
     toast({
       title: 'Property Removed',
       description: 'Listing has been deleted from your agent dashboard.',
@@ -978,27 +1059,27 @@ export default function AgentAdminPage() {
 
   // Toggle Property Status
   const handleTogglePropertyStatus = (id: string) => {
-    setProperties(
-      properties.map((p) => {
-        if (p.id === id) {
-          const next = p.status === 'ACTIVE' ? 'SOLD' : 'ACTIVE';
-          toast({
-            title: `Property Status: ${next}`,
-            description: `${p.title} is now marked as ${next}.`,
-            type: 'info',
-          });
-          return { ...p, status: next };
-        }
-        return p;
-      })
-    );
+    const nextProps: AgentProperty[] = properties.map((p) => {
+      if (p.id === id) {
+        const nextStatus: 'ACTIVE' | 'SOLD' = p.status === 'ACTIVE' ? 'SOLD' : 'ACTIVE';
+        toast({
+          title: `Property Status: ${nextStatus}`,
+          description: `${p.title} is now marked as ${nextStatus}.`,
+          type: 'info',
+        });
+        return { ...p, status: nextStatus };
+      }
+      return p;
+    });
+    setProperties(nextProps);
+    persistScopedAgentPatch({ properties: nextProps });
   };
 
   // Update Message Status
   const handleUpdateMessageStatus = (id: string, status: 'CONTACTED' | 'SITE_VISIT_BOOKED') => {
-    setMessages(
-      messages.map((m) => (m.id === id ? { ...m, status } : m))
-    );
+    const nextMessages = messages.map((m) => (m.id === id ? { ...m, status } : m));
+    setMessages(nextMessages);
+    persistScopedAgentPatch({ messages: nextMessages });
     toast({
       title: `Lead Status: ${status.replace('_', ' ')}`,
       description: 'Message updated.',
@@ -1009,7 +1090,16 @@ export default function AgentAdminPage() {
   // Save Profile Handler
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    setProfile(editProfileForm);
+    const nextProfile: AgentProfileData = { ...profile, ...editProfileForm };
+    setProfile(nextProfile);
+    persistScopedAgentPatch({ profile: nextProfile });
+    if (session?.id) {
+      updatePortalUser(session.id, {
+        name: editProfileForm.name,
+        phone: editProfileForm.phone,
+        companyOrProject: editProfileForm.agencyName,
+      });
+    }
     setActiveMenu('profile');
     toast({
       title: 'Agent Profile Updated',
@@ -1038,6 +1128,9 @@ export default function AgentAdminPage() {
       return;
     }
 
+    if (session?.id) {
+      updatePortalUserPassword(session.id, changePasswordForm.newPassword);
+    }
     setChangePasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     toast({
       title: 'Password Changed Successfully',
@@ -1067,117 +1160,28 @@ export default function AgentAdminPage() {
     return matchesSearch && matchesCity;
   });
 
-  const [syncKey, setSyncKey] = useState(0);
-
-  // Subscribe to multi-panel live sync
+  // Listen for scoped agent updates across tabs
   useEffect(() => {
-    const handleSync = () => {
-      setSyncKey((k) => k + 1);
-
-      const storeProps = store.getProperties();
-      if (storeProps && storeProps.length > 0) {
-        setProperties((prev) => {
-          const map = new Map<string, AgentProperty>();
-          for (const p of prev) map.set(p.id, p);
-          for (const sp of storeProps) {
-            const existing = map.get(sp.id);
-            map.set(sp.id, {
-              id: sp.id,
-              title: sp.title,
-              developerName: sp.developerName || 'Godrej Properties',
-              projectName: sp.projectName || sp.title,
-              city: sp.city,
-              locality: sp.locality || sp.city,
-              price: sp.price,
-              carpetArea: sp.carpetArea,
-              bhk: sp.bhk || '2 BHK',
-              propertyType: sp.propertyType,
-              possessionStatus: sp.possessionStatus,
-              possessionDate: sp.possessionDate || 'Dec 2026',
-              reraNumber: sp.reraNumber || 'P51700032441',
-              status: (existing?.status as any) || 'ACTIVE',
-              views: existing?.views || 135,
-              inquiries: existing?.inquiries || 5,
-              inquiriesCount: existing?.inquiriesCount || 5,
-              coverImage:
-                sp.coverImage ||
-                sp.images?.[0] ||
-                'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
-              images: sp.images && sp.images.length > 0 ? sp.images : [sp.coverImage],
-              isFeatured: Boolean(sp.isFeatured),
-              createdAt: existing?.createdAt || sp.createdAt || '2026-10-01T00:00:00.000Z',
-            });
-          }
-          return Array.from(map.values());
-        });
-      }
-
-      const storeProjs = store.getProjects();
-      if (storeProjs && storeProjs.length > 0) {
-        setProjects((prev) => {
-          const map = new Map<string, AgentProject>();
-          for (const p of prev) map.set(p.id, p);
-          for (const sp of storeProjs) {
-            const existing = map.get(sp.id);
-            map.set(sp.id, {
-              id: sp.id,
-              name: sp.name,
-              developerName: sp.developerName,
-              city: sp.city,
-              locality: sp.locality,
-              reraNumber: sp.reraNumber,
-              totalTowers: sp.towers ? sp.towers.length : existing?.totalTowers || 4,
-              totalUnits: sp.totalUnits || 380,
-              minPrice: sp.startingPrice || 7500000,
-              maxPrice: existing?.maxPrice || (sp.startingPrice ? Math.round(sp.startingPrice * 2.2) : 25000000),
-              launchYear: existing?.launchYear || 2023,
-              possessionDate: sp.possessionDate || existing?.possessionDate || 'Dec 2027',
-              constructionStatus: sp.constructionStatus,
-              featuredImage:
-                sp.coverImage ||
-                existing?.featuredImage ||
-                'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&auto=format&fit=crop&q=80',
-              brochureUrl: existing?.brochureUrl,
-            });
-          }
-          return Array.from(map.values());
-        });
+    const handleScopedSync = (e: any) => {
+      if (session?.id && (!e?.detail?.agentId || e.detail.agentId === session.id)) {
+        const fresh = getScopedAgentData(session.id, session);
+        setScopedData(fresh);
+        setProperties(fresh.properties);
+        setProjects(fresh.projects);
+        setMessages(fresh.messages);
+        setProfile(fresh.profile);
       }
     };
-
-    const unsub = store.subscribe(handleSync);
-    window.addEventListener('prosify:store-updated', handleSync);
+    window.addEventListener('eni_agent_data_updated', handleScopedSync);
     return () => {
-      unsub();
-      window.removeEventListener('prosify:store-updated', handleSync);
+      window.removeEventListener('eni_agent_data_updated', handleScopedSync);
     };
-  }, []);
+  }, [session?.id]);
 
-  // Filtered Messages (Website Inquiries & Leads synced with store)
+  // Filtered Messages (strictly isolated to this logged in agent)
   const allMessages = useMemo(() => {
-    const storeLeads = store.getLeads().map((l) => ({
-      id: l.id,
-      buyerName: l.name,
-      buyerPhone: l.phone,
-      buyerEmail: l.email || 'lead@prosify.in',
-      propertyTitle: l.propertyTitle || l.projectName || l.location || 'Real Estate Inquiry',
-      submittedAt: new Date(l.createdAt || '2026-10-01T00:00:00.000Z').toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }),
-      message: `${l.notes || l.requirement || 'Prospective buyer expressed high interest.'} [Budget: ${l.budget || 'Flexible'}]`,
-      status: l.status === 'NEW' || l.status === 'CONTACTED' ? 'NEW' : l.status === 'SITE_VISIT_SCHEDULED' ? 'SITE_VISIT_BOOKED' : 'RESOLVED',
-    })) as PropertyMessage[];
-
-    const combined = [...storeLeads];
-    for (const m of messages) {
-      if (!combined.some((c) => c.id === m.id)) {
-        combined.push(m);
-      }
-    }
-    return combined;
-  }, [messages, syncKey]);
+    return messages;
+  }, [messages]);
 
   const filteredMessages = allMessages.filter((m) => {
     return (
@@ -1196,7 +1200,7 @@ export default function AgentAdminPage() {
         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 text-center">
+        <div className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10 px-4 text-center">
           <div className="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 p-2 flex items-center justify-center shadow-xl mx-auto mb-4">
             <Briefcase className="w-8 h-8 text-[#D4A017]" />
           </div>
@@ -1206,10 +1210,28 @@ export default function AgentAdminPage() {
           <p className="mt-1 text-xs text-neutral-400">
             Certified Channel Partner Management, Properties & Projects Hub
           </p>
+
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>ROLE: AGENT • ISOLATED MULTI-TENANT ACCESS</span>
+            </span>
+          </div>
+
+          {/* Admin Managed Notification Banner */}
+          <div className="mt-4 p-3.5 rounded-2xl bg-neutral-900/90 border border-amber-500/30 text-amber-200/90 text-xs flex items-start gap-2.5 shadow-lg text-left">
+            <KeyRound className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <div className="font-bold text-amber-300">Admin-Provisioned Agent Accounts</div>
+              <div className="text-[11px] text-neutral-400 leading-relaxed">
+                Agent IDs and passwords are generated exclusively from the Admin Panel (<Link href="/admin" className="text-amber-400 underline font-semibold">/admin</Link> → Agents Management). Each ID accesses its own strictly isolated portfolio, projects, and buyer leads.
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4 relative z-10">
-          <div className="bg-neutral-900/90 backdrop-blur-md py-8 px-6 shadow-2xl rounded-3xl border border-neutral-800">
+        <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-lg px-4 relative z-10">
+          <div className="bg-neutral-900/90 backdrop-blur-md py-7 px-6 shadow-2xl rounded-3xl border border-neutral-800 space-y-5">
             {loginError && (
               <div className="mb-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -1220,22 +1242,25 @@ export default function AgentAdminPage() {
             <form onSubmit={handleLogin} className="space-y-4 text-xs">
               <div>
                 <label className="block font-semibold text-neutral-300 mb-1">
-                  Agent Username or Email
+                  Agent ID or Registered Email
                 </label>
                 <input
                   type="text"
                   required
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  placeholder="agent@eni.com"
+                  placeholder="agent@eni.com or AGT-882"
                   className="w-full px-3.5 py-2.5 bg-neutral-950 rounded-xl border border-neutral-800 text-white font-mono placeholder-neutral-500 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-300 mb-1">
-                  Password (Managed via Admin Panel)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-neutral-300">
+                    Password
+                  </label>
+                  <span className="text-[10px] text-neutral-400">Issued by Admin</span>
+                </div>
                 <input
                   type="password"
                   required
@@ -1250,27 +1275,65 @@ export default function AgentAdminPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-xl bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 rounded-xl bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 font-black text-xs uppercase tracking-wider shadow-lg transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? 'Authenticating...' : 'Sign In To Agent Panel'}
+                  <span>{isSubmitting ? 'Authenticating...' : 'Sign In To Agent Panel'}</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
-
-              <div className="mt-4 p-3 rounded-xl bg-neutral-950 border border-neutral-800/80 text-[11px] text-neutral-400 space-y-1">
-                <div className="font-bold text-amber-400 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Default Channel Partner Credentials</span>
-                </div>
-                <div className="flex justify-between font-mono">
-                  <span>Username:</span>
-                  <span className="text-white">agent@eni.com</span>
-                </div>
-                <div className="flex justify-between font-mono">
-                  <span>Password:</span>
-                  <span className="text-white">password123</span>
-                </div>
-              </div>
             </form>
+
+            {/* Quick Switcher for Agent Accounts created via Admin */}
+            <div className="pt-4 border-t border-neutral-800 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Admin-Created Agent Accounts ({allAgentAccounts.length})</span>
+                </span>
+                <Link
+                  href="/admin"
+                  className="text-[10px] text-amber-400 hover:underline flex items-center gap-0.5"
+                >
+                  <span>Create in /admin</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </Link>
+              </div>
+
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {allAgentAccounts.map((ag) => (
+                  <button
+                    key={ag.id}
+                    type="button"
+                    onClick={() => handleQuickLoginAs(ag)}
+                    className="w-full text-left p-2.5 rounded-xl bg-neutral-950/90 hover:bg-neutral-800 border border-neutral-800 hover:border-amber-500/40 transition-all group flex items-center justify-between cursor-pointer"
+                  >
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-amber-300 flex items-center gap-1.5">
+                        <span>{ag.name}</span>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                          {ag.assignedCode || 'AGT'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-neutral-400 font-mono mt-0.5">
+                        ID: {ag.username} • Pass: {ag.password}
+                      </div>
+                    </div>
+                    <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold group-hover:bg-amber-500 group-hover:text-neutral-950 transition-all shrink-0">
+                      Login ID →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 text-center text-xs text-neutral-400 flex items-center justify-between">
+              <Link href="/" className="text-neutral-400 hover:text-white flex items-center gap-1">
+                ← Back to Marketplace
+              </Link>
+              <Link href="/vendor" className="text-sky-400 hover:underline">
+                Vendor Portal →
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -1327,21 +1390,39 @@ export default function AgentAdminPage() {
           </Link>
 
           {/* Agent Profile Summary Capsule */}
-          <div
-            onClick={() => setActiveMenu('profile')}
-            className="flex items-center gap-2.5 pl-2 pr-3 py-1 rounded-xl bg-neutral-800/80 border border-neutral-700/60 cursor-pointer hover:border-amber-500/50 transition-colors"
-          >
-            <div className="w-7 h-7 rounded-lg overflow-hidden relative bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xs">
-              {profile.avatarUrl ? (
-                <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
-              ) : (
-                profile.name.charAt(0)
-              )}
+          <div className="flex items-center gap-2">
+            <div
+              onClick={() => setActiveMenu('profile')}
+              className="flex items-center gap-2.5 pl-2 pr-3 py-1 rounded-xl bg-neutral-800/80 border border-neutral-700/60 cursor-pointer hover:border-amber-500/50 transition-colors"
+            >
+              <div className="w-7 h-7 rounded-lg overflow-hidden relative bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xs">
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
+                ) : (
+                  profile.name.charAt(0)
+                )}
+              </div>
+              <div className="text-left hidden sm:block">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-white block leading-tight">{profile.name}</span>
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    {profile.assignedCode || 'AGT'}
+                  </span>
+                </div>
+                <span className="text-[9px] text-emerald-400 font-semibold block leading-tight">
+                  Isolated Account Active
+                </span>
+              </div>
             </div>
-            <div className="text-left hidden sm:block">
-              <span className="text-xs font-bold text-white block leading-tight">{profile.name}</span>
-              <span className="text-[9px] text-emerald-400 font-semibold block leading-tight">Verified Agent</span>
-            </div>
+
+            <button
+              onClick={handleLogout}
+              className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Logout / Switch Account"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </div>
       </header>

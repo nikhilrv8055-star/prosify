@@ -75,6 +75,7 @@ import { BasicSettingsView } from '@/components/admin/views/BasicSettingsView';
 import { PaymentGatewaysView } from '@/components/admin/views/PaymentGatewaysView';
 import { AdminManagementView } from '@/components/admin/views/AdminManagementView';
 import { AffiliateProgramView } from '@/components/admin/views/AffiliateProgramView';
+import { FestivalThemesAdminView } from '@/components/admin/views/FestivalThemesAdminView';
 import { ShieldCheck, Bot, KeyRound, Webhook } from 'lucide-react';
 
 export default function AdminAppPage() {
@@ -259,6 +260,7 @@ export default function AdminAppPage() {
     activeTab.startsWith('blog-') ||
     activeTab.startsWith('faq-') ||
     activeTab.startsWith('ads-') ||
+    activeTab.startsWith('festival-') ||
     activeTab.startsWith('settings-') ||
     activeTab.startsWith('gateway-') ||
     activeTab.startsWith('admin-') ||
@@ -515,6 +517,11 @@ export default function AdminAppPage() {
             {/* 18. AFFILIATE PROGRAM */}
             {activeTab.startsWith('affiliate-') && (
               <AffiliateProgramView subview={activeTab} />
+            )}
+
+            {/* 19. FESTIVAL & SEASONAL CELEBRATION THEMES */}
+            {activeTab.startsWith('festival-') && (
+              <FestivalThemesAdminView subview={activeTab} />
             )}
 
             {/* CLASSIC / SYSTEM TABS */}

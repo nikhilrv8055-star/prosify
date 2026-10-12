@@ -37,7 +37,13 @@ import {
   updatePortalUser,
   deletePortalUser,
   savePortalUsers,
+  setPortalSession,
 } from '@/lib/auth/portalUsers';
+import {
+  getScopedAgentData,
+  createInitialAgentData,
+  saveScopedAgentData,
+} from '@/lib/auth/scopedPortalStorage';
 
 export interface AgentDetailsModalData {
   id: string;
@@ -137,6 +143,11 @@ export function AgentsManagementView({ subview = 'agents-management' }: { subvie
     showToast(`Generated Agent ID: ${agentCode} & secure credentials!`);
   };
 
+  const handleOpenAgentPanel = (agent: PortalUser) => {
+    setPortalSession('AGENT', agent);
+    window.location.href = '/agent';
+  };
+
   // Sync to Cloud Storage API endpoint
   const syncAgentToCloudStorage = async (agent: PortalUser) => {
     try {
@@ -193,6 +204,10 @@ export function AgentsManagementView({ subview = 'agents-management' }: { subvie
       portalUrl: '/agent',
       assignedCode: finalCode,
     });
+
+    // Initialize dedicated isolated data storage for this agent ID
+    const initialData = createInitialAgentData(created);
+    saveScopedAgentData(created.id, initialData);
 
     // Sync to Cloud Storage bucket
     if (newAgent.syncToCloud) {
@@ -342,6 +357,17 @@ export function AgentsManagementView({ subview = 'agents-management' }: { subvie
         </div>
       </div>
 
+      {/* Strict Account & Data Isolation Notice */}
+      <div className="p-3.5 rounded-2xl bg-neutral-900/90 border border-[#D4A017]/30 text-amber-200/90 text-xs flex items-start gap-2.5 shadow-lg">
+        <ShieldCheck className="w-4 h-4 text-[#D4A017] shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <div className="font-bold text-[#F4C430]">Har Agent ID Ka Alag Seperate Private Account (Strict Data Isolation)</div>
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Admin panel se banayi gayi har Agent ID aur Password ka alag independent account rehta hai. Is ID se jo bhi agent login karega use sirf usika portfolio, projects, buyer inquiries aur commission details dikhayi dengi.
+          </p>
+        </div>
+      </div>
+
       {toast && (
         <div className="p-3.5 rounded-xl bg-emerald-950 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -437,6 +463,14 @@ export function AgentsManagementView({ subview = 'agents-management' }: { subvie
                               <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                                 {ag.phone || 'Phone not set'}
                               </div>
+                              <div className="mt-1 flex items-center gap-2">
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                                  {getScopedAgentData(ag.id, ag).properties.length} Properties
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                                  {getScopedAgentData(ag.id, ag).messages.length} Leads
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -478,15 +512,15 @@ export function AgentsManagementView({ subview = 'agents-management' }: { subvie
                                 <Copy className="w-3 h-3 text-[#D4A017]" />
                                 <span>{copiedId === ag.id ? 'Copied' : 'Copy ID & Pass'}</span>
                               </button>
-                              <a
-                                href="/agent"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-2 py-0.5 rounded-md bg-[#D4A017]/15 hover:bg-[#D4A017]/25 text-[10px] text-[#D4A017] font-semibold flex items-center gap-1 transition-colors"
+                              <button
+                                type="button"
+                                onClick={() => handleOpenAgentPanel(ag)}
+                                className="px-2 py-0.5 rounded-md bg-[#D4A017]/15 hover:bg-[#D4A017]/25 text-[10px] text-[#D4A017] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                title="Login As this Agent in isolated portal"
                               >
-                                <span>Agent Panel</span>
+                                <span>Open Panel</span>
                                 <ExternalLink className="w-2.5 h-2.5" />
-                              </a>
+                              </button>
                             </div>
                           </div>
                         </td>

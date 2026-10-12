@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { brandConfig } from '@/src/config/brand';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
+import { getPortalUsers, setPortalSession } from '@/lib/auth/portalUsers';
 
 export default function LoginPage() {
   const { switchRole, login, loginWithGoogle, user } = useAuth();
@@ -84,6 +85,54 @@ export default function LoginPage() {
 
     try {
       const cleanEmail = email.trim().toLowerCase();
+      const cleanPass = password.trim();
+
+      // Check for Admin-Provisioned Portal User (Vendor or Agent or Admin)
+      const allPortalUsers = getPortalUsers();
+      const matchedPortal = allPortalUsers.find(
+        (u) =>
+          u.username.toLowerCase() === cleanEmail ||
+          (u.assignedCode && u.assignedCode.toLowerCase() === cleanEmail)
+      );
+
+      if (matchedPortal) {
+        if (cleanPass && matchedPortal.password !== cleanPass) {
+          toast({
+            title: 'Invalid Password',
+            description: 'The password entered does not match this portal account.',
+            type: 'error',
+          });
+          return;
+        }
+
+        if (matchedPortal.status === 'SUSPENDED') {
+          toast({
+            title: 'Account Suspended',
+            description: 'This portal account is suspended. Contact Administrator.',
+            type: 'error',
+          });
+          return;
+        }
+
+        setPortalSession(matchedPortal.role, matchedPortal);
+        toast({
+          title: 'Portal Authentication Successful',
+          description: `Welcome back, ${matchedPortal.name}! Opening your dedicated ${matchedPortal.role.toLowerCase()} workspace.`,
+          type: 'success',
+        });
+
+        if (matchedPortal.role === 'VENDOR') {
+          router.push('/vendor');
+          return;
+        } else if (matchedPortal.role === 'AGENT') {
+          router.push('/agent');
+          return;
+        } else if (matchedPortal.role === 'ADMIN') {
+          router.push('/admin');
+          return;
+        }
+      }
+
       // Security Rule: Allow admin@prosify.local or eni1526 for admin authentication
       const isAdminUsername = cleanEmail === 'admin@prosify.local' || cleanEmail === 'eni1526' || cleanEmail === 'admin@prosify.in';
       const roleToAssign = isAdminUsername ? 'SUPER_ADMIN' : selectedRole;

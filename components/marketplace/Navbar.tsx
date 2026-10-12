@@ -293,8 +293,8 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
           {/* Top gloss specular highlight line */}
           <div className="absolute inset-x-6 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
 
-          {/* 4 Buttons Grid */}
-          <div className="grid grid-cols-4 items-center gap-1 relative z-10">
+          {/* 3 Buttons Grid */}
+          <div className="grid grid-cols-3 items-center gap-1 relative z-10">
             {/* 1. HOME BUTTON */}
             <Link
               href="/"
@@ -335,27 +335,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               </span>
             </Link>
 
-            {/* 3. NEW LAUNCHES BUTTON */}
-            <Link
-              href="/properties?possession=NEW_LAUNCH"
-              className={`relative py-2 px-1 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
-                pathname === '/properties' && currentType === 'NEW_LAUNCH'
-                  ? 'bg-gradient-to-b from-amber-400/25 to-amber-500/10 text-[#F4C430] border border-amber-400/35 shadow-[0_0_16px_rgba(244,196,48,0.25)]'
-                  : 'text-neutral-300 hover:text-white hover:bg-white/10 border border-transparent'
-              }`}
-            >
-              <div className="relative">
-                <Rocket className={`w-5 h-5 mb-0.5 transition-transform duration-200 ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'scale-110 text-[#F4C430]' : 'text-neutral-300'}`} />
-                {pathname === '/properties' && currentType === 'NEW_LAUNCH' && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#F4C430] shadow-[0_0_6px_#F4C430]" />
-                )}
-              </div>
-              <span className={`text-[10px] tracking-tight ${pathname === '/properties' && currentType === 'NEW_LAUNCH' ? 'font-black text-[#F4C430]' : 'font-medium'}`}>
-                Launches
-              </span>
-            </Link>
-
-            {/* 4. PROJECTS BUTTON */}
+            {/* 3. PROJECTS BUTTON */}
             <Link
               href="/projects"
               className={`relative py-2 px-1 rounded-2xl flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${

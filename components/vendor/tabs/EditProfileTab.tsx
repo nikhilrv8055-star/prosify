@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   UserCheck,
   Building,
@@ -14,9 +14,11 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { PortalUser } from '@/lib/auth/portalUsers';
+import { VendorProfileData } from '@/lib/auth/scopedPortalStorage';
 
 interface EditProfileTabProps {
   session: PortalUser;
+  profile?: VendorProfileData;
   onUpdateProfile: (updatedData: {
     name: string;
     companyOrProject: string;
@@ -30,19 +32,34 @@ interface EditProfileTabProps {
   }) => void;
 }
 
-export function EditProfileTab({ session, onUpdateProfile }: EditProfileTabProps) {
+export function EditProfileTab({ session, profile, onUpdateProfile }: EditProfileTabProps) {
   const [formData, setFormData] = useState({
-    name: session.name || 'BuildTech Smart Materials & Engineering',
-    companyOrProject: session.companyOrProject || 'BuildTech Materials Ltd',
-    phone: session.phone || '+91 98201 55678',
-    email: session.username || 'vendor@eni.com',
-    address: 'Unit 402, Trade World B-Wing, Senapati Bapat Marg, Lower Parel, Mumbai',
-    city: 'Mumbai - 400013',
-    gstin: '27AABCB1234F1Z5',
+    name: profile?.name || session.name || 'Vendor Enterprise',
+    companyOrProject: profile?.companyName || session.companyOrProject || 'Vendor Business Ltd',
+    phone: profile?.phone || session.phone || '+91 98201 00000',
+    email: profile?.email || session.username || 'vendor@prosify.in',
+    address: profile?.address || 'Corporate Park, Level 4, Business Bay, Mumbai',
+    city: 'Mumbai - 400051',
+    gstin: profile?.gstin || '27AAACB1234F1Z5',
     reraNumber: 'PRM/KA/RERA/1251/310',
     bankAccount: '91823901928471 (HDFC Bank Ltd)',
     ifscCode: 'HDFC0000128',
   });
+
+  useEffect(() => {
+    setFormData({
+      name: profile?.name || session.name || 'Vendor Enterprise',
+      companyOrProject: profile?.companyName || session.companyOrProject || 'Vendor Business Ltd',
+      phone: profile?.phone || session.phone || '+91 98201 00000',
+      email: profile?.email || session.username || 'vendor@prosify.in',
+      address: profile?.address || 'Corporate Park, Level 4, Business Bay, Mumbai',
+      city: 'Mumbai - 400051',
+      gstin: profile?.gstin || '27AAACB1234F1Z5',
+      reraNumber: 'PRM/KA/RERA/1251/310',
+      bankAccount: '91823901928471 (HDFC Bank Ltd)',
+      ifscCode: 'HDFC0000128',
+    });
+  }, [session.id, profile]);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 

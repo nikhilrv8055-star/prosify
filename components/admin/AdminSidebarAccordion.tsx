@@ -215,6 +215,18 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'grp-festival',
+    label: 'Festival Theme Management',
+    icon: Sparkles,
+    badge: 'Indian Festivals',
+    items: [
+      { id: 'festival-themes', label: 'Festival Themes & Visuals' },
+      { id: 'festival-banner-ads', label: 'Festive Banner & Offer Ads' },
+      { id: 'festival-effects', label: 'Atmosphere & Particles' },
+      { id: 'festival-calendar', label: 'Festive Calendar Schedule' },
+    ],
+  },
+  {
     id: 'grp-settings',
     label: 'Basic Settings',
     icon: Settings,

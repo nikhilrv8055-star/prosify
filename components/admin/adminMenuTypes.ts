@@ -73,6 +73,11 @@ export type AdminMenuKey =
   | 'ads-settings'
   | 'ads-photo-ads'
   | 'ads-announcements'
+  // Festival & Seasonal Themes (Indian Celebrations)
+  | 'festival-themes'
+  | 'festival-banner-ads'
+  | 'festival-effects'
+  | 'festival-calendar'
   // Basic Settings
   | 'settings-general'
   | 'settings-contact'
