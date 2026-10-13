@@ -270,7 +270,7 @@ export default function AdminAppPage() {
     { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard, badge: null },
     {
       id: 'portal-access',
-      label: 'Portal & Passwords',
+      label: 'Account Access & Passwords',
       icon: KeyRound,
       badge: null,
     },

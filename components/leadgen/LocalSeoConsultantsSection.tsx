@@ -97,7 +97,7 @@ export function LocalSeoConsultantsSection({ showAll = false, limit = 6 }: Local
         {displayedMarkets.map((market) => (
           <div
             key={market.id}
-            className="group rounded-3xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700/80 hover:border-[#0EA5E9]/60 p-5 shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+            className="group rounded-3xl bg-[#1E293B]/65 backdrop-blur-xl border border-slate-700/60 hover:border-[#0EA5E9]/70 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between ring-1 ring-white/5"
           >
             <div className="space-y-4">
               {/* Top Badge: Google Review & Status */}

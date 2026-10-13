@@ -38,7 +38,7 @@ export function EMICalculator({ initialPrice, propertyPrice }: EMICalculatorProp
   }, [loanAmount, interestRate, tenureYears]);
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-6">
+    <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/80 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)] space-y-6">
       <div className="flex items-center gap-2 border-b border-neutral-100 pb-4">
         <div className="w-8 h-8 rounded-lg bg-amber-50 text-[#D4A017] flex items-center justify-center">
           <Calculator className="w-5 h-5" />

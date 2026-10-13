@@ -319,30 +319,30 @@ export default function PropertyDetailPage() {
           {/* Left 2 Cols: Details, Specs, Amenities, EMI, Price breakdown */}
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Specs Grid */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/80 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)]">
               <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400 mb-4">
                 Core Specifications
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+                <div className="p-3 bg-white/70 rounded-xl border border-neutral-100">
                   <span className="text-neutral-500 block">Carpet Area</span>
                   <strong className="text-sm font-bold text-neutral-950">
                     {formatArea(property.carpetArea)}
                   </strong>
                 </div>
-                <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+                <div className="p-3 bg-white/70 rounded-xl border border-neutral-100">
                   <span className="text-neutral-500 block">Super Built-up</span>
                   <strong className="text-sm font-bold text-neutral-950">
                     {formatArea(property.builtUpArea)}
                   </strong>
                 </div>
-                <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+                <div className="p-3 bg-white/70 rounded-xl border border-neutral-100">
                   <span className="text-neutral-500 block">Floor / Total</span>
                   <strong className="text-sm font-bold text-neutral-950">
                     {property.floorNumber ? `${property.floorNumber} of ${property.totalFloors}` : 'Mid Floor'}
                   </strong>
                 </div>
-                <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+                <div className="p-3 bg-white/70 rounded-xl border border-neutral-100">
                   <span className="text-neutral-500 block">Facing</span>
                   <strong className="text-sm font-bold text-neutral-950">
                     {property.facing || 'East Facing (Vastu)'}
@@ -352,7 +352,7 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Description */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-3">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/80 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)] space-y-3">
               <h3 className="text-base font-bold text-neutral-950">Property Overview</h3>
               <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed">
                 {property.description}
@@ -360,13 +360,13 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Amenities Grid */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-4">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/80 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)] space-y-4">
               <h3 className="text-base font-bold text-neutral-950">Project Amenities</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {property.amenities.map((amenity, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-neutral-50 border border-neutral-100 text-xs font-medium text-neutral-800"
+                    className="flex items-center gap-2 p-2.5 rounded-xl bg-white/70 border border-neutral-100 text-xs font-medium text-neutral-800"
                   >
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>{amenity}</span>
@@ -376,7 +376,7 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Estimated Price Breakdown Card */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-4">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/80 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)] space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div>
                   <h3 className="text-base font-bold text-neutral-950">Estimated Cost Breakdown</h3>
@@ -419,7 +419,7 @@ export default function PropertyDetailPage() {
 
           {/* Right Column: Sticky Pricing & Direct Developer Enquiry Card */}
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-md sticky top-24 space-y-5">
+            <div className="bg-white/85 backdrop-blur-xl rounded-2xl border border-white/80 p-6 shadow-[0_12px_40px_rgba(0,0,0,0.1)] sticky top-24 space-y-5">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
                   All-Inclusive Price

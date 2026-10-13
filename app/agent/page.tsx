@@ -1280,7 +1280,7 @@ export default function AgentAdminPage() {
                 ← Back to Marketplace
               </Link>
               <Link href="/vendor" className="text-sky-400 hover:underline">
-                Vendor Portal →
+                Vendor Workspace →
               </Link>
             </div>
           </div>
@@ -3300,8 +3300,8 @@ export default function AgentAdminPage() {
                 <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto mb-2">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h2 className="text-xl font-bold text-white">Change Portal Password</h2>
-                <p className="text-xs text-neutral-400">Ensure your agent portal account remains secure</p>
+                <h2 className="text-xl font-bold text-white">Change Password</h2>
+                <p className="text-xs text-neutral-400">Ensure your agent account remains secure</p>
               </div>
 
               <form onSubmit={handleChangePassword} className="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-4 text-xs shadow-2xl">

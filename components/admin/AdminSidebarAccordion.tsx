@@ -50,7 +50,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     icon: LayoutDashboard,
     items: [
       { id: 'dashboard', label: 'Command Center Overview' },
-      { id: 'portal-access', label: 'All Portals Access & Passwords' },
+      { id: 'portal-access', label: 'User Access & Passwords' },
       { id: 'developer-api', label: 'Builder Sync API Gateway' },
     ],
   },

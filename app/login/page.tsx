@@ -116,7 +116,7 @@ export default function LoginPage() {
 
         setPortalSession(matchedPortal.role, matchedPortal);
         toast({
-          title: 'Portal Authentication Successful',
+          title: 'Authentication Successful',
           description: `Welcome back, ${matchedPortal.name}! Opening your dedicated ${matchedPortal.role.toLowerCase()} workspace.`,
           type: 'success',
         });

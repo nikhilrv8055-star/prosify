@@ -18,7 +18,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const rera = project.reraNumber || 'MahaRERA Registered';
 
   return (
-    <div className="group bg-white rounded-2xl border border-neutral-200/90 overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+    <div className="group bg-white/65 backdrop-blur-xl rounded-2xl border border-white/70 hover:border-amber-400/80 overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] hover:shadow-[0_16px_40px_0_rgba(212,160,23,0.18)] hover:bg-white/85 transition-all duration-300 flex flex-col justify-between ring-1 ring-black/[0.03]">
       <div>
         {/* Cover Image */}
         <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-100">

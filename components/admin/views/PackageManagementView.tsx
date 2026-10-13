@@ -299,14 +299,14 @@ export function PackageManagementView({ subview = 'pkg-packages' }: { subview?: 
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Menu className="w-4 h-4 text-amber-400" />
-                <span>Vendor Portal Menu Item Builder & Access Control</span>
+                <span>Vendor Workspace Menu Item Builder & Access Control</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Enable or restrict portal sidebar links based on vendor membership subscription tier.
+                Enable or restrict workspace sidebar links based on vendor membership subscription tier.
               </p>
             </div>
             <button
-              onClick={() => showToast('Vendor menu layout published live to portal!')}
+              onClick={() => showToast('Vendor menu layout published live to workspace!')}
               className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5"
             >
               <Save className="w-4 h-4" />

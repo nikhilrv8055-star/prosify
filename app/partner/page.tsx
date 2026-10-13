@@ -134,7 +134,7 @@ export default function PartnerPortalPage() {
                 </span>
               </div>
               <p className="text-xs text-neutral-400">
-                Channel Partner Portal • MahaRERA Reg No: <strong>{activePartner.reraNumber || 'A51800049281'}</strong>
+                Channel Partner Network • MahaRERA Reg No: <strong>{activePartner.reraNumber || 'A51800049281'}</strong>
               </p>
             </div>
           </div>

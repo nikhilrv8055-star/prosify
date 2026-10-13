@@ -8,7 +8,7 @@ export const brandConfig = {
   shortName: "Prosify",
   adminName: "Prosify Admin",
   partnerPortalName: "Prosify Partner Network",
-  developerPortalName: "Prosify Developer Portal",
+  developerPortalName: "Prosify Developer Network",
   tagline: "Your trusted real-estate marketplace.",
   companyLegalName: "Prosify Technologies Private Limited",
   reraRegistration: "MahaRERA Reg: A51900018924",

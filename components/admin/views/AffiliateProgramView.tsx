@@ -386,7 +386,7 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
               rel="noreferrer"
               className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-neutral-700"
             >
-              <span>View Public Affiliate Portal</span>
+              <span>View Public Affiliate Program</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
 

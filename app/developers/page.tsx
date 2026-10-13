@@ -95,7 +95,7 @@ export default function DevelopersPage() {
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1 space-y-8">
         {/* Search & Filter Controls */}
-        <div className="bg-white p-4 rounded-2xl border border-neutral-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-white/70 backdrop-blur-xl p-4 rounded-2xl border border-white/75 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] flex flex-col sm:flex-row items-center justify-between gap-4 ring-1 ring-black/[0.02]">
           <div className="relative w-full sm:max-w-md">
             <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -134,7 +134,7 @@ export default function DevelopersPage() {
             return (
               <div
                 key={dev.id}
-                className="bg-white rounded-2xl border border-neutral-200/90 shadow-xs hover:shadow-md transition-all flex flex-col overflow-hidden group"
+                className="bg-white/65 backdrop-blur-xl rounded-2xl border border-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] hover:shadow-[0_16px_40px_rgba(212,160,23,0.18)] hover:bg-white/85 transition-all flex flex-col overflow-hidden group ring-1 ring-black/[0.02]"
               >
                 {/* Card Header & Brand */}
                 <div className="p-6 border-b border-neutral-100 space-y-4">

@@ -25,7 +25,7 @@ export function ProsifyAnimatedLogo({
       badgeBg: 'bg-amber-500/15 border-amber-500/30 text-amber-300',
       dotColor: 'bg-amber-400',
       icon: Shield,
-      label: 'Admin Portal',
+      label: 'Admin Workspace',
     },
     vendor: {
       accentGrad: 'from-sky-400 via-[#0EA5E9] to-blue-600',
@@ -33,7 +33,7 @@ export function ProsifyAnimatedLogo({
       badgeBg: 'bg-sky-500/15 border-sky-500/30 text-sky-300',
       dotColor: 'bg-sky-400',
       icon: Building2,
-      label: 'Vendor Portal',
+      label: 'Vendor Workspace',
     },
     agent: {
       accentGrad: 'from-amber-400 via-[#D4A017] to-emerald-500',
@@ -41,7 +41,7 @@ export function ProsifyAnimatedLogo({
       badgeBg: 'bg-amber-500/15 border-amber-500/30 text-amber-300',
       dotColor: 'bg-emerald-400',
       icon: Briefcase,
-      label: 'Agent Portal',
+      label: 'Agent Workspace',
     },
   };
 

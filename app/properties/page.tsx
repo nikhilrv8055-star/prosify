@@ -365,7 +365,7 @@ function PropertiesContent() {
 
           {/* Left Sidebar Filters (Desktop only) */}
           <aside className="hidden lg:block lg:w-72 shrink-0 space-y-6">
-            <div className="bg-white p-5 rounded-2xl border border-neutral-200 shadow-xs space-y-5">
+            <div className="bg-white/70 backdrop-blur-xl p-5 rounded-2xl border border-white/75 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] space-y-5 ring-1 ring-black/[0.02]">
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <h3 className="font-bold text-sm text-neutral-950 flex items-center gap-1.5">
                   <Filter className="w-4 h-4 text-[#D4A017]" />
@@ -576,7 +576,7 @@ function PropertiesContent() {
           {/* Right Main Grid */}
           <div className="flex-1 space-y-6">
             {/* Sorting & View Controls Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-neutral-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-white/70 backdrop-blur-xl p-4 rounded-2xl border border-white/75 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] flex flex-wrap items-center justify-between gap-4 ring-1 ring-black/[0.02]">
               <div className="flex items-center gap-2 text-xs text-neutral-600">
                 <span>Showing <strong>{properties.length}</strong> matching properties</span>
               </div>

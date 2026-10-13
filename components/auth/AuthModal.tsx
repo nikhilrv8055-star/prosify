@@ -180,7 +180,7 @@ export function AuthModal() {
         {activeTab === 'demo' && (
           <div className="space-y-2.5">
             <p className="text-xs text-neutral-500 font-medium mb-1">
-              Select a verified persona to test respective permissions and portal access instantly:
+              Select a verified persona to test respective permissions and account access instantly:
             </p>
 
             {/* Channel Partner */}

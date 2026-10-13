@@ -155,14 +155,6 @@ export function MobileHomePage({
       action: () => router.push('/partner'),
       color: 'bg-orange-500/10 text-orange-700',
     },
-    {
-      id: 'developer',
-      title: 'Developer Portal',
-      desc: 'Inventory sync & tower management',
-      icon: Briefcase,
-      action: () => router.push('/developer'),
-      color: 'bg-violet-500/10 text-violet-700',
-    },
   ];
 
   const popularLocations = [
@@ -404,7 +396,7 @@ export function MobileHomePage({
                 key={service.id}
                 type="button"
                 onClick={service.action}
-                className="w-32 shrink-0 bg-white rounded-2xl p-3 border border-neutral-200/80 shadow-2xs hover:border-[#D4A017] active:scale-95 transition-all text-left flex flex-col justify-between cursor-pointer"
+                className="w-32 shrink-0 bg-white/70 backdrop-blur-xl rounded-2xl p-3 border border-white/70 shadow-[0_8px_24px_rgba(31,38,135,0.05)] hover:border-[#D4A017] hover:bg-white/85 active:scale-95 transition-all text-left flex flex-col justify-between cursor-pointer ring-1 ring-black/[0.02]"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -452,7 +444,7 @@ export function MobileHomePage({
             return (
               <div
                 key={prop.id}
-                className="w-[260px] shrink-0 bg-white rounded-2xl overflow-hidden border border-neutral-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+                className="w-[260px] shrink-0 bg-white/70 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] hover:shadow-lg hover:bg-white/85 transition-all flex flex-col justify-between ring-1 ring-black/[0.02]"
               >
                 {/* Top Image Container */}
                 <div className="relative aspect-[16/10] bg-neutral-100">
@@ -560,7 +552,7 @@ export function MobileHomePage({
           {projects.slice(0, 6).map((proj) => (
             <div
               key={proj.id}
-              className="w-[250px] shrink-0 bg-white rounded-2xl overflow-hidden border border-neutral-200/90 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+              className="w-[250px] shrink-0 bg-white/70 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)] hover:shadow-lg hover:bg-white/85 transition-all flex flex-col justify-between ring-1 ring-black/[0.02]"
             >
               <div className="relative aspect-[16/10] bg-neutral-100">
                 <Image
@@ -679,7 +671,7 @@ export function MobileHomePage({
             <Link
               key={dev.id}
               href={`/developers/${dev.slug}`}
-              className="w-36 shrink-0 bg-white p-3 rounded-2xl border border-neutral-200/90 text-center hover:border-[#D4A017] shadow-2xs transition-all flex flex-col items-center justify-between gap-1.5"
+              className="w-36 shrink-0 bg-white/70 backdrop-blur-xl p-3 rounded-2xl border border-white/70 text-center hover:border-[#D4A017] hover:bg-white/85 shadow-[0_8px_24px_rgba(31,38,135,0.05)] transition-all flex flex-col items-center justify-between gap-1.5 ring-1 ring-black/[0.02]"
             >
               <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-neutral-800">
                 <Building className="w-5 h-5 text-[#D4A017]" />

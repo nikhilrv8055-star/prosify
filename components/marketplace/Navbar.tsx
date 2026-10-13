@@ -209,7 +209,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
                 ) : (
                   <Menu className="w-3.5 h-3.5 text-neutral-700 group-hover:text-[#D4A017] transition-colors" />
                 )}
-                <span>{mobileMenuOpen ? 'Close' : 'Menu'}</span>
+                <span>{mobileMenuOpen ? 'Close' : 'All Services'}</span>
               </button>
             </div>
 
@@ -268,10 +268,11 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
         </div>
       </header>
 
-      {/* Full-Screen Front Overlay Burger Menu with all 16 requested options */}
+      {/* Full-Screen Front Overlay Burger Menu with all platform options & services */}
       <MobileBurgerMenu
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
+        onOpenMatcher={handleOpenMatcher}
       />
 
       {/* Tell Us Your Property Requirement Modal */}

@@ -265,7 +265,7 @@ export default function VendorPortalPage() {
           <ProsifyAnimatedLogo
             panelType="vendor"
             welcomeTitle="welcome to prosify vendor"
-            subtitle="Dedicated portal access for registered builders, material vendors & engineering suppliers"
+            subtitle="Dedicated workspace access for registered builders, material vendors & engineering suppliers"
           />
         </div>
 
@@ -325,7 +325,7 @@ export default function VendorPortalPage() {
                 disabled={isSubmitting}
                 className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] hover:from-sky-500 hover:to-sky-600 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                <span>{isSubmitting ? 'Authenticating...' : 'Sign In to Vendor Portal'}</span>
+                <span>{isSubmitting ? 'Authenticating...' : 'Sign In to Vendor Workspace'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -335,7 +335,7 @@ export default function VendorPortalPage() {
                 ← Back to Marketplace
               </Link>
               <Link href="/agent" className="text-amber-400 hover:underline">
-                Agent Portal →
+                Agent Workspace →
               </Link>
             </div>
           </div>

@@ -46,6 +46,7 @@ import { useToast } from '@/components/ui/toast';
 import { brandConfig } from '@/src/config/brand';
 import { PostPropertyModal } from './PostPropertyModal';
 import { PropertyRequirementModal } from './PropertyRequirementModal';
+import { SmartMatcherModal } from './SmartMatcherModal';
 import {
   MobileServicesModal,
   MobileBillPaymentsModal,
@@ -54,9 +55,10 @@ import {
 interface MobileBurgerMenuProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenMatcher?: () => void;
 }
 
-export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
+export function MobileBurgerMenu({ isOpen, onClose, onOpenMatcher }: MobileBurgerMenuProps) {
   const { user, isAuthenticated, openAuthModal } = useAuth();
   const { toast } = useToast();
 
@@ -103,9 +105,21 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
     () => false
   );
 
+  const [internalMatcherOpen, setInternalMatcherOpen] = useState(false);
+
+  const handleOpenSmartMatcher = () => {
+    if (onOpenMatcher) {
+      onOpenMatcher();
+      onClose();
+    } else {
+      setInternalMatcherOpen(true);
+    }
+  };
+
   const isAnySubModalOpen =
     postPropertyOpen ||
     requirementModalOpen ||
+    internalMatcherOpen ||
     servicesModalOpen ||
     billsModalOpen ||
     referEarnOpen ||
@@ -189,6 +203,7 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
           onClose={onClose}
           onOpenPostProperty={() => setPostPropertyOpen(true)}
           onOpenRequirement={() => setRequirementModalOpen(true)}
+          onOpenMatcher={handleOpenSmartMatcher}
           onOpenServices={(serviceType) => {
             if (serviceType) setServicesInitialService(serviceType);
             setServicesModalOpen(true);
@@ -217,6 +232,12 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
       <PropertyRequirementModal
         isOpen={requirementModalOpen}
         onClose={() => setRequirementModalOpen(false)}
+      />
+
+      {/* 2b. AI Smart Property Matcher Modal */}
+      <SmartMatcherModal
+        isOpen={internalMatcherOpen}
+        onClose={() => setInternalMatcherOpen(false)}
       />
 
       {/* 3 & 4. Painting, Cleaning, Packers and Movers */}
@@ -301,7 +322,7 @@ export function MobileBurgerMenu({ isOpen, onClose }: MobileBurgerMenuProps) {
                 }}
                 className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <span>Open Full Affiliate & Broker Portal (Earn 3%)</span>
+                <span>Open Full Affiliate & Broker Program (Earn 3%)</span>
                 <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
               </Link>
             </div>

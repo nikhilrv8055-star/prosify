@@ -198,7 +198,7 @@ export default function AffiliateProgramPage() {
       });
       toast({
         title: 'Logged in with Google! 🎉',
-        description: `Welcome to Prosify Affiliate Partner Portal (${emailToUse})`,
+        description: `Welcome to Prosify Affiliate Partner Program (${emailToUse})`,
         type: 'success',
       });
     } catch {
@@ -410,7 +410,7 @@ Partner Access Tag: ${partnerCode}`,
             <div className="text-center space-y-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide uppercase shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Prosify Partner & Affiliate Portal</span>
+                <span>Prosify Partner & Affiliate Program</span>
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">

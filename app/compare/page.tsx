@@ -89,7 +89,7 @@ function CompareContent() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 space-y-6">
         {/* Selection Bar */}
         {selectedProps.length < 4 && (
-          <div className="bg-white p-4 rounded-xl border border-neutral-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-white/80 shadow-[0_4px_24px_rgba(0,0,0,0.05)] flex flex-wrap items-center justify-between gap-3 text-xs">
             <span className="font-semibold text-neutral-800">
               Add another property to compare (Up to 4):
             </span>
@@ -125,7 +125,7 @@ function CompareContent() {
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-x-auto">
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_24px_rgba(0,0,0,0.05)] overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-neutral-200 bg-neutral-50/60">

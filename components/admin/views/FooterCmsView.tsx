@@ -55,7 +55,7 @@ export function FooterCmsView({ subview = 'footer-logo' }: { subview?: string })
     { id: 'l-2', label: 'Upcoming Grade-A Projects', url: '/projects', category: 'EXPLORE' },
     { id: 'l-3', label: 'MahaRERA Compliance Disclosures', url: '/rera-disclaimer', category: 'LEGAL' },
     { id: 'l-4', label: 'Privacy & Cookie Policy', url: '/privacy', category: 'LEGAL' },
-    { id: 'l-5', label: 'Vendor & Builder Syndication Portal', url: '/vendor', category: 'COMMUNITIES' },
+    { id: 'l-5', label: 'Vendor & Builder Syndication Network', url: '/vendor', category: 'COMMUNITIES' },
   ]);
 
   const [pages, setPages] = useState<CustomPageItem[]>([
