@@ -35,7 +35,7 @@ export function LocalSeoConsultantsSection({ showAll = false, limit = 6 }: Local
     '@type': 'RealEstateAgent',
     name: 'Prosify Local Real Estate Micro-Market Consultants',
     url: 'https://prosify.in/micro-markets',
-    telephone: '+919326303244',
+    telephone: '+919167991679',
     priceRange: '₹₹₹₹',
     aggregateRating: {
       '@type': 'AggregateRating',
@@ -81,7 +81,7 @@ export function LocalSeoConsultantsSection({ showAll = false, limit = 6 }: Local
           </Link>
 
           <a
-            href="https://wa.me/919326303244"
+            href="https://wa.me/919167991679"
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0da674] text-slate-950 font-black text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95"
@@ -165,7 +165,7 @@ export function LocalSeoConsultantsSection({ showAll = false, limit = 6 }: Local
               </button>
 
               <a
-                href="https://wa.me/919326303244"
+                href="https://wa.me/919167991679"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="py-2.5 px-3.5 rounded-xl bg-[#10B981] hover:bg-[#0da674] text-slate-950 font-black text-xs flex items-center justify-center gap-1 shadow-md transition-all active:scale-95"

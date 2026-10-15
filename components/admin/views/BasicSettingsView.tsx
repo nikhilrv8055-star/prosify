@@ -54,13 +54,13 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
     tagline: 'Direct Grade-A Real Estate Syndication',
     timezone: 'Asia/Kolkata (IST +5:30)',
     currencySymbol: '₹',
-    supportNumber: '+91 93263 03244',
+    supportNumber: '+91 91679 91679',
     officeAddress: 'Maker Chambers IV, Nariman Point, Mumbai 400021',
   });
 
   const [contactConfig, setContactConfig] = useState({
     contactEmail: 'contact@prosify.in',
-    escalationPhone: '+91 93263 03244',
+    escalationPhone: '+91 91679 91679',
     whatsappLeadCapture: true,
     embedGoogleMapUrl: 'https://maps.google.com/maps?q=Nariman%20Point%20Mumbai&t=&z=15&ie=UTF8&iwloc=&output=embed',
   });

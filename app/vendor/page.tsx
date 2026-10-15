@@ -6,6 +6,7 @@ import Link from 'next/link';
 import {
   PortalUser,
   authenticatePortalUser,
+  authenticatePortalUserWithCloud,
   getPortalSession,
   setPortalSession,
   clearPortalSession,
@@ -111,12 +112,12 @@ export default function VendorPortalPage() {
     saveScopedVendorData(session.id, updated);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setLoginError(null);
 
-    const result = authenticatePortalUser(usernameInput, passwordInput, 'VENDOR');
+    const result = await authenticatePortalUserWithCloud(usernameInput, passwordInput, 'VENDOR');
     if (result.success && result.user) {
       setPortalSession('VENDOR', result.user);
       setSession(result.user);

@@ -13,7 +13,7 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'Chief Micro-Market Consultant (Thane MMR)',
     speciality: 'Metro Line 4 Catchments, RERA Title Clearances & Grade-A Builder Direct Inventories',
     activeProjects: 38,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
   {
     id: 'mm-navi-mumbai-kharghar',
@@ -27,7 +27,7 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'Airport Infrastructure & High-Yield Specialist',
     speciality: 'NMIA Airport Zone & Atal Setu (MTHL) Expressway High Capital Growth Parcels',
     activeProjects: 46,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
   {
     id: 'mm-mumbai-bkc-bandra',
@@ -41,7 +41,7 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'Ultra-Luxury & Redevelopment Valuation Head',
     speciality: 'Bandra Pali Hill, Khar & BKC Corporate Housing Portfolios & Penthouse Allocations',
     activeProjects: 24,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
   {
     id: 'mm-bangalore-whitefield',
@@ -55,7 +55,7 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'Principal Tech Corridors Advisor',
     speciality: 'GCC Tech Leadership Residences, High-Rental Yield 3 & 4 BHKs near Purple Line Metro',
     activeProjects: 52,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
   {
     id: 'mm-hyderabad-neopolis',
@@ -69,7 +69,7 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'Senior Neopolis Commercial & Residential Director',
     speciality: 'Ultra-Tall Skyscraper Mansions, HMDA Clearances & High Net-Worth Asset Placement',
     activeProjects: 34,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
   {
     id: 'mm-gurugram-golf-course',
@@ -83,7 +83,7 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'Delhi NCR Luxury Corridor Consultant',
     speciality: 'Dwarka Expressway Townships, Golf Course Extension Gated Enclaves & NRI Repatriation',
     activeProjects: 41,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
   {
     id: 'mm-chennai-omr',
@@ -97,7 +97,7 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'Chennai IT Corridor & Coastal Villa Specialist',
     speciality: 'TNRERA Approved Gated Communities, IT Corridor Walk-to-Work Townships & ECR Beachfronts',
     activeProjects: 29,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
   {
     id: 'mm-ahmedabad-gift-city',
@@ -111,6 +111,6 @@ export const MICRO_MARKETS: MicroMarketInfo[] = [
     consultantTitle: 'GIFT SEZ & International Finance Advisor',
     speciality: 'GIFT City Domestic & Dual-Tax Regime Luxury Real Estate & Metro Connect Nodes',
     activeProjects: 33,
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
   },
 ];

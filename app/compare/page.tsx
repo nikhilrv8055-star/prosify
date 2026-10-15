@@ -182,7 +182,7 @@ function CompareContent() {
                             Schedule Visit
                           </button>
                           <a
-                            href={`https://wa.me/919326303244?text=${encodeURIComponent(`Hello, I am comparing "${prop.title}" (${formatIndianPrice(prop.price)}) on Prosify. Please share more details.`)}`}
+                            href={`https://wa.me/919167991679?text=${encodeURIComponent(`Hello, I am comparing "${prop.title}" (${formatIndianPrice(prop.price)}) on Prosify. Please share more details.`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-center transition-colors flex items-center justify-center gap-1.5"

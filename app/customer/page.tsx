@@ -180,7 +180,7 @@ export default function CustomerPortalPage() {
               <span>Have an inquiry?</span>
               {/* WhatsApp rule: button text MUST ONLY say "WhatsApp" */}
               <a
-                href="https://wa.me/919326303244"
+                href="https://wa.me/919167991679"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-emerald-400 hover:underline font-semibold flex items-center gap-1"
@@ -226,7 +226,7 @@ export default function CustomerPortalPage() {
           <div className="flex items-center gap-3">
             {/* WhatsApp Support: button text MUST ONLY say "WhatsApp" */}
             <a
-              href="https://wa.me/919326303244"
+              href="https://wa.me/919167991679"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all"
@@ -489,7 +489,7 @@ export default function CustomerPortalPage() {
               <div>
                 <div className="font-bold text-white text-sm">Amit Sharma</div>
                 <div className="text-slate-400 text-xs">Senior Relationship Director • Lodha Projects</div>
-                <div className="text-emerald-400 text-[11px] font-mono">Direct Desk: +91 93263 03244</div>
+                <div className="text-emerald-400 text-[11px] font-mono">Direct Desk: +91 91679 91679</div>
               </div>
             </div>
 
@@ -499,7 +499,7 @@ export default function CustomerPortalPage() {
               </p>
               {/* WhatsApp rule: button text MUST ONLY say "WhatsApp" */}
               <a
-                href="https://wa.me/919326303244"
+                href="https://wa.me/919167991679"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center justify-center gap-2 shadow-lg transition-all"

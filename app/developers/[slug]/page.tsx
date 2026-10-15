@@ -157,7 +157,7 @@ export default function DeveloperDetailPage() {
               </button>
 
               <a
-                href="https://wa.me/919326303244"
+                href="https://wa.me/919167991679"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
@@ -357,7 +357,7 @@ export default function DeveloperDetailPage() {
                 </button>
 
                 <a
-                  href="https://wa.me/919326303244"
+                  href="https://wa.me/919167991679"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors"

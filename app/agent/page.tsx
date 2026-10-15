@@ -56,6 +56,7 @@ import { PAN_INDIA_CITIES } from '@/lib/data/panIndiaData';
 import {
   PortalUser,
   authenticatePortalUser,
+  authenticatePortalUserWithCloud,
   getPortalSession,
   setPortalSession,
   clearPortalSession,
@@ -828,12 +829,12 @@ export default function AgentAdminPage() {
   };
 
   // Authentication Handlers
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setLoginError(null);
 
-    const result = authenticatePortalUser(usernameInput, passwordInput, 'AGENT');
+    const result = await authenticatePortalUserWithCloud(usernameInput, passwordInput, 'AGENT');
     if (result.success && result.user) {
       setPortalSession('AGENT', result.user);
       setSession(result.user);

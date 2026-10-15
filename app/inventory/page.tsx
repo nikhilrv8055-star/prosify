@@ -555,7 +555,7 @@ export default function InventoryPage() {
               {/* Action Buttons */}
               <div className="pt-3 border-t border-neutral-100 grid grid-cols-2 gap-3">
                 <a
-                  href="https://wa.me/919326303244"
+                  href="https://wa.me/919167991679"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"

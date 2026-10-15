@@ -1,10 +1,14 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, Mail, Phone, MapPin } from 'lucide-react';
 import { brandConfig } from '@/src/config/brand';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
+import { useBrandSettings } from '@/lib/data/useBrandSettings';
 
 export function Footer() {
+  const brandSettings = useBrandSettings();
   return (
     <footer className="bg-[#171717] text-neutral-300 border-t border-neutral-800">
       {/* Upper Footer: Core Links */}
@@ -135,10 +139,10 @@ export function Footer() {
               </li>
               <li className="pt-1">
                 <span className="text-xs text-neutral-400 block font-medium">
-                  Support: {brandConfig.contact.supportEmail}
+                  Support: {brandSettings.supportEmail || brandSettings.contactEmail || 'hello4home@gmail.com'}
                 </span>
                 <span className="text-xs text-neutral-400 block font-medium">
-                  Helpline: {brandConfig.contact.phone}
+                  Helpline: {brandSettings.phone || brandSettings.whatsappNumber || '+91 91679 91679'}
                 </span>
               </li>
             </ul>

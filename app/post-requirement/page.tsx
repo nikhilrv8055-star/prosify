@@ -284,7 +284,7 @@ Please share direct developer brochures and available floor plans.`
 
               <div className="w-full max-w-md space-y-3 pt-2">
                 <a
-                  href={`https://wa.me/919326303244?text=${whatsappMessage}`}
+                  href={`https://wa.me/919167991679?text=${whatsappMessage}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"

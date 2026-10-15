@@ -231,7 +231,7 @@ export default function DevelopersPage() {
                   </Link>
 
                   <a
-                    href="https://wa.me/919326303244"
+                    href="https://wa.me/919167991679"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="col-span-1 py-2 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold flex items-center justify-center gap-1 transition-colors text-center"

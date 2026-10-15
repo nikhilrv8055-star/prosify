@@ -483,7 +483,7 @@ export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
                         <div className="flex items-center justify-end gap-1.5">
                           {/* WhatsApp Redirection */}
                           <a
-                            href="https://wa.me/919326303244"
+                            href="https://wa.me/919167991679"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-1.5 rounded-lg bg-[#10B981]/20 border border-[#10B981]/40 text-[#10B981] hover:bg-[#10B981] hover:text-slate-950 transition-colors"
@@ -796,7 +796,7 @@ export function LeadsTab({ leads, onRefresh }: LeadsTabProps) {
               <div className="pt-2 flex justify-end gap-2">
                 {/* WhatsApp button */}
                 <a
-                  href="https://wa.me/919326303244"
+                  href="https://wa.me/919167991679"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-2 rounded-xl bg-[#10B981] text-slate-950 font-bold flex items-center gap-1.5"

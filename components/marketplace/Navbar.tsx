@@ -100,14 +100,63 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
     }
   };
 
-  // Primary navigation links for Desktop
+  // Primary navigation links for Desktop with rich hover popup descriptions
   const navLinks = [
-    { label: 'Buy Homes', href: '/properties?type=BUY', icon: Home, highlight: false },
-    { label: 'Projects', href: '/projects', icon: Layers, highlight: false },
-    { label: 'New Launches', href: '/properties?possession=NEW_LAUNCH', icon: Rocket, highlight: true, badge: 'HOT' },
-    { label: 'Micro-Markets', href: '/micro-markets', icon: MapPin, highlight: false },
-    { label: 'Developers', href: '/developers', icon: HardHat, highlight: false },
-    { label: 'Commercial', href: '/properties?type=COMMERCIAL', icon: Briefcase, highlight: false },
+    {
+      label: 'Buy Homes',
+      href: '/properties?type=BUY',
+      icon: Home,
+      highlight: false,
+      popupTitle: 'Buy Verified Homes',
+      popupDesc: 'Explore 100% RERA verified flats, luxury villas & penthouses with direct builder pricing.',
+      popupHighlight: '0% Brokerage • Verified Docs',
+    },
+    {
+      label: 'Projects',
+      href: '/projects',
+      icon: Layers,
+      highlight: false,
+      popupTitle: 'Townships & High-Rises',
+      popupDesc: 'Master-planned residential communities, society amenities & verified floor plans.',
+      popupHighlight: 'Pre-Launch & Ready To Move',
+    },
+    {
+      label: 'New Launches',
+      href: '/properties?possession=NEW_LAUNCH',
+      icon: Rocket,
+      highlight: true,
+      badge: 'HOT',
+      popupTitle: 'Hot New Launches',
+      popupDesc: 'Early-bird bookings with exclusive pre-launch discount pricing and priority unit allocation.',
+      popupHighlight: 'Inaugural Pricing • High ROI',
+    },
+    {
+      label: 'Micro-Markets',
+      href: '/micro-markets',
+      icon: MapPin,
+      highlight: false,
+      popupTitle: 'Pan-India Micro-Markets',
+      popupDesc: 'Analyze top investment hotspots and price trends across 9 major metropolitan regions.',
+      popupHighlight: 'Mumbai, Bangalore, Pune & more',
+    },
+    {
+      label: 'Developers',
+      href: '/developers',
+      icon: HardHat,
+      highlight: false,
+      popupTitle: 'Top Tier Developers',
+      popupDesc: 'Connect directly with trusted grade-A builders with proven on-time delivery track records.',
+      popupHighlight: 'Godrej, Lodha, Prestige, DLF & more',
+    },
+    {
+      label: 'Commercial',
+      href: '/properties?type=COMMERCIAL',
+      icon: Briefcase,
+      highlight: false,
+      popupTitle: 'Commercial & Retail Spaces',
+      popupDesc: 'Invest in high-rental-yield grade-A office spaces, SCO plots & retail shopping centers.',
+      popupHighlight: '7% to 9% Yield • Pre-Leased',
+    },
   ];
 
   return (
@@ -117,7 +166,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
       </React.Suspense>
 
       {/* Main Navigation Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-neutral-200/80 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-18 lg:h-20">
             {/* Brand Logo */}
@@ -125,107 +174,206 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
               <ProsifyLogo variant="dark" size="md" href="/" showTagline={false} />
             </div>
 
-            {/* Desktop Navigation Links (Clean, Centered & Professional) */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
+            {/* Desktop Navigation Links: Transparent Glass Buttons with Mouse Cursor Hover Popup Effect */}
+            <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2">
               {navLinks.map((link) => {
                 const isActive =
                   pathname === link.href ||
                   (link.href.includes('?') && pathname === link.href.split('?')[0]);
+                const Icon = link.icon;
 
                 return (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className={`relative px-3 py-2 rounded-xl text-[13px] font-semibold transition-all flex items-center gap-1.5 ${
-                      isActive
-                        ? 'text-neutral-950 bg-amber-500/10 font-bold border border-amber-500/20'
-                        : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/80'
-                    }`}
-                  >
-                    <span>{link.label}</span>
-                    {link.badge && (
-                      <span className="px-1.5 py-0.2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[9px] font-extrabold tracking-wide uppercase shadow-xs">
-                        {link.badge}
-                      </span>
-                    )}
-                  </Link>
+                  <div key={link.label} className="relative group">
+                    <Link
+                      href={link.href}
+                      className={`relative px-3.5 py-2 rounded-xl text-[13px] font-semibold backdrop-blur-md transition-all duration-200 ease-out flex items-center gap-1.5 hover:scale-105 hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                        isActive
+                          ? 'bg-amber-500/15 border border-amber-400/50 text-neutral-950 font-bold shadow-[0_2px_12px_rgba(212,160,23,0.18)]'
+                          : 'bg-white/50 hover:bg-white/80 border border-white/70 hover:border-amber-400/50 text-neutral-700 hover:text-neutral-950 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(212,160,23,0.15)]'
+                      }`}
+                    >
+                      {/* Top Specular Glass Highlight */}
+                      <div className="absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none rounded-t-xl" />
+
+                      <span>{link.label}</span>
+                      {link.badge && (
+                        <span className="px-1.5 py-0.2 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[9px] font-black tracking-wider uppercase shadow-xs">
+                          {link.badge}
+                        </span>
+                      )}
+                    </Link>
+
+                    {/* Mouse Hover Popup Effect */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 pt-1 pointer-events-none z-50 transition-all duration-200 ease-out opacity-0 invisible -translate-y-1 scale-95 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100">
+                      <div className="relative w-64 p-3.5 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/90 shadow-[0_16px_36px_rgba(0,0,0,0.15)] text-left">
+                        {/* Triangle arrow pointer */}
+                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-t border-neutral-200/70" />
+                        <div className="relative z-10 space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Icon className="w-3.5 h-3.5 text-[#D4A017] shrink-0" />
+                            <span className="text-xs font-bold text-neutral-900 leading-tight">
+                              {link.popupTitle}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-neutral-600 leading-snug">
+                            {link.popupDesc}
+                          </p>
+                          <div className="pt-1.5 border-t border-neutral-100 flex items-center justify-between text-[10px]">
+                            <span className="font-semibold text-[#D4A017] tracking-tight">
+                              {link.popupHighlight}
+                            </span>
+                            <span className="text-neutral-400 flex items-center gap-0.5">
+                              Explore <ChevronRight className="w-2.5 h-2.5" />
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </nav>
 
-            {/* Desktop Right Actions: Post Requirement, Smart Match & Compare */}
+            {/* Desktop Right Actions: Transparent Glass Buttons with Mouse Cursor Hover Popup Effect */}
             <div className="hidden lg:flex items-center gap-2">
-              {/* Post Requirement Button */}
-              <button
-                type="button"
-                onClick={() => setRequirementModalOpen(true)}
-                className="group px-3 py-2 rounded-xl text-xs font-bold bg-[#D4A017] hover:bg-[#b88912] text-neutral-950 border border-amber-400/80 shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
-                title="Tell Us Your Property Requirement"
-              >
-                <ClipboardEdit className="w-3.5 h-3.5 text-neutral-950" />
-                <span>Post Requirement</span>
-              </button>
+              {/* Smart Match Button in Transparent Glass */}
+              <div className="relative group">
+                <button
+                  type="button"
+                  onClick={handleOpenMatcher}
+                  className="relative px-3.5 py-2 rounded-xl text-xs font-bold backdrop-blur-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-300/70 hover:border-amber-400 text-amber-950 shadow-[0_2px_10px_rgba(212,160,23,0.1)] hover:shadow-[0_8px_20px_rgba(212,160,23,0.2)] transition-all duration-200 ease-out flex items-center gap-1.5 hover:scale-105 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                  title="AI Smart Property Matcher"
+                >
+                  <div className="absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none rounded-t-xl" />
+                  <div className="w-5 h-5 rounded-md bg-amber-500/20 flex items-center justify-center text-[#D4A017] group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                  </div>
+                  <span>Smart Match</span>
+                </button>
 
-              {/* Smart Match Button */}
-              <button
-                type="button"
-                onClick={handleOpenMatcher}
-                className="group px-3 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-50 via-amber-100/60 to-amber-50 text-amber-900 border border-amber-300 hover:border-amber-400 hover:shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
-                title="AI Smart Property Matcher"
-              >
-                <div className="w-5 h-5 rounded-md bg-amber-500/20 flex items-center justify-center text-[#D4A017] group-hover:scale-110 transition-transform">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                {/* Smart Match Hover Popup */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 pt-1 pointer-events-none z-50 transition-all duration-200 ease-out opacity-0 invisible -translate-y-1 scale-95 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100">
+                  <div className="relative w-64 p-3.5 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/90 shadow-[0_16px_36px_rgba(0,0,0,0.15)] text-left">
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-t border-neutral-200/70" />
+                    <div className="relative z-10 space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-[#D4A017] shrink-0" />
+                        <span className="text-xs font-bold text-neutral-900 leading-tight">
+                          AI Smart Property Matcher
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-600 leading-snug">
+                        Answer 3 quick preferences and let our AI curate the best matching verified homes instantly.
+                      </p>
+                      <div className="pt-1.5 border-t border-neutral-100 flex items-center justify-between text-[10px]">
+                        <span className="font-semibold text-[#D4A017] tracking-tight">
+                          30-Sec Quiz • Instant AI Match
+                        </span>
+                        <span className="text-neutral-400 flex items-center gap-0.5">
+                          Start <ChevronRight className="w-2.5 h-2.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span>Smart Match</span>
-              </button>
+              </div>
 
-              {/* Compare Button */}
-              <Link
-                href="/compare"
-                className="group relative px-3 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
-                title="Property Comparison"
-              >
-                <Scale className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform" />
-                <span>Compare</span>
-                <span className="min-w-4.5 h-4.5 px-1 rounded-full bg-[#D4A017] text-neutral-950 font-extrabold text-[10px] flex items-center justify-center shadow-xs">
-                  {compareCount}
-                </span>
-              </Link>
+              {/* Compare Button in Transparent Glass with '2' badge */}
+              <div className="relative group">
+                <Link
+                  href="/compare"
+                  className="relative px-3.5 py-2 rounded-xl text-xs font-bold backdrop-blur-md bg-neutral-900/10 hover:bg-neutral-900/20 border border-neutral-300/80 hover:border-neutral-400 text-neutral-900 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] transition-all duration-200 ease-out flex items-center gap-1.5 hover:scale-105 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                  title="Property Comparison"
+                >
+                  <div className="absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none rounded-t-xl" />
+                  <Scale className="w-3.5 h-3.5 text-amber-600 group-hover:rotate-12 transition-transform" />
+                  <span>Compare</span>
+                  <span className="min-w-4.5 h-4.5 px-1 rounded-full bg-[#D4A017] text-neutral-950 font-black text-[10px] flex items-center justify-center shadow-xs">
+                    {compareCount}
+                  </span>
+                </Link>
 
-              {/* Desktop Hamburger Menu Trigger */}
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`group px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-2xs ${
-                  mobileMenuOpen
-                    ? 'bg-neutral-950 text-white border-neutral-900 ring-2 ring-[#D4A017]/30'
-                    : 'bg-white hover:bg-neutral-100 hover:border-neutral-300 text-neutral-800 border-neutral-200'
-                }`}
-                aria-label={mobileMenuOpen ? "Close Menu" : "Open Hamburger Menu"}
-                title="Hamburger Menu"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-3.5 h-3.5 text-amber-400" />
-                ) : (
-                  <Menu className="w-3.5 h-3.5 text-neutral-700 group-hover:text-[#D4A017] transition-colors" />
+                {/* Compare Hover Popup */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 pt-1 pointer-events-none z-50 transition-all duration-200 ease-out opacity-0 invisible -translate-y-1 scale-95 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100">
+                  <div className="relative w-64 p-3.5 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/90 shadow-[0_16px_36px_rgba(0,0,0,0.15)] text-left">
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-t border-neutral-200/70" />
+                    <div className="relative z-10 space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Scale className="w-3.5 h-3.5 text-[#D4A017] shrink-0" />
+                        <span className="text-xs font-bold text-neutral-900 leading-tight">
+                          Property Comparison Tool
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-600 leading-snug">
+                        Compare prices, carpet area, developer reputation & RERA approvals side by side.
+                      </p>
+                      <div className="pt-1.5 border-t border-neutral-100 flex items-center justify-between text-[10px]">
+                        <span className="font-semibold text-[#D4A017] tracking-tight">
+                          {compareCount} Properties in Compare List
+                        </span>
+                        <span className="text-neutral-400 flex items-center gap-0.5">
+                          View <ChevronRight className="w-2.5 h-2.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Hamburger Menu Trigger in Transparent Glass */}
+              <div className="relative group">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className={`relative px-3.5 py-2 rounded-xl text-xs font-bold backdrop-blur-md transition-all duration-200 ease-out flex items-center gap-1.5 hover:scale-105 hover:-translate-y-0.5 active:scale-95 cursor-pointer ${
+                    mobileMenuOpen
+                      ? 'bg-neutral-950 text-white border border-neutral-900 ring-2 ring-[#D4A017]/30 shadow-md'
+                      : 'bg-white/50 hover:bg-white/80 border border-white/70 hover:border-neutral-300 text-neutral-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.12)]'
+                  }`}
+                  aria-label={mobileMenuOpen ? "Close Menu" : "Open Hamburger Menu"}
+                  title="Hamburger Menu"
+                >
+                  <div className="absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none rounded-t-xl" />
+                  {mobileMenuOpen ? (
+                    <X className="w-3.5 h-3.5 text-amber-400" />
+                  ) : (
+                    <Menu className="w-3.5 h-3.5 text-neutral-700 group-hover:text-[#D4A017] transition-colors" />
+                  )}
+                  <span>{mobileMenuOpen ? 'Close' : 'All Services'}</span>
+                </button>
+
+                {/* Hamburger Menu Trigger Hover Popup */}
+                {!mobileMenuOpen && (
+                  <div className="absolute top-full right-0 mt-2 pt-1 pointer-events-none z-50 transition-all duration-200 ease-out opacity-0 invisible -translate-y-1 scale-95 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100">
+                    <div className="relative w-64 p-3.5 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/90 shadow-[0_16px_36px_rgba(0,0,0,0.15)] text-left">
+                      <div className="absolute -top-1 right-6 w-2.5 h-2.5 rotate-45 bg-white border-l border-t border-neutral-200/70" />
+                      <div className="relative z-10 space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Menu className="w-3.5 h-3.5 text-[#D4A017] shrink-0" />
+                          <span className="text-xs font-bold text-neutral-900 leading-tight">
+                            Platform Services & Tools
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-600 leading-snug">
+                          Explore painting, packers & movers, home loans, legal checks, careers & contact options.
+                        </p>
+                        <div className="pt-1.5 border-t border-neutral-100 flex items-center justify-between text-[10px]">
+                          <span className="font-semibold text-[#D4A017] tracking-tight">
+                            Simplified Menu • 1-Click Access
+                          </span>
+                          <span className="text-neutral-400 flex items-center gap-0.5">
+                            Open <ChevronRight className="w-2.5 h-2.5" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
-                <span>{mobileMenuOpen ? 'Close' : 'All Services'}</span>
-              </button>
+              </div>
             </div>
 
             {/* Mobile / Android Top Bar Actions */}
             <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
-              {/* Quick Requirement for Mobile */}
-              <button
-                type="button"
-                onClick={() => setRequirementModalOpen(true)}
-                className="p-2 rounded-xl bg-amber-500 text-neutral-950 flex items-center gap-1 text-xs font-bold active:scale-95 transition-all shadow-xs"
-                aria-label="Post Property Requirement"
-                title="Post Requirement"
-              >
-                <ClipboardEdit className="w-4 h-4" />
-                <span className="text-[11px] hidden xs:inline">Require</span>
-              </button>
 
               {/* Quick Smart Match for Mobile */}
               <button

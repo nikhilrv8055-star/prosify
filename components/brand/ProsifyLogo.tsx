@@ -2,7 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { brandConfig } from '@/src/config/brand';
+import { useBrandSettings } from '@/lib/data/useBrandSettings';
 
 interface ProsifyLogoProps {
   variant?: 'light' | 'dark' | 'header' | 'admin' | 'partner' | 'developer';
@@ -21,6 +23,8 @@ export const ProsifyLogo: React.FC<ProsifyLogoProps> = ({
   badge,
   className = '',
 }) => {
+  const { logoUrl } = useBrandSettings();
+
   // Dimension definitions
   const sizeMap = {
     sm: {
@@ -55,7 +59,7 @@ export const ProsifyLogo: React.FC<ProsifyLogoProps> = ({
   const isDarkCanvas = ['light', 'admin', 'partner', 'developer'].includes(variant);
 
   const emblemClasses =
-    'relative flex items-center justify-center font-serif font-black tracking-tight bg-gradient-to-tr from-[#B38711] via-[#D4A017] to-[#F4C430] text-neutral-950 shadow-sm transition-transform group-hover:scale-105';
+    'relative flex items-center justify-center font-serif font-black tracking-tight bg-gradient-to-tr from-[#B38711] via-[#D4A017] to-[#F4C430] text-neutral-950 shadow-sm transition-transform group-hover:scale-105 overflow-hidden';
 
   const titleClasses = isDarkCanvas
     ? 'text-white font-serif font-bold tracking-tight'
@@ -65,12 +69,22 @@ export const ProsifyLogo: React.FC<ProsifyLogoProps> = ({
 
   const content = (
     <div className={`inline-flex items-center gap-2.5 group select-none ${className}`}>
-      {/* Prosify Geometric / Monogram Emblem (Replaceable with <Image> or SVG) */}
-      <div className={`${dims.box} ${emblemClasses}`}>
-        {/* Subtle inner bevel */}
-        <span className="relative z-10 leading-none drop-shadow-sm">P</span>
-        <div className="absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/30" />
-      </div>
+      {/* Prosify Emblem or Custom Uploaded Logo */}
+      {logoUrl ? (
+        <div className={`${dims.box} relative rounded-xl overflow-hidden shadow-sm flex items-center justify-center bg-white/90 border border-amber-300/60 p-0.5`}>
+          <img
+            src={logoUrl}
+            alt={brandConfig.name}
+            className="w-full h-full object-contain"
+          />
+        </div>
+      ) : (
+        <div className={`${dims.box} ${emblemClasses}`}>
+          {/* Default inner monogram */}
+          <span className="relative z-10 leading-none drop-shadow-sm">P</span>
+          <div className="absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/30" />
+        </div>
+      )}
 
       {/* Prosify Wordmark */}
       <div className="flex flex-col">

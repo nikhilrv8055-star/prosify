@@ -260,7 +260,7 @@ export function PropertyCard({
           </button>
 
           <a
-            href={`https://wa.me/919326303244?text=${whatsappMessage}`}
+            href={`https://wa.me/919167991679?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-1 font-semibold"

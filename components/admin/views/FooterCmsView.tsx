@@ -47,7 +47,7 @@ export function FooterCmsView({ subview = 'footer-logo' }: { subview?: string })
     copyrightText: '© 2026 Prosify Technologies Private Limited. All Rights Reserved. MahaRERA Reg No: A51900012345.',
     officeAddress: 'Floor 18, Maker Chambers IV, Nariman Point, Mumbai MMR 400021',
     supportEmail: 'contact@prosify.in',
-    supportPhone: '+91 93263 03244',
+    supportPhone: '+91 91679 91679',
   });
 
   const [links, setLinks] = useState<QuickLinkItem[]>([

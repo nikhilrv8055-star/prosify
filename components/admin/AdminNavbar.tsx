@@ -238,9 +238,9 @@ export function AdminNavbar({
             )}
           </div>
 
-          {/* Strict rule: WhatsApp Redirection to https://wa.me/919326303244, button text MUST ONLY say "WhatsApp" */}
+          {/* Strict rule: WhatsApp Redirection to https://wa.me/919167991679, button text MUST ONLY say "WhatsApp" */}
           <a
-            href="https://wa.me/919326303244"
+            href="https://wa.me/919167991679"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-neutral-950 font-bold text-xs shadow-md transition-colors"

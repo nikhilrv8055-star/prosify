@@ -26,10 +26,12 @@ export const brandConfig = {
     white: "#FFFFFF",
   },
   contact: {
-    email: "advisory@prosify.in",
-    supportEmail: "support@prosify.in",
-    phone: "+91 98200 11223",
-    whatsapp: "+91 93263 03244",
+    email: "hello4home@gmail.com",
+    supportEmail: "hello4home@gmail.com",
+    phone: "+91 91679 91679",
+    whatsapp: "+91 91679 91679",
+    whatsappNumber: "919167991679",
+    whatsappRaw: "9167991679",
     address: "Prosify Chambers, Senapati Bapat Marg, Lower Parel, Mumbai, Maharashtra 400013",
   },
   auth: {

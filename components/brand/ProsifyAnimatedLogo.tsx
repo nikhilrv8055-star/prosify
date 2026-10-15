@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, Shield, Building2, Briefcase } from 'lucide-react';
+import { useBrandSettings } from '@/lib/data/useBrandSettings';
 
 interface ProsifyAnimatedLogoProps {
   panelType: 'admin' | 'vendor' | 'agent';
@@ -17,6 +18,7 @@ export function ProsifyAnimatedLogo({
   subtitle,
   size = 'lg',
 }: ProsifyAnimatedLogoProps) {
+  const { logoUrl } = useBrandSettings();
   // Theme color accents per panel
   const panelThemes = {
     admin: {
@@ -96,10 +98,18 @@ export function ProsifyAnimatedLogo({
               transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', repeatDelay: 1 }}
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 pointer-events-none"
             />
-            {/* Letter 'P' for Prosify */}
-            <span className="relative z-10 font-serif font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-amber-200 to-amber-500 drop-shadow">
-              P
-            </span>
+            {/* Custom Logo or Letter 'P' for Prosify */}
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Brand Logo"
+                className="relative z-10 w-3/4 h-3/4 object-contain"
+              />
+            ) : (
+              <span className="relative z-10 font-serif font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-amber-200 to-amber-500 drop-shadow">
+                P
+              </span>
+            )}
             <div className="absolute bottom-1 right-1 opacity-70">
               <IconComponent className="w-3.5 h-3.5 text-amber-300/80" />
             </div>

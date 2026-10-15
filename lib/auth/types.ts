@@ -256,7 +256,7 @@ export const DEMO_USERS: Record<UserRole, AuthUser> = {
     id: 'user_cp_realtors',
     name: 'Nikhil Rane (Apex Capital Realtors)',
     email: 'nikhil@apexrealtors.in',
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
     role: 'CHANNEL_PARTNER',
     partnerCode: 'APEX2026',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',

@@ -277,7 +277,7 @@ export function LocalConsultantInquiryModal({
 
               <div className="pt-2 border-t border-slate-700">
                 <a
-                  href="https://wa.me/919326303244"
+                  href="https://wa.me/919167991679"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0da674] text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"

@@ -25,6 +25,7 @@ import {
   PortalUser,
   PortalRole,
   getPortalUsers,
+  syncPortalUsersFromCloud,
   createPortalUser,
   updatePortalUserPassword,
   updatePortalUserStatus,
@@ -74,6 +75,11 @@ export function PortalAccessTab() {
   };
 
   useEffect(() => {
+    // 1. Fetch live from cloud API to sync any IDs created on other devices
+    syncPortalUsersFromCloud().then((cloudUsers) => {
+      setUsers(cloudUsers);
+    });
+
     const handleUpdate = () => {
       setUsers(getPortalUsers());
     };
@@ -167,8 +173,8 @@ export function PortalAccessTab() {
       phone: '',
       companyOrProject: '',
     });
-    setFeedbackMessage(`New ${createForm.role} account created successfully!`);
-    setTimeout(() => setFeedbackMessage(null), 3500);
+    setFeedbackMessage(`New ${createForm.role} account created and synced to Cloud Database! Accessible from any device.`);
+    setTimeout(() => setFeedbackMessage(null), 4000);
   };
 
   const getRoleBadge = (role: PortalRole) => {

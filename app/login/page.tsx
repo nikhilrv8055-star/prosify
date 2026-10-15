@@ -89,11 +89,21 @@ export default function LoginPage() {
 
       // Check for Admin-Provisioned Portal User (Vendor or Agent or Admin)
       const allPortalUsers = getPortalUsers();
-      const matchedPortal = allPortalUsers.find(
+      let matchedPortal = allPortalUsers.find(
         (u) =>
           u.username.toLowerCase() === cleanEmail ||
           (u.assignedCode && u.assignedCode.toLowerCase() === cleanEmail)
       );
+
+      if (!matchedPortal) {
+        try {
+          const res = await fetch(`/api/admin/portal-users?username=${encodeURIComponent(cleanEmail)}`);
+          const data = await res.json();
+          if (data?.success && data?.user) {
+            matchedPortal = data.user;
+          }
+        } catch {}
+      }
 
       if (matchedPortal) {
         if (cleanPass && matchedPortal.password !== cleanPass) {

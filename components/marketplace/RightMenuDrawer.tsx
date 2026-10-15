@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { X, MessageCircle } from 'lucide-react';
+import { X, MessageCircle, Mail } from 'lucide-react';
 import { brandConfig } from '@/src/config/brand';
+import { useBrandSettings } from '@/lib/data/useBrandSettings';
 
 interface RightMenuDrawerProps {
   onClose: () => void;
@@ -34,6 +35,8 @@ export function RightMenuDrawer({
   onOpenContact,
   onCopyEmail,
 }: RightMenuDrawerProps) {
+  const brandSettings = useBrandSettings();
+
   // Helper to ensure 1-click execution: run target action immediately, then close menu drawer
   const handleDirectAction = (action?: () => void) => {
     if (action) {
@@ -42,120 +45,114 @@ export function RightMenuDrawer({
     onClose();
   };
 
-  // Uniform plain-text menu item styling across all options
+  // Simple, clean, un-colorful item style
   const itemStyle =
-    'flex items-center justify-between w-full py-2.5 px-5 text-sm font-medium text-slate-700 hover:text-slate-950 hover:bg-amber-50/70 transition-colors text-left cursor-pointer border-b border-slate-100 last:border-b-0';
+    'flex items-center justify-between w-full py-2.5 px-5 text-[13px] text-neutral-700 hover:text-neutral-950 hover:bg-neutral-50/90 transition-colors text-left cursor-pointer border-b border-neutral-100 last:border-b-0';
 
   const sectionHeaderStyle =
-    'px-5 pt-3.5 pb-1.5 text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-50/60 border-b border-amber-100/80 sticky top-0 z-10 backdrop-blur-xs';
+    'px-5 py-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 bg-neutral-50/80 border-b border-neutral-100 sticky top-0 z-10';
+
+  // Plain subtitle/tag style: subtle muted gray text, strictly no colorful badges
+  const simpleTagStyle = 'text-[11px] text-neutral-400 font-normal';
 
   return (
     <>
-      {/* Dimmed Backdrop covering background */}
+      {/* Dimmed Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-[0.5px] cursor-pointer animate-in fade-in duration-200"
+        className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-xs cursor-pointer animate-in fade-in duration-200"
         aria-label="Close menu backdrop"
       />
 
-      {/* Right-Hand Vertical Dropdown Panel */}
+      {/* Right-Hand Vertical Menu Drawer */}
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="Site Navigation Menu"
-        className="fixed top-0 right-0 z-[9999] w-72 sm:w-[310px] h-full bg-white flex flex-col shadow-2xl border-l border-slate-200 overflow-y-auto animate-in slide-in-from-right duration-200 select-none"
+        className="fixed top-0 right-0 z-[9999] w-72 sm:w-[320px] h-full bg-white flex flex-col shadow-xl border-l border-neutral-200 overflow-y-auto animate-in slide-in-from-right duration-200 select-none"
       >
-        {/* Top Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/90 shrink-0">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
-            Platform Menu & Services
-          </span>
+        {/* Top Header - Simple & Clean */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-100 bg-white shrink-0">
+          <div>
+            <span className="text-xs font-semibold text-neutral-800 tracking-wide">
+              Services & Menu
+            </span>
+            <span className="block text-[10px] text-neutral-400">All Platform Features</span>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
             aria-label="Close Menu"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Menu Items: All Platform Options & Services */}
+        {/* Menu Items: Simple, Clean, Non-Colorful List */}
         <nav aria-label="Menu Links" className="flex flex-col">
-          {/* SECTION 1: PLATFORM OPTIONS & SERVICES */}
-          <div className={sectionHeaderStyle}>Platform Options & Services</div>
+          {/* SECTION 1: PROPERTIES & EXPLORE */}
+          <div className={sectionHeaderStyle}>Properties & Explore</div>
 
-          {/* 1. Buy Verified Homes */}
+          {/* 1. Buy Homes */}
           <Link
             href="/properties?type=BUY"
             onClick={onClose}
             className={itemStyle}
           >
-            <span>Buy Verified Homes</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              0% Brokerage
-            </span>
+            <span>Buy Homes</span>
+            <span className={simpleTagStyle}>0% Brokerage</span>
           </Link>
 
-          {/* 2. New Launch Projects */}
+          {/* 2. New Launches */}
           <Link
             href="/properties?possession=NEW_LAUNCH"
             onClick={onClose}
             className={itemStyle}
           >
-            <span>New Launch Projects</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-800">
-              Hot Launch
-            </span>
+            <span>New Launches</span>
+            <span className={simpleTagStyle}>Pre-Launch</span>
           </Link>
 
-          {/* 3. Verified RERA Projects */}
+          {/* 3. Verified Projects */}
           <Link
             href="/projects"
             onClick={onClose}
             className={itemStyle}
           >
-            <span>Verified RERA Projects</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              RERA Clear
-            </span>
+            <span>Verified Projects</span>
+            <span className={simpleTagStyle}>RERA Approved</span>
           </Link>
 
-          {/* 4. Commercial & Retail */}
+          {/* 4. Commercial Properties */}
           <Link
             href="/properties?type=COMMERCIAL"
             onClick={onClose}
             className={itemStyle}
           >
-            <span>Commercial & Retail</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-800">
-              High Yield
-            </span>
+            <span>Commercial Properties</span>
+            <span className={simpleTagStyle}>Office & Retail</span>
           </Link>
 
-          {/* 5. Pan-India Metros */}
+          {/* 5. Micro-Markets */}
           <Link
             href="/micro-markets"
             onClick={onClose}
             className={itemStyle}
           >
-            <span>Pan-India Metros</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800">
-              9 Cities
-            </span>
+            <span>Micro-Markets</span>
+            <span className={simpleTagStyle}>9 Indian Metros</span>
           </Link>
 
-          {/* 6. AI Smart Property Match */}
+          {/* 6. AI Smart Match */}
           {onOpenMatcher && (
             <button
               type="button"
               onClick={() => handleDirectAction(onOpenMatcher)}
               className={itemStyle}
             >
-              <span>AI Smart Property Match</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                Instant AI
-              </span>
+              <span>Smart Match</span>
+              <span className={simpleTagStyle}>Instant AI</span>
             </button>
           )}
 
@@ -166,21 +163,17 @@ export function RightMenuDrawer({
             className={itemStyle}
           >
             <span>Luxury Villas & Estates</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800">
-              Elite
-            </span>
+            <span className={simpleTagStyle}>Exclusive</span>
           </Link>
 
-          {/* 8. Top Tier Developers */}
+          {/* 8. Developers */}
           <Link
             href="/developers"
             onClick={onClose}
             className={itemStyle}
           >
-            <span>Top Tier Developers</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-800">
-              Builders
-            </span>
+            <span>Developers</span>
+            <span className={simpleTagStyle}>Top Builders</span>
           </Link>
 
           {/* 9. Property Comparison */}
@@ -189,10 +182,8 @@ export function RightMenuDrawer({
             onClick={onClose}
             className={itemStyle}
           >
-            <span>Property Comparison Tool</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
-              Compare
-            </span>
+            <span>Compare Properties</span>
+            <span className={simpleTagStyle}>Side by Side</span>
           </Link>
 
           {/* 10. Affiliate Program */}
@@ -202,12 +193,10 @@ export function RightMenuDrawer({
             className={itemStyle}
           >
             <span>Affiliate Partner Program</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              Earn 3%
-            </span>
+            <span className={simpleTagStyle}>Earn 3%</span>
           </Link>
 
-          {/* SECTION 2: ADVISORY & LISTING ACTIONS */}
+          {/* SECTION 2: ADVISORY & LISTING */}
           <div className={sectionHeaderStyle}>Advisory & Listing</div>
 
           {/* Post Your Property */}
@@ -217,12 +206,10 @@ export function RightMenuDrawer({
             className={itemStyle}
           >
             <span>Post Your Property</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
-              Free Listing
-            </span>
+            <span className={simpleTagStyle}>Free Listing</span>
           </button>
 
-          {/* Submit Property Requirement */}
+          {/* Submit Requirement */}
           {onOpenRequirement && (
             <button
               type="button"
@@ -230,14 +217,12 @@ export function RightMenuDrawer({
               className={itemStyle}
             >
               <span>Submit Property Requirement</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-neutral-900 text-amber-300">
-                Buyer Desk
-              </span>
+              <span className={simpleTagStyle}>Buyer Desk</span>
             </button>
           )}
 
-          {/* SECTION 3: HOME & VALUE-ADDED SERVICES */}
-          <div className={sectionHeaderStyle}>Home & Relocation Services</div>
+          {/* SECTION 3: HOME SERVICES */}
+          <div className={sectionHeaderStyle}>Home Services</div>
 
           {/* Painting & Cleaning */}
           <button
@@ -246,7 +231,7 @@ export function RightMenuDrawer({
             className={itemStyle}
           >
             <span>Painting & Cleaning</span>
-            <span className="text-[10px] text-slate-400">Interiors</span>
+            <span className={simpleTagStyle}>Interiors</span>
           </button>
 
           {/* Packers and Movers */}
@@ -255,8 +240,28 @@ export function RightMenuDrawer({
             onClick={() => handleDirectAction(() => onOpenServices('movers'))}
             className={itemStyle}
           >
-            <span>Packers and Movers</span>
-            <span className="text-[10px] text-slate-400">Logistics</span>
+            <span>Packers & Movers</span>
+            <span className={simpleTagStyle}>Logistics</span>
+          </button>
+
+          {/* Home Loan Assistance */}
+          <button
+            type="button"
+            onClick={() => handleDirectAction(() => onOpenServices('loan'))}
+            className={itemStyle}
+          >
+            <span>Home Loan Assistance</span>
+            <span className={simpleTagStyle}>From 8.35%</span>
+          </button>
+
+          {/* Legal & RERA Check */}
+          <button
+            type="button"
+            onClick={() => handleDirectAction(() => onOpenServices('legal'))}
+            className={itemStyle}
+          >
+            <span>Legal & Title Verification</span>
+            <span className={simpleTagStyle}>RERA Audit</span>
           </button>
 
           {/* Refer & Earn */}
@@ -265,14 +270,12 @@ export function RightMenuDrawer({
             onClick={() => handleDirectAction(onOpenReferEarn)}
             className={itemStyle}
           >
-            <span>Refer & Earn Rewards</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
-              ₹1,000 Credit
-            </span>
+            <span>Refer & Earn</span>
+            <span className={simpleTagStyle}>₹1,000 Credit</span>
           </button>
 
-          {/* SECTION 4: CORPORATE & SUPPORT */}
-          <div className={sectionHeaderStyle}>Corporate & Help</div>
+          {/* SECTION 4: COMPANY & SUPPORT */}
+          <div className={sectionHeaderStyle}>Company & Support</div>
 
           {/* Corporate Enquiry */}
           <button
@@ -289,28 +292,28 @@ export function RightMenuDrawer({
             onClick={() => handleDirectAction(onOpenCareers)}
             className={itemStyle}
           >
-            <span>Careers & Jobs</span>
+            <span>Careers</span>
           </button>
 
-          {/* Blog & Intelligence */}
+          {/* Blog */}
           <button
             type="button"
             onClick={() => handleDirectAction(onOpenBlog)}
             className={itemStyle}
           >
-            <span>Blog & Market Intelligence</span>
+            <span>Blog & Insights</span>
           </button>
 
-          {/* Prosify Support */}
+          {/* Support */}
           <button
             type="button"
             onClick={() => handleDirectAction(onOpenSupport)}
             className={itemStyle}
           >
-            <span>Prosify Support</span>
+            <span>Customer Support</span>
           </button>
 
-          {/* Contact Us */}
+          {/* Contact */}
           <button
             type="button"
             onClick={() => handleDirectAction(onOpenContact)}
@@ -320,17 +323,17 @@ export function RightMenuDrawer({
           </button>
         </nav>
 
-        {/* Bottom Fast Action Footer with WhatsApp Direct */}
-        <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/90 flex flex-col gap-2 shrink-0">
+        {/* Bottom Fast Action Footer - Simple & Elegant */}
+        <div className="mt-auto p-4 border-t border-neutral-100 bg-neutral-50/80 flex flex-col gap-2 shrink-0">
           <a
-            href="https://wa.me/919326303244"
+            href={brandSettings.whatsappLink || 'https://wa.me/919167991679'}
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+            className="w-full py-2 px-3 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors"
           >
-            <MessageCircle className="w-4 h-4" />
-            <span>WhatsApp</span>
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>WhatsApp: {brandSettings.whatsappNumber || '9167991679'}</span>
           </a>
 
           <button
@@ -339,9 +342,10 @@ export function RightMenuDrawer({
               onCopyEmail();
               onClose();
             }}
-            className="w-full py-2 px-3 text-[11px] text-slate-500 hover:text-slate-800 transition-colors text-center"
+            className="w-full py-1.5 px-3 text-[11px] text-neutral-500 hover:text-neutral-800 transition-colors text-center font-normal flex items-center justify-center gap-1.5"
           >
-            {brandConfig.contact.supportEmail}
+            <Mail className="w-3 h-3 text-neutral-400" />
+            <span>{brandSettings.supportEmail || brandSettings.contactEmail || 'hello4home@gmail.com'}</span>
           </button>
         </div>
       </aside>

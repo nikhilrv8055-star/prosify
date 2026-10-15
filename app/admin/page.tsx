@@ -585,9 +585,9 @@ export default function AdminAppPage() {
 
           <div className="flex items-center gap-4">
             <span className="text-neutral-400">Operator: <strong className="text-white font-mono">{currentUser}</strong></span>
-            {/* Strict rule: WhatsApp Redirection to https://wa.me/919326303244, button text MUST ONLY say "WhatsApp" */}
+            {/* Strict rule: WhatsApp Redirection to https://wa.me/919167991679, button text MUST ONLY say "WhatsApp" */}
             <a
-              href="https://wa.me/919326303244"
+              href="https://wa.me/919167991679"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-emerald-400 hover:underline font-semibold"

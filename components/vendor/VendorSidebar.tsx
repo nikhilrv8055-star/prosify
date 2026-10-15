@@ -194,7 +194,7 @@ export function VendorSidebar({
 
         {/* WhatsApp Helpdesk */}
         <a
-          href="https://wa.me/919326303244"
+          href="https://wa.me/919167991679"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all"

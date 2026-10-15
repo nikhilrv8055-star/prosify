@@ -321,7 +321,7 @@ export function PropertyRequirementModal({
 
               <div className="w-full max-w-md space-y-2.5 pt-2">
                 <a
-                  href="https://wa.me/919326303244?text=Hi%20Prosify,%20I%20just%20submitted%20my%20property%20buying%20requirement%20online."
+                  href="https://wa.me/919167991679?text=Hi%20Prosify,%20I%20just%20submitted%20my%20property%20buying%20requirement%20online."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-colors"

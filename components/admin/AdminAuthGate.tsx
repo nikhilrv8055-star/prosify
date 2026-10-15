@@ -197,7 +197,7 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
         </span>
         <span className="hidden sm:inline text-neutral-600">•</span>
         <a
-          href="https://wa.me/919326303244"
+          href="https://wa.me/919167991679"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors font-semibold"

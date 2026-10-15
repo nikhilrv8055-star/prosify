@@ -316,7 +316,7 @@ export function GatedEbookDownloadModal({ guide, isOpen, onClose }: GatedEbookDo
                 </button>
 
                 <a
-                  href="https://wa.me/919326303244"
+                  href="https://wa.me/919167991679"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-2.5 px-4 rounded-xl bg-[#10B981] hover:bg-[#0da674] text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"

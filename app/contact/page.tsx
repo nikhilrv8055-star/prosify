@@ -15,8 +15,10 @@ import { Navbar } from '@/components/marketplace/Navbar';
 import { Footer } from '@/components/marketplace/Footer';
 import { brandConfig } from '@/src/config/brand';
 import { store } from '@/lib/data/store';
+import { useBrandSettings } from '@/lib/data/useBrandSettings';
 
 export default function ContactPage() {
+  const brandSettings = useBrandSettings();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -126,7 +128,12 @@ export default function ContactPage() {
                   <Mail className="w-4 h-4 text-[#D4A017] shrink-0 mt-0.5" />
                   <div>
                     <strong className="block text-neutral-900 font-semibold">Email:</strong>
-                    <span>{brandConfig.contact.email}</span>
+                    <a
+                      href={`mailto:${brandSettings.contactEmail || brandSettings.supportEmail || 'hello4home@gmail.com'}`}
+                      className="text-neutral-800 hover:text-amber-600 transition-colors"
+                    >
+                      {brandSettings.contactEmail || brandSettings.supportEmail || 'hello4home@gmail.com'}
+                    </a>
                   </div>
                 </div>
 
@@ -141,13 +148,13 @@ export default function ContactPage() {
 
               <div className="pt-2 border-t border-neutral-100">
                 <a
-                  href="https://wa.me/919326303244"
+                  href={brandSettings.whatsappLink || 'https://wa.me/919167991679'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>WhatsApp</span>
+                  <span>WhatsApp ({brandSettings.whatsappNumber || '9167991679'})</span>
                 </a>
               </div>
             </div>

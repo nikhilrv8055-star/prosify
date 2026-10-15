@@ -27,7 +27,7 @@ const DEFAULT_USERS: PortalUser[] = [
     name: 'Prosify Central Administrator',
     role: 'ADMIN',
     password: 'prosify@123#',
-    phone: '+91 93263 03244',
+    phone: '+91 91679 91679',
     companyOrProject: 'Prosify Technologies HQ',
     status: 'ACTIVE',
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -79,12 +79,37 @@ const DEFAULT_USERS: PortalUser[] = [
   },
 ];
 
+// Trigger background cloud sync on client initialization
+if (typeof window !== 'undefined') {
+  try {
+    fetch('/api/admin/portal-users')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.users && Array.isArray(data.users) && data.users.length > 0) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.users));
+          window.dispatchEvent(new Event('eni_portal_users_updated'));
+        }
+      })
+      .catch(() => {});
+  } catch {}
+}
+
 export function getPortalUsers(): PortalUser[] {
   if (typeof window === 'undefined') return DEFAULT_USERS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
+      // Background sync from cloud
+      fetch('/api/admin/portal-users')
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.users) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.users));
+            window.dispatchEvent(new Event('eni_portal_users_updated'));
+          }
+        })
+        .catch(() => {});
       return DEFAULT_USERS;
     }
     const parsed = JSON.parse(raw);
@@ -110,6 +135,27 @@ export function savePortalUsers(users: PortalUser[]): void {
   }
 }
 
+/**
+ * Fetches all registered portal users from the Cloud Database and syncs local storage
+ */
+export async function syncPortalUsersFromCloud(): Promise<PortalUser[]> {
+  if (typeof window === 'undefined') return getPortalUsers();
+  try {
+    const res = await fetch('/api/admin/portal-users');
+    const data = await res.json();
+    if (data?.users && Array.isArray(data.users)) {
+      savePortalUsers(data.users);
+      return data.users;
+    }
+  } catch (err) {
+    console.warn('[Cloud Sync Fetch Error]:', err);
+  }
+  return getPortalUsers();
+}
+
+/**
+ * Creates portal user and immediately syncs to Cloud Database
+ */
 export function createPortalUser(userData: Omit<PortalUser, 'id' | 'createdAt'>): PortalUser {
   const users = getPortalUsers();
   const newUser: PortalUser = {
@@ -117,49 +163,114 @@ export function createPortalUser(userData: Omit<PortalUser, 'id' | 'createdAt'>)
     id: `user-${userData.role.toLowerCase()}-${Date.now()}`,
     createdAt: new Date().toISOString(),
   };
-  users.push(newUser);
+  users.unshift(newUser);
   savePortalUsers(users);
+
+  // Sync to Cloud Server API so user can access from any computer or mobile
+  if (typeof window !== 'undefined') {
+    fetch('/api/admin/portal-users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUser),
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res?.success) {
+          console.log(`[Cloud Sync] ${userData.role} ${userData.username} synced to cloud database.`);
+        }
+      })
+      .catch((err) => {
+        console.warn('[Cloud Sync Error] Cloud sync deferred:', err);
+      });
+  }
+
   return newUser;
 }
 
+/**
+ * Updates password and syncs to Cloud Database
+ */
 export function updatePortalUserPassword(userId: string, newPassword: string): boolean {
   const users = getPortalUsers();
   const idx = users.findIndex((u) => u.id === userId);
   if (idx === -1) return false;
   users[idx].password = newPassword;
   savePortalUsers(users);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/admin/portal-users', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: userId, password: newPassword }),
+    }).catch(() => {});
+  }
+
   return true;
 }
 
+/**
+ * Updates status and syncs to Cloud Database
+ */
 export function updatePortalUserStatus(userId: string, status: 'ACTIVE' | 'SUSPENDED' | 'PENDING'): boolean {
   const users = getPortalUsers();
   const idx = users.findIndex((u) => u.id === userId);
   if (idx === -1) return false;
   users[idx].status = status;
   savePortalUsers(users);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/admin/portal-users', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: userId, status }),
+    }).catch(() => {});
+  }
+
   return true;
 }
 
+/**
+ * Updates profile details and syncs to Cloud Database
+ */
 export function updatePortalUser(userId: string, patch: Partial<PortalUser>): PortalUser | null {
   const users = getPortalUsers();
   const idx = users.findIndex((u) => u.id === userId);
   if (idx === -1) return null;
   users[idx] = { ...users[idx], ...patch };
   savePortalUsers(users);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/admin/portal-users', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: userId, ...patch }),
+    }).catch(() => {});
+  }
+
   return users[idx];
 }
 
+/**
+ * Deletes user and purges from Cloud Database
+ */
 export function deletePortalUser(userId: string): boolean {
   const users = getPortalUsers();
   const filtered = users.filter((u) => u.id !== userId);
   if (filtered.length === users.length) return false;
   savePortalUsers(filtered);
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/admin/portal-users?id=${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+    }).catch(() => {});
+  }
+
   return true;
 }
 
 /**
  * Authenticate credentials against role-specific requirements.
- * Ensures an Agent cannot enter Vendor portal, etc.
+ * Checks local cache first; if not found or password differs, validates directly with Cloud Server Database.
  */
 export function authenticatePortalUser(
   username: string,
@@ -179,7 +290,7 @@ export function authenticatePortalUser(
   if (!user) {
     return {
       success: false,
-      error: 'Account not found. Please check your credentials or contact Administrator.',
+      error: 'Account not found. Please verify your ID or contact Administrator.',
     };
   }
 
@@ -208,6 +319,63 @@ export function authenticatePortalUser(
   updatePortalUser(user.id, { lastLogin: new Date().toISOString() });
 
   return { success: true, user };
+}
+
+/**
+ * Async Cloud-authoritative authentication to allow logging in from any device or browser
+ */
+export async function authenticatePortalUserWithCloud(
+  username: string,
+  passwordAttempt: string,
+  expectedRole: PortalRole
+): Promise<{ success: boolean; user?: PortalUser; error?: string }> {
+  // Try local first
+  const localResult = authenticatePortalUser(username, passwordAttempt, expectedRole);
+  if (localResult.success) return localResult;
+
+  // Query Cloud Database
+  try {
+    const res = await fetch(`/api/admin/portal-users?username=${encodeURIComponent(username.trim().toLowerCase())}`);
+    const data = await res.json();
+    if (data?.success && data?.user) {
+      const cloudUser: PortalUser = data.user;
+      
+      // Update local storage cache with latest cloud record
+      const all = getPortalUsers();
+      const existingIdx = all.findIndex((u) => u.id === cloudUser.id);
+      if (existingIdx >= 0) all[existingIdx] = cloudUser;
+      else all.unshift(cloudUser);
+      savePortalUsers(all);
+
+      if (cloudUser.role !== expectedRole) {
+        return {
+          success: false,
+          error: `Access Denied: This account is registered for the ${cloudUser.role} Portal.`,
+        };
+      }
+
+      if (cloudUser.status === 'SUSPENDED') {
+        return {
+          success: false,
+          error: 'Account is suspended. Please contact Administrator for reactivation.',
+        };
+      }
+
+      if (cloudUser.password !== passwordAttempt.trim()) {
+        return {
+          success: false,
+          error: 'Invalid password. Please check your credentials.',
+        };
+      }
+
+      updatePortalUser(cloudUser.id, { lastLogin: new Date().toISOString() });
+      return { success: true, user: cloudUser };
+    }
+  } catch (err) {
+    console.warn('[Cloud Auth fallback error]:', err);
+  }
+
+  return localResult;
 }
 
 // Session Helpers per role

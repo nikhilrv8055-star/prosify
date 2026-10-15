@@ -38,7 +38,7 @@ const DEFAULT_PARTNER: ChannelPartner = {
   name: 'Channel Partner',
   companyName: 'Prosify Verified Partner Network',
   email: 'partner@prosify.in',
-  phone: '+91 93263 03244',
+  phone: '+91 91679 91679',
   address: 'Mumbai, Maharashtra',
   panNumber: 'AABCP1234M',
   tier: 'GOLD',
