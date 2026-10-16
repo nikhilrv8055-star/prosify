@@ -202,7 +202,7 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors font-semibold"
         >
-          <span>WhatsApp Support</span>
+          <span>WhatsApp</span>
           <ExternalLink className="w-3 h-3" />
         </a>
       </div>

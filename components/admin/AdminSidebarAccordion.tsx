@@ -232,6 +232,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     icon: Settings,
     items: [
       { id: 'settings-general', label: 'General Settings' },
+      { id: 'settings-logo', label: 'Website Logo & Branding', badge: 'Live Change' },
       { id: 'settings-contact', label: 'Contact Page' },
       { id: 'settings-email', label: 'Email Settings' },
       { id: 'settings-mail-from', label: 'Mail From Admin' },

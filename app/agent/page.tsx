@@ -2719,7 +2719,7 @@ export default function AgentAdminPage() {
 
                       <div className="flex items-center gap-2">
                         <a
-                          href={`https://wa.me/${msg.buyerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                          href={`https://wa.me/919167991679?text=${encodeURIComponent(
                             `Hello ${msg.buyerName}, thank you for your inquiry on ${msg.propertyTitle}. I am ${profile.name} (RERA: ${profile.reraNumber}). Let me share the floor plans and cost sheet with you.`
                           )}`}
                           target="_blank"
@@ -2727,7 +2727,7 @@ export default function AgentAdminPage() {
                           className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
                         >
                           <Smartphone className="w-3.5 h-3.5" />
-                          <span>WhatsApp Reply</span>
+                          <span>WhatsApp</span>
                         </a>
 
                         <a

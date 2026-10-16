@@ -10,6 +10,9 @@ export interface BrandSettingsState {
   contactEmail: string;
   supportEmail: string;
   phone: string;
+  reraRegistration?: string;
+  reraNumber?: string;
+  companyLegalName?: string;
   logoUrl?: string;
   logoName?: string;
   updatedAt?: string;
@@ -24,6 +27,9 @@ const DEFAULT_BRAND_SETTINGS: BrandSettingsState = {
   contactEmail: 'hello4home@gmail.com',
   supportEmail: 'hello4home@gmail.com',
   phone: '+91 91679 91679',
+  reraRegistration: brandConfig.reraRegistration,
+  reraNumber: brandConfig.reraNumber,
+  companyLegalName: brandConfig.companyLegalName,
   logoUrl: '',
   logoName: '',
 };

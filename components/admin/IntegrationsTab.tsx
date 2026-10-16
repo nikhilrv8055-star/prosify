@@ -28,9 +28,10 @@ import { IntegrationAdapter } from '@/lib/types';
 import { OFFICIAL_ADAPTERS } from '@/lib/integrations/registry';
 import { IntegrationProviderAdapter } from '@/lib/integrations/types';
 import { DeveloperApiIntegrationSection } from './DeveloperApiIntegrationSection';
+import { CrmIntegrationSection } from './CrmIntegrationSection';
 
 export function IntegrationsTab() {
-  const [integrationSection, setIntegrationSection] = useState<'DEVELOPER_API' | 'LEAD_CHANNELS'>('DEVELOPER_API');
+  const [integrationSection, setIntegrationSection] = useState<'DEVELOPER_API' | 'LEAD_CHANNELS' | 'CRM_WEBHOOKS'>('CRM_WEBHOOKS');
   const [adapters, setAdapters] = useState<IntegrationAdapter[]>([]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isTestingProvider, setIsTestingProvider] = useState<string | null>(null);
@@ -273,7 +274,27 @@ export function IntegrationsTab() {
           <Cable className="w-4 h-4" />
           <span>Marketing & Lead Ad Ingestion Adapters ({adapters.length})</span>
         </button>
+
+        <button
+          onClick={() => setIntegrationSection('CRM_WEBHOOKS')}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+            integrationSection === 'CRM_WEBHOOKS'
+              ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 shadow-md shadow-emerald-500/20'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Zap className="w-4 h-4" />
+          <span>CRM Webhook Outbound Dispatcher</span>
+          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">
+            LIVE
+          </span>
+        </button>
       </div>
+
+      {/* Render CRM Webhooks Section */}
+      {integrationSection === 'CRM_WEBHOOKS' && (
+        <CrmIntegrationSection />
+      )}
 
       {/* Render Developer API Section */}
       {integrationSection === 'DEVELOPER_API' && (

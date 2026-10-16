@@ -31,8 +31,10 @@ import {
   updatePortalUserStatus,
   deletePortalUser,
 } from '@/lib/auth/portalUsers';
+import { UserProvisioningSuite } from '@/components/admin/UserProvisioningSuite';
 
 export function PortalAccessTab() {
+  const [activeSubView, setActiveSubView] = useState<'provisioning' | 'credentials'>('provisioning');
   const [users, setUsers] = useState<PortalUser[]>(() => getPortalUsers());
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -260,8 +262,39 @@ export function PortalAccessTab() {
         </div>
       )}
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Sub-navigation switcher */}
+      <div className="flex items-center gap-3 border-b border-slate-700/80 pb-3">
+        <button
+          onClick={() => setActiveSubView('provisioning')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+            activeSubView === 'provisioning'
+              ? 'bg-[#D4A017] text-slate-950 shadow-md shadow-[#D4A017]/20'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+          }`}
+        >
+          <Shield className="w-4 h-4" />
+          <span>Vendor & Agent Provisioning Suite (RBAC)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubView('credentials')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+            activeSubView === 'credentials'
+              ? 'bg-[#10B981] text-slate-950 shadow-md shadow-[#10B981]/20'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+          }`}
+        >
+          <KeyRound className="w-4 h-4" />
+          <span>Portal Access & Passwords</span>
+        </button>
+      </div>
+
+      {activeSubView === 'provisioning' ? (
+        <UserProvisioningSuite />
+      ) : (
+        <>
+          {/* Summary KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl bg-[#1E293B]/80 border border-slate-700 backdrop-blur-md">
           <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Total Portal Users</span>
           <span className="text-2xl font-black text-white mt-1 block">{users.length}</span>
@@ -664,6 +697,8 @@ export function PortalAccessTab() {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

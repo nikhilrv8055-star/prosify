@@ -11,6 +11,9 @@ generator client {
 enum UserRole {
   SUPER_ADMIN
   ADMIN
+  VENDOR
+  AGENT
+  AFFILIATE
   VERIFICATION_OFFICER
   SALES_MANAGER
   SALES_AGENT
@@ -21,6 +24,12 @@ enum UserRole {
   MARKETING_MANAGER
   FINANCE
   CUSTOMER
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_FIRST_LOGIN
 }
 
 enum PropertyType {
@@ -118,24 +127,30 @@ enum SyncStatus {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  phone         String?
-  name          String
-  passwordHash  String
-  role          UserRole       @default(CUSTOMER)
-  avatarUrl     String?
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                    String            @id @default(cuid())
+  email                 String            @unique
+  phone                 String?
+  name                  String
+  passwordHash          String
+  role                  UserRole          @default(CUSTOMER)
+  status                AccountStatus     @default(ACTIVE)
+  secureId              String?           @unique
+  requirePasswordChange Boolean           @default(false)
+  avatarUrl             String?
+  isActive              Boolean           @default(true)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 
-  sessions      Session[]
-  partner       ChannelPartner?
-  developer     Developer?
-  assignedLeads LeadAssignment[]
-  auditLogs     AuditLog[]
-  notifications Notification[]
-  savedProps    SavedProperty[]
+  sessions              Session[]
+  partner               ChannelPartner?
+  developer             Developer?
+  assignedLeads         LeadAssignment[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  savedProps            SavedProperty[]
+  affiliateProfile      AffiliateProfile?
+  vendorProfile         VendorProfile?
+  agentProfile          AgentProfile?
 }
 
 model Session {
@@ -148,6 +163,47 @@ model Session {
   createdAt    DateTime @default(now())
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VendorProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName        String
+  gstNumber           String?
+  panNumber           String?
+  category            String
+  territory           String
+  bankAccountHolder   String?
+  bankAccountNumber   String?
+  bankIfscCode        String?
+  bankName            String?
+  totalSettledAmount  Float    @default(0)
+  pendingClearance    Float    @default(0)
+  activeListingsCount Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("VendorProfiles")
+}
+
+model AgentProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agencyName            String
+  reraNumber            String?
+  territory             String
+  monthlyTargetInr      Float    @default(0)
+  achievedVolumeInr     Float    @default(0)
+  closedDealsCount      Int      @default(0)
+  commissionRatePercent Float    @default(2.0)
+  totalCommissionEarned Float    @default(0)
+  pendingCommission     Float    @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("AgentProfiles")
 }
 
 model State {
@@ -516,6 +572,19 @@ model Lead {
   utmCampaign  String?
   firstTouch   String?
   lastTouch    String?
+  city         String?
+  inquiryType  String?
+  leadTag      String?
+  affiliateId  String?
+  sourceUrl    String?
+  ipAddress    String?
+  crmSyncStatus String        @default("PENDING") // PENDING, SYNCED, FAILED
+  crmProvider  String?
+  crmLeadId    String?
+  crmSyncedAt  DateTime?
+  crmRetryCount Int           @default(0)
+  crmLastError String?
+  crmPayload   String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -523,6 +592,22 @@ model Lead {
   activities   LeadActivity[]
   siteVisits   SiteVisit[]
   bookings     Booking[]
+  crmSyncLogs  CrmSyncLogRecord[]
+}
+
+model CrmSyncLogRecord {
+  id             String    @id @default(cuid())
+  leadId         String
+  lead           Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  crmProvider    String
+  requestPayload String
+  responsePayload String?
+  statusCode     Int
+  errorMessage   String?
+  syncStatus     String    @default("PENDING") // SYNCED, FAILED, PENDING
+  retryCount     Int       @default(0)
+  durationMs     Int       @default(0)
+  createdAt      DateTime  @default(now())
 }
 
 model LeadAssignment {
@@ -742,3 +827,103 @@ model AiAgentAction {
   actionTaken      String?
   createdAt        DateTime  @default(now())
 }
+
+model AffiliateProfile {
+  id                   String                @id @default(uuid())
+  userId               String                @unique
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  affiliateCode        String                @unique
+  customSlug           String?               @unique
+  tier                 String                @default("Bronze") // Bronze, Silver, Gold, Platinum
+  commissionRate       Float                 @default(2.5)
+  availableBalance     Float                 @default(0.0)
+  totalEarnings        Float                 @default(0.0)
+  pendingClearance     Float                 @default(0.0)
+  paidOutAmount        Float                 @default(0.0)
+  totalClicks          Int                   @default(0)
+  totalConversions     Int                   @default(0)
+  conversionRate       Float                 @default(0.0)
+  status               String                @default("ACTIVE") // ACTIVE, UNDER_REVIEW, BANNED
+  emailNotifications   Boolean               @default(true)
+  smsNotifications     Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  bankDetails          BankDetails?
+  clicks               ReferralClick[]
+  conversions          AffiliateConversion[]
+  payoutRequests       PayoutRequest[]
+}
+
+model BankDetails {
+  id                   String           @id @default(uuid())
+  affiliateId          String           @unique
+  affiliate            AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  accountHolderName    String
+  accountNumber        String
+  ifscCode             String
+  bankName             String
+  upiId                String?
+  panNumber            String?
+  isVerified           Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+}
+
+model ReferralClick {
+  id                   String           @id @default(uuid())
+  affiliateId          String
+  affiliate            AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  ipAddress            String?
+  userAgent            String?
+  targetPath           String           @default("/")
+  referrerUrl          String?
+  country              String?          @default("IN")
+  isBlockedFraud       Boolean          @default(false)
+  blockedReason        String?
+  createdAt            DateTime         @default(now())
+}
+
+model AffiliateConversion {
+  id                   String           @id @default(uuid())
+  affiliateId          String
+  affiliate            AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  campaignSource       String           @default("Direct Referral")
+  conversionEvent      String           // Lead Form, Site Visit, Token Booking, Deed Registration
+  dealAmount           Float            @default(0)
+  commissionAmount     Float
+  status               String           @default("PENDING") // PENDING, APPROVED, PAID, REJECTED
+  customerName         String?
+  propertyTitle        String?
+  rejectionReason      String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+}
+
+model PayoutRequest {
+  id                   String           @id @default(uuid())
+  affiliateId          String
+  affiliate            AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  amount               Float
+  tdsDeduction         Float            @default(0)
+  netPayable           Float
+  payoutMethod         String           // UPI, NEFT, IMPS
+  destinationDetails   String
+  status               String           @default("PENDING") // PENDING, APPROVED, REJECTED
+  transactionRef       String?          // UTR reference
+  rejectionReason      String?
+  receiptUrl           String?
+  requestedAt          DateTime         @default(now())
+  processedAt          DateTime?
+}
+
+model AffiliateProgramConfig {
+  id                   String           @id @default(uuid())
+  cookieDurationDays   Int              @default(60)
+  defaultCommissionRate Float           @default(2.5)
+  minimumPayoutAmount  Float            @default(1000)
+  fraudProtectionActive Boolean         @default(true)
+  selfReferralBlocked  Boolean          @default(true)
+  updatedAt            DateTime         @updatedAt
+}
+

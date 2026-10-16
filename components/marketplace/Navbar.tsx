@@ -22,12 +22,14 @@ import {
   Share2,
   Shield,
   UserCheck,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/authContext';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
 import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
 import { MobileBurgerMenu } from './MobileBurgerMenu';
 import { PropertyRequirementModal } from './PropertyRequirementModal';
+import { brandConfig } from '@/src/config/brand';
 
 interface NavbarProps {
   onOpenEnquiry?: () => void;
@@ -170,7 +172,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-18 lg:h-20">
             {/* Brand Logo */}
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
               <ProsifyLogo variant="dark" size="md" href="/" showTagline={false} />
             </div>
 
@@ -320,6 +322,47 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
                 </div>
               </div>
 
+              {/* WhatsApp Transparent Glass Button with Mouse Hover Popup */}
+              <div className="relative group">
+                <a
+                  href="https://wa.me/919167991679"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative px-3.5 py-2 rounded-xl text-xs font-bold backdrop-blur-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-300/80 hover:border-emerald-400 text-emerald-950 shadow-[0_2px_10px_rgba(16,185,129,0.1)] hover:shadow-[0_8px_20px_rgba(16,185,129,0.2)] transition-all duration-200 ease-out flex items-center gap-1.5 hover:scale-105 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                  title="WhatsApp"
+                >
+                  <div className="absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none rounded-t-xl" />
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                  <span>WhatsApp</span>
+                </a>
+
+                {/* WhatsApp Hover Popup */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 pt-1 pointer-events-none z-50 transition-all duration-200 ease-out opacity-0 invisible -translate-y-1 scale-95 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:scale-100">
+                  <div className="relative w-64 p-3.5 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/90 shadow-[0_16px_36px_rgba(0,0,0,0.15)] text-left">
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 bg-white border-l border-t border-neutral-200/70" />
+                    <div className="relative z-10 space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="text-xs font-bold text-neutral-900 leading-tight">
+                          Direct WhatsApp Advisory
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-600 leading-snug">
+                        Chat directly with certified Maharashtra property advisors for pricing, floor plans & deals.
+                      </p>
+                      <div className="pt-1.5 border-t border-neutral-100 flex items-center justify-between text-[10px]">
+                        <span className="font-semibold text-emerald-600 tracking-tight">
+                          Instant Response • 1-Click Connect
+                        </span>
+                        <span className="text-neutral-400 flex items-center gap-0.5">
+                          Chat <ChevronRight className="w-2.5 h-2.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Desktop Hamburger Menu Trigger in Transparent Glass */}
               <div className="relative group">
                 <button
@@ -374,6 +417,18 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
 
             {/* Mobile / Android Top Bar Actions */}
             <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
+              {/* Quick WhatsApp for Mobile */}
+              <a
+                href="https://wa.me/919167991679"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1 text-xs font-bold active:scale-95 transition-all"
+                aria-label="WhatsApp"
+                title="WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                <span className="text-[11px] hidden xs:inline">WhatsApp</span>
+              </a>
 
               {/* Quick Smart Match for Mobile */}
               <button

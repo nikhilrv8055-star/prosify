@@ -327,7 +327,7 @@ export function PropertyRequirementModal({
                   className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>Connect Instantly on WhatsApp</span>
+                  <span>WhatsApp</span>
                 </a>
 
                 <button

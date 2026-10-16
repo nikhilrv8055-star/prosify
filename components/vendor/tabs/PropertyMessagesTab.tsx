@@ -163,7 +163,7 @@ export function PropertyMessagesTab({ messages, onReplyMessage }: PropertyMessag
 
                 <div className="flex items-center gap-2">
                   <a
-                    href={`https://wa.me/${activeMsg.senderPhone.replace(/[^0-9]/g, '')}`}
+                    href="https://wa.me/919167991679"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold flex items-center gap-1"

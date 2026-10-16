@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Mail, Phone, MapPin } from 'lucide-react';
+import { ShieldCheck, Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import { brandConfig } from '@/src/config/brand';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
 import { useBrandSettings } from '@/lib/data/useBrandSettings';
@@ -20,12 +20,12 @@ export function Footer() {
             <p className="text-neutral-400 text-sm leading-relaxed max-w-sm">
               &ldquo;{brandConfig.tagline}&rdquo; Connecting home buyers, channel partners, and leading developers across Maharashtra with complete RERA transparency.
             </p>
-            <div className="pt-2 flex items-center gap-3 text-xs text-neutral-400">
-              <span className="flex items-center gap-1 text-[#F4C430]">
-                <ShieldCheck className="w-4 h-4" /> {brandConfig.reraRegistration}
+            <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-neutral-400">
+              <span className="inline-flex items-center gap-1.5 text-[#F4C430] font-semibold bg-[#F4C430]/10 px-2.5 py-1 rounded-lg border border-[#F4C430]/20">
+                <ShieldCheck className="w-3.5 h-3.5" /> {brandConfig.reraRegistration}
               </span>
               <span>•</span>
-              <span>Direct Developer Pricing</span>
+              <span className="text-neutral-300 font-semibold">{brandConfig.companyLegalName}</span>
             </div>
           </div>
 
@@ -137,25 +137,76 @@ export function Footer() {
                   Verified Builder Network
                 </Link>
               </li>
-              <li className="pt-1">
-                <span className="text-xs text-neutral-400 block font-medium">
-                  Support: {brandSettings.supportEmail || brandSettings.contactEmail || 'hello4home@gmail.com'}
-                </span>
-                <span className="text-xs text-neutral-400 block font-medium">
-                  Helpline: {brandSettings.phone || brandSettings.whatsappNumber || '+91 91679 91679'}
-                </span>
+              <li className="pt-2">
+                <a
+                  href="https://wa.me/919167991679"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-950/40 cursor-pointer"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
+        {/* Dedicated Legal & Compliance Section */}
+        <div className="mt-12 pt-8 border-t border-neutral-800">
+          <div className="bg-neutral-900/90 rounded-2xl p-5 sm:p-6 border border-neutral-800/80 shadow-inner backdrop-blur-md">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-[#F4C430] shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h5 className="text-sm sm:text-base font-bold text-white tracking-wide">
+                      Legal &amp; Compliance
+                    </h5>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      RERA Verified
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-400">
+                    Official Regulatory Verification &amp; Licensing Details
+                  </p>
+                </div>
+              </div>
+
+              {/* RERA Registration & Company Details Tag */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="px-3.5 py-1.5 rounded-xl bg-neutral-800/90 border border-neutral-700/80 text-xs font-semibold text-neutral-200 flex items-center gap-2">
+                  <span className="text-neutral-400 font-normal">Official Entity:</span>
+                  <span className="text-white font-bold">{brandConfig.companyLegalName}</span>
+                </div>
+                <div className="px-3.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/40 text-xs font-bold text-[#F4C430] flex items-center gap-1.5 shadow-xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#F4C430]" />
+                  <span>{brandConfig.reraRegistration}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Standard Compliance Disclaimer */}
+            <div className="pt-4 text-xs text-neutral-400 space-y-2 leading-relaxed">
+              <p className="text-neutral-200 font-medium">
+                &ldquo;{brandConfig.reraDisclaimer}&rdquo;
+              </p>
+              <p className="text-neutral-400 text-[11px] leading-relaxed">
+                {brandConfig.name} operates under authorized legal entity <strong>{brandConfig.companyLegalName}</strong> ({brandConfig.officialCompanyName}) holding registration number <strong>{brandConfig.reraRegistration}</strong>. All project details, carpet areas, structural floor plans, brochure materials, and possession timelines published across this platform strictly adhere to Real Estate Regulatory Authority standards and direct developer filings.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Disclaimer & Copyright */}
-        <div className="mt-12 pt-8 border-t border-neutral-800 text-xs text-neutral-500 space-y-3">
+        <div className="mt-8 pt-6 border-t border-neutral-800/60 text-xs text-neutral-500 space-y-3">
           <p className="leading-relaxed">
-            <strong>RERA Compliance Disclaimer:</strong> {brandConfig.name} operates as a verified digital real-estate platform and marketing distribution network registered under {brandConfig.reraRegistration}. All project specifications, carpet areas, plans, and possession dates are aligned directly with certified developer filings. Property prices are subject to developer revision without prior notice.
+            <strong>RERA Compliance Disclaimer:</strong> {brandConfig.name} operates as a verified digital real-estate platform and marketing distribution network registered under {brandConfig.reraRegistration} (Entity: {brandConfig.companyLegalName}). {brandConfig.reraDisclaimer} Property prices and unit availability are subject to developer revision without prior notice.
           </p>
           <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-            <p>© {new Date().getFullYear()} {brandConfig.name}. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} {brandConfig.name} • {brandConfig.companyLegalName}. All rights reserved.</p>
             <div className="flex items-center gap-4 text-xs text-neutral-400">
               <Link href="/about" className="hover:text-white">About {brandConfig.name}</Link>
               <span>•</span>

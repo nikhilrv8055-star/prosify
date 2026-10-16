@@ -71,11 +71,19 @@ export const ProsifyLogo: React.FC<ProsifyLogoProps> = ({
     <div className={`inline-flex items-center gap-2.5 group select-none ${className}`}>
       {/* Prosify Emblem or Custom Uploaded Logo */}
       {logoUrl ? (
-        <div className={`${dims.box} relative rounded-xl overflow-hidden shadow-sm flex items-center justify-center bg-white/90 border border-amber-300/60 p-0.5`}>
+        <div className="relative rounded-xl overflow-hidden flex items-center justify-center p-0.5 shrink-0">
           <img
             src={logoUrl}
             alt={brandConfig.name}
-            className="w-full h-full object-contain"
+            className={`${
+              size === 'sm'
+                ? 'h-7 max-w-[120px]'
+                : size === 'lg'
+                ? 'h-11 max-w-[200px]'
+                : size === 'xl'
+                ? 'h-14 max-w-[240px]'
+                : 'h-9 max-w-[160px]'
+            } w-auto object-contain rounded-lg drop-shadow-xs`}
           />
         </div>
       ) : (

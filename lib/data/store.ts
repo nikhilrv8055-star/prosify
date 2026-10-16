@@ -42,6 +42,9 @@ import {
   INITIAL_INTEGRATIONS,
   INITIAL_UNITS,
   INITIAL_RERA_RECORDS,
+  INITIAL_AFFILIATES,
+  INITIAL_AFFILIATE_CONVERSIONS,
+  INITIAL_AFFILIATE_PAYOUTS,
   INITIAL_AFFILIATE_CREATIVES,
   INITIAL_AFFILIATE_SETTINGS,
 } from './mockData';
@@ -71,9 +74,9 @@ class RealEstateStore {
   private integrations: IntegrationAdapter[] = [...INITIAL_INTEGRATIONS];
   private trackingLinks: TrackingLink[] = [];
   private auditLogs: AuditLogItem[] = [];
-  private affiliates: AffiliateUser[] = [];
-  private affiliateConversions: AffiliateConversion[] = [];
-  private affiliatePayouts: AffiliatePayoutRequest[] = [];
+  private affiliates: AffiliateUser[] = [...INITIAL_AFFILIATES];
+  private affiliateConversions: AffiliateConversion[] = [...INITIAL_AFFILIATE_CONVERSIONS];
+  private affiliatePayouts: AffiliatePayoutRequest[] = [...INITIAL_AFFILIATE_PAYOUTS];
   private affiliateCreatives: AffiliateCreative[] = [...INITIAL_AFFILIATE_CREATIVES];
   private affiliateSettings: AffiliateProgramSettings = { ...INITIAL_AFFILIATE_SETTINGS };
   private developerApiConnections: DeveloperApiConnection[] = [];
@@ -2789,6 +2792,58 @@ class RealEstateStore {
     return true;
   }
 
+  public rejectAffiliatePayout(requestId: string, reasonNote: string): boolean {
+    const req = this.affiliatePayouts.find((p) => p.id === requestId);
+    if (!req) return false;
+
+    req.status = 'REJECTED';
+    (req as any).rejectionReason = reasonNote || 'Failed banking or verification checks.';
+    req.processedDate = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    this.addAuditLog(
+      'AFFILIATE_PAYOUT_REJECTED',
+      'AffiliatePayout',
+      `Rejected ₹${req.amount} payout for ${req.affiliateName} (${req.affiliateCode}). Reason: ${reasonNote}`,
+      req.id
+    );
+
+    return true;
+  }
+
+  public updateAffiliateCommissionRate(affiliateId: string, newRate: number): boolean {
+    const aff = this.affiliates.find((a) => a.id === affiliateId);
+    if (!aff) return false;
+    aff.commissionRatePercent = newRate;
+    return true;
+  }
+
+  public updateAffiliateProfile(affiliateId: string, updates: Partial<AffiliateUser>): boolean {
+    const aff = this.affiliates.find((a) => a.id === affiliateId);
+    if (!aff) return false;
+    Object.assign(aff, updates);
+    return true;
+  }
+
+  public recordReferralClick(data: {
+    referralCode: string;
+    ipAddress?: string;
+    targetPath?: string;
+    selfEmail?: string;
+  }): { success: boolean; reason?: string; totalClicks: number } {
+    const aff = this.affiliates.find(
+      (a) => (a.affiliateCode || a.referralCode || '').toUpperCase() === data.referralCode.toUpperCase()
+    );
+    if (!aff) return { success: false, reason: 'Invalid affiliate code', totalClicks: 0 };
+
+    // Self-referral fraud prevention check
+    if (data.selfEmail && aff.email.toLowerCase() === data.selfEmail.toLowerCase()) {
+      return { success: false, reason: 'Self-referral blocked by fraud engine', totalClicks: aff.totalClicks || 0 };
+    }
+
+    aff.totalClicks = (aff.totalClicks || 0) + 1;
+    return { success: true, totalClicks: aff.totalClicks };
+  }
+
   public getAffiliateCreatives(): AffiliateCreative[] {
     return [...this.affiliateCreatives];
   }
@@ -2803,6 +2858,43 @@ class RealEstateStore {
       ...data,
     };
     return { ...this.affiliateSettings };
+  }
+
+  // ==========================================
+  // CRM SYNCHRONIZATION & LEAD FAILSAFE ENGINE
+  // ==========================================
+  public updateLeadCrmSyncStatus(
+    leadId: string,
+    status: 'PENDING' | 'SYNCED' | 'FAILED',
+    realaticLeadId?: string,
+    errorMsg?: string
+  ): Lead | undefined {
+    const lead = this.leadByIdIndex.get(leadId) || this.leads.find((l) => l.id === leadId);
+    if (!lead) return undefined;
+
+    lead.crmSyncStatus = status;
+    lead.crmLastSyncedAt = new Date().toISOString();
+    lead.updatedAt = new Date().toISOString();
+    if (realaticLeadId) {
+      lead.realaticLeadId = realaticLeadId;
+    }
+    if (errorMsg) {
+      lead.notes = `${lead.notes ? lead.notes + ' | ' : ''}CRM Sync Error: ${errorMsg}`;
+    }
+
+    this.notifyChanges('LEAD', 'UPDATE', lead);
+    return lead;
+  }
+
+  public addCrmSyncLog(log: CrmSyncLog): void {
+    this.crmSyncLogs.unshift(log);
+    if (this.crmSyncLogs.length > 200) {
+      this.crmSyncLogs.pop();
+    }
+  }
+
+  public getCrmSyncLogs(): CrmSyncLog[] {
+    return [...this.crmSyncLogs];
   }
 }
 

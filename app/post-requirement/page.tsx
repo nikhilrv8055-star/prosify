@@ -290,7 +290,7 @@ Please share direct developer brochures and available floor plans.`
                   className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99]"
                 >
                   <MessageSquare className="w-5 h-5" />
-                  <span>Connect Instantly on WhatsApp</span>
+                  <span>WhatsApp</span>
                 </a>
 
                 <button

@@ -42,6 +42,9 @@ import { formatIndianPrice } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
 import { useToast } from '@/components/ui/toast';
 import { useFestivalTheme } from '@/components/theme/FestivalThemeProvider';
+import { brandConfig } from '@/src/config/brand';
+import { ContactInquiryForm } from '@/components/crm/ContactInquiryForm';
+import { HighIntentCtaModal, HighIntentModalType } from '@/components/crm/HighIntentCtaModal';
 
 export default function HomePage() {
   const router = useRouter();
@@ -71,6 +74,8 @@ export default function HomePage() {
   const [requirementOpen, setRequirementOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [highIntentOpen, setHighIntentOpen] = useState(false);
+  const [highIntentType, setHighIntentType] = useState<HighIntentModalType>('callback');
 
   // Compare properties
   const [comparedProperties, setComparedProperties] = useState<Property[]>([]);
@@ -555,6 +560,127 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* HIGH-INTENT EVENT TRIGGERS (Requirement 1.3) */}
+      <section className="py-10 bg-linear-to-r from-neutral-900 via-[#171717] to-neutral-900 text-white border-y border-neutral-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#D4AF37] uppercase tracking-wider mb-1">
+                <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                Direct Enterprise Lead Pipelines
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                Connect Directly with Certified Real Estate Advisors
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-2xl">
+                Choose a priority action below. Inquiries are automatically synchronized into our CRM with zero delay.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Trigger 1: Request Callback */}
+              <button
+                type="button"
+                onClick={() => {
+                  setHighIntentType('callback');
+                  setHighIntentOpen(true);
+                }}
+                className="px-5 py-3 rounded-xl bg-linear-to-r from-[#D4AF37] to-[#F4C430] hover:from-[#C5A880] hover:to-[#E5B520] text-neutral-950 font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                <PhoneCall className="w-4 h-4" />
+                <span>Request Callback</span>
+              </button>
+
+              {/* Trigger 2: Download Brochure */}
+              <button
+                type="button"
+                onClick={() => {
+                  setHighIntentType('brochure');
+                  setHighIntentOpen(true);
+                }}
+                className="px-5 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs sm:text-sm border border-neutral-700 hover:border-neutral-600 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Briefcase className="w-4 h-4 text-amber-400" />
+                <span>Download Brochure</span>
+              </button>
+
+              {/* Trigger 3: Apply for Affiliate */}
+              <button
+                type="button"
+                onClick={() => {
+                  setHighIntentType('affiliate');
+                  setHighIntentOpen(true);
+                }}
+                className="px-5 py-3 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 font-semibold text-xs sm:text-sm border border-emerald-800/80 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Users className="w-4 h-4 text-emerald-400" />
+                <span>Apply for Affiliate</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* DEDICATED CONTACT & INQUIRY FORM SECTION (Requirement 1.1) */}
+      <section id="contact-inquiry" className="py-16 bg-neutral-50/70 border-t border-neutral-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            {/* Left Context */}
+            <div className="lg:col-span-5 space-y-6">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#D4A017]">
+                  Automated CRM Integration
+                </span>
+                <h2 className="text-3xl font-extrabold text-neutral-950 tracking-tight mt-1">
+                  Have a Property Inquiry? Let’s Talk.
+                </h2>
+                <p className="text-sm text-neutral-600 mt-2 leading-relaxed">
+                  Submit your details below to connect with an authorized relationship manager. Inquiries capture your referral attribution, UTM campaign source, and requirement details directly into our integrated CRM pipeline.
+                </p>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                {[
+                  {
+                    title: 'Instant CRM Synchronization',
+                    desc: 'Your request is queued through our resilient dispatcher with automated retries and fail-safe local logging.',
+                    icon: ShieldCheck,
+                  },
+                  {
+                    title: 'Zero Brokerage Guarantee',
+                    desc: '100% direct developer pricing with pre-negotiated volume discounts and verified legal titles.',
+                    icon: Award,
+                  },
+                  {
+                    title: 'Dedicated Home Buying Desk',
+                    desc: 'From VIP site visits with doorstep cabs to home loan facilitation at prime rates.',
+                    icon: CheckCircle2,
+                  },
+                ].map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={idx} className="flex items-start gap-3.5 p-4 rounded-2xl bg-white border border-neutral-200/80 shadow-xs">
+                      <div className="p-2 rounded-xl bg-amber-500/10 text-amber-700 shrink-0">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-neutral-900">{item.title}</h4>
+                        <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Interactive Contact Inquiry Form */}
+            <div className="lg:col-span-7">
+              <ContactInquiryForm />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Footer />
 
       {/* Modals */}
@@ -580,6 +706,13 @@ export default function HomePage() {
       <PropertyRequirementModal
         isOpen={requirementOpen}
         onClose={() => setRequirementOpen(false)}
+      />
+
+      {/* High-Intent Lead Capture Modal (Callback / Brochure / Affiliate) */}
+      <HighIntentCtaModal
+        isOpen={highIntentOpen}
+        onClose={() => setHighIntentOpen(false)}
+        type={highIntentType}
       />
     </div>
   );

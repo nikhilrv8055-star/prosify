@@ -577,12 +577,12 @@ export function SettingsTab() {
         {/* Bottom Action Footer with WhatsApp Direct */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           <a
-            href={formattedWhatsAppLink}
+            href="https://wa.me/919167991679"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#10B981]/20 hover:bg-[#10B981]/30 text-[#10B981] border border-[#10B981]/40 text-xs font-semibold transition-colors"
           >
-            <span>WhatsApp (+91 91679 91679)</span>
+            <span>WhatsApp</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
 

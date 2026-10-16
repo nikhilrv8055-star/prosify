@@ -151,7 +151,7 @@ export function AgentsTab({ agents, onAddAgent }: AgentsTabProps) {
 
             <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
               <a
-                href={`https://wa.me/${agent.phone.replace(/[^0-9]/g, '')}`}
+                href="https://wa.me/919167991679"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold flex items-center gap-1.5 transition-colors"

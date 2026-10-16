@@ -16,6 +16,7 @@ import { Footer } from '@/components/marketplace/Footer';
 import { brandConfig } from '@/src/config/brand';
 import { store } from '@/lib/data/store';
 import { useBrandSettings } from '@/lib/data/useBrandSettings';
+import { CrmInquiryForm } from '@/components/crm/CrmInquiryForm';
 
 export default function ContactPage() {
   const brandSettings = useBrandSettings();
@@ -148,13 +149,13 @@ export default function ContactPage() {
 
               <div className="pt-2 border-t border-neutral-100">
                 <a
-                  href={brandSettings.whatsappLink || 'https://wa.me/919167991679'}
+                  href="https://wa.me/919167991679"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>WhatsApp ({brandSettings.whatsappNumber || '9167991679'})</span>
+                  <span>WhatsApp</span>
                 </a>
               </div>
             </div>
@@ -175,110 +176,31 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Right: Interactive Contact Form */}
+          {/* Right: Robust CRM Lead Capture Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-xs space-y-6">
-              <div className="border-b border-neutral-100 pb-3">
-                <h3 className="text-lg font-bold text-neutral-950">Send an Advisory Request</h3>
-                <p className="text-xs text-neutral-500">
-                  A certified property advisor will respond within 30 minutes with relevant project portfolios
-                </p>
-              </div>
-
-              {submitted ? (
-                <div className="p-8 text-center space-y-3 bg-emerald-50 rounded-2xl border border-emerald-200">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                  <h4 className="font-bold text-neutral-950 text-base">Request Received Successfully</h4>
-                  <p className="text-xs text-neutral-600 max-w-md mx-auto">
-                    Thank you, {formData.name}. Your inquiry has been routed to our senior advisory desk. A dedicated relationship manager will reach you on {formData.phone}.
+            <div className="bg-[#171717] text-white p-6 sm:p-8 rounded-3xl border border-neutral-800 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Send className="w-5 h-5 text-[#10B981]" />
+                    <span>Send Us an Inquiry / Request Callback</span>
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    100% verified advisory with automated CRM attribution, RERA compliance, and zero brokerage.
                   </p>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="e.g. Ramesh Kulkarni"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
-                      />
-                    </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 shrink-0 self-start sm:self-auto">
+                  <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
+                  <span>CRM Webhook Connected</span>
+                </div>
+              </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="e.g. +91 98200 12345"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="name@company.com"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                        Inquiry Nature
-                      </label>
-                      <select
-                        value={formData.subject}
-                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 bg-neutral-50"
-                      >
-                        <option value="Homebuyer Consultation">Homebuyer Consultation</option>
-                        <option value="Channel Partner Onboarding">Channel Partner Onboarding</option>
-                        <option value="Developer Inventory Listing">Developer Inventory Listing</option>
-                        <option value="Site Visit Request">Site Visit Request</option>
-                        <option value="Other">Other Query</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                      Message / Property Requirements
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Please specify your preferred city, budget range (e.g., 2 BHK in Thane under 1.2 Cr)..."
-                      className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-3 px-4 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-xs sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Submit Inquiry</span>
-                  </button>
-                </form>
-              )}
+              {/* Robust CRM Lead Form with 10-digit Indian validation, honeypot, UTM capture */}
+              <CrmInquiryForm
+                defaultInquiryType="General Advisory & Search"
+                leadTag="Contact_Page_Inquiry"
+                cityDefault="Mumbai"
+              />
             </div>
           </div>
         </div>

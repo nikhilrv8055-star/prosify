@@ -325,15 +325,19 @@ export function RightMenuDrawer({
 
         {/* Bottom Fast Action Footer - Simple & Elegant */}
         <div className="mt-auto p-4 border-t border-neutral-100 bg-neutral-50/80 flex flex-col gap-2 shrink-0">
+          <div className="text-[10px] text-neutral-500 flex items-center justify-between pb-1 border-b border-neutral-200/60">
+            <span className="font-semibold text-neutral-700">{brandConfig.companyLegalName}</span>
+            <span className="text-emerald-700 font-bold">RERA: {brandConfig.reraNumber}</span>
+          </div>
           <a
-            href={brandSettings.whatsappLink || 'https://wa.me/919167991679'}
+            href="https://wa.me/919167991679"
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="w-full py-2 px-3 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-2 px-3 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
-            <MessageCircle className="w-3.5 h-3.5" />
-            <span>WhatsApp: {brandSettings.whatsappNumber || '9167991679'}</span>
+            <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <span>WhatsApp</span>
           </a>
 
           <button

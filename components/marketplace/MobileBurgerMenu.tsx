@@ -660,17 +660,17 @@ export function MobileBurgerMenu({ isOpen, onClose, onOpenMatcher }: MobileBurge
               </a>
 
               <a
-                href={`https://wa.me/${brandConfig.contact.whatsapp.replace(/[^0-9]/g, '')}?text=Hello%20Prosify,%20I%20have%20an%20inquiry`}
+                href="https://wa.me/919167991679"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="p-3 rounded-2xl bg-neutral-50 border border-neutral-200 flex items-center gap-3 hover:bg-emerald-50 hover:border-emerald-200 transition-all text-neutral-900"
               >
                 <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
                   <MessageCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] text-neutral-500 block">Instant WhatsApp Advisory</span>
-                  <span className="font-bold text-xs">{brandConfig.contact.whatsapp}</span>
+                  <span className="text-[11px] text-neutral-500 block">Instant Advisory Desk</span>
+                  <span className="font-bold text-xs">WhatsApp</span>
                 </div>
               </a>
 

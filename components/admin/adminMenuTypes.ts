@@ -80,6 +80,7 @@ export type AdminMenuKey =
   | 'festival-calendar'
   // Basic Settings
   | 'settings-general'
+  | 'settings-logo'
   | 'settings-contact'
   | 'settings-email'
   | 'settings-mail-from'

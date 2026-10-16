@@ -23,9 +23,11 @@ import {
   ExternalLink,
   ShieldCheck,
   AlertCircle,
+  Webhook,
 } from 'lucide-react';
 import { Lead, LeadStatus, LeadSourceType } from '@/lib/types';
 import { store } from '@/lib/data/store';
+import { CrmSyncCenter } from '@/components/crm/CrmSyncCenter';
 
 interface CrmTabProps {
   leads: Lead[];
@@ -41,6 +43,7 @@ export function CrmTab({ leads, onRefresh }: CrmTabProps) {
   const [newNote, setNewNote] = useState('');
   const [syncingLeadId, setSyncingLeadId] = useState<string | null>(null);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+  const [crmSubTab, setCrmSubTab] = useState<'pipeline' | 'sync_hub'>('pipeline');
 
   const realaticStatus = { configured: true, mode: 'PROLEAD ACTIVE' };
 
@@ -245,14 +248,45 @@ export function CrmTab({ leads, onRefresh }: CrmTabProps) {
         </div>
       </div>
 
-      {syncFeedback && (
-        <div className="p-3 rounded-xl bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 text-xs text-[#0EA5E9] flex items-center justify-between">
-          <span>{syncFeedback}</span>
-          <button onClick={() => setSyncFeedback(null)} className="text-slate-400 hover:text-white cursor-pointer ml-4">
-            ×
-          </button>
-        </div>
-      )}
+      {/* Sub-navigation: Pipeline vs CRM Webhook & Sync Hub */}
+      <div className="flex items-center gap-3 border-b border-slate-700/80 pb-3">
+        <button
+          onClick={() => setCrmSubTab('pipeline')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+            crmSubTab === 'pipeline'
+              ? 'bg-[#D4A017] text-slate-950 shadow-md shadow-[#D4A017]/20'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Stage Pipeline & Kanban</span>
+        </button>
+
+        <button
+          onClick={() => setCrmSubTab('sync_hub')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+            crmSubTab === 'sync_hub'
+              ? 'bg-[#0EA5E9] text-slate-950 shadow-md shadow-[#0EA5E9]/20'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+          }`}
+        >
+          <Webhook className="w-4 h-4" />
+          <span>CRM Webhook & Leads Sync Hub</span>
+        </button>
+      </div>
+
+      {crmSubTab === 'sync_hub' ? (
+        <CrmSyncCenter />
+      ) : (
+        <>
+          {syncFeedback && (
+            <div className="p-3 rounded-xl bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 text-xs text-[#0EA5E9] flex items-center justify-between">
+              <span>{syncFeedback}</span>
+              <button onClick={() => setSyncFeedback(null)} className="text-slate-400 hover:text-white cursor-pointer ml-4">
+                ×
+              </button>
+            </div>
+          )}
 
       {/* Filter Bar */}
       <div className="p-4 rounded-2xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700 flex flex-wrap items-center justify-between gap-3 shadow-lg">
@@ -565,6 +599,8 @@ export function CrmTab({ leads, onRefresh }: CrmTabProps) {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
