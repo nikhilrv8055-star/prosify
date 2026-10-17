@@ -99,6 +99,16 @@ export function AdminNavbar({
 
           <ProsifyLogo variant="admin" size="md" badge="Admin" href="/admin" showTagline={false} />
 
+          {/* Quick Change Logo Button */}
+          <button
+            type="button"
+            onClick={() => onNavigateTab('settings-logo')}
+            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[11px] font-semibold text-amber-300 transition-colors cursor-pointer"
+            title="Change Platform Logo & Visual Branding"
+          >
+            <span>Change Logo</span>
+          </button>
+
           {/* Subdomain pill */}
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-900 border border-neutral-800 text-xs font-mono">
             <Lock className="w-3 h-3 text-[#D4A017]" />

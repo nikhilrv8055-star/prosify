@@ -6,19 +6,43 @@ import { Sparkles, Shield, Building2, Briefcase } from 'lucide-react';
 import { useBrandSettings } from '@/lib/data/useBrandSettings';
 
 interface ProsifyAnimatedLogoProps {
-  panelType: 'admin' | 'vendor' | 'agent';
-  welcomeTitle: string; // e.g. "Welcome to Prosify Admin"
+  panelType?: 'admin' | 'vendor' | 'agent';
+  welcomeTitle?: string; // e.g. "Welcome to Prosify Admin"
   subtitle?: string;
-  size?: 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function ProsifyAnimatedLogo({
-  panelType,
+  panelType = 'agent',
   welcomeTitle,
   subtitle,
   size = 'lg',
 }: ProsifyAnimatedLogoProps) {
   const { logoUrl } = useBrandSettings();
+
+  // If size is 'sm', render compact header branding
+  if (size === 'sm') {
+    return (
+      <div className="flex items-center gap-2.5 select-none">
+        {logoUrl ? (
+          <div className="h-8 w-auto min-w-8 max-w-[120px] rounded-lg overflow-hidden flex items-center justify-center p-0.5 bg-neutral-900 border border-amber-500/30">
+            <img src={logoUrl} alt="Prosify Logo" className="h-full w-auto object-contain" />
+          </div>
+        ) : (
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#B38711] via-[#D4A017] to-[#F4C430] flex items-center justify-center text-neutral-950 font-serif font-black text-sm shadow-xs">
+            P
+          </div>
+        )}
+        <div className="flex items-center gap-1 font-serif font-bold text-base text-white tracking-tight">
+          <span>prosify</span>
+          <span className="text-[10px] font-mono text-amber-400 bg-amber-400/10 px-1 py-0.2 rounded border border-amber-400/30">
+            .in
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   // Theme color accents per panel
   const panelThemes = {
     admin: {
@@ -47,7 +71,8 @@ export function ProsifyAnimatedLogo({
     },
   };
 
-  const currentTheme = panelThemes[panelType];
+  const safeType = panelType && panelThemes[panelType] ? panelType : 'agent';
+  const currentTheme = panelThemes[safeType];
   const IconComponent = currentTheme.icon;
 
   return (
@@ -132,15 +157,17 @@ export function ProsifyAnimatedLogo({
         </span>
       </motion.div>
 
-      {/* Main Welcome Headline (As requested: "Welcome to Prosify Admin", etc.) */}
-      <motion.h1
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.5 }}
-        className="text-xl sm:text-2xl font-black tracking-tight text-white capitalize flex items-center justify-center gap-2"
-      >
-        <span>{welcomeTitle}</span>
-      </motion.h1>
+      {/* Main Welcome Headline (if provided) */}
+      {welcomeTitle && (
+        <motion.h1
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.5 }}
+          className="text-xl sm:text-2xl font-black tracking-tight text-white capitalize flex items-center justify-center gap-2"
+        >
+          <span>{welcomeTitle}</span>
+        </motion.h1>
+      )}
 
       {/* Subtitle / tag line */}
       {subtitle && (
