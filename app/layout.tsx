@@ -12,8 +12,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Prosify - Indian Real Estate Marketplace & Channel Partner Platform',
-  description: 'Prosify - Comprehensive Indian real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, and Ahmedabad.',
+  title: 'Prosify - Maharashtra Real Estate Marketplace & Channel Partner Platform',
+  description: 'Prosify - Premier Maharashtra real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, and Chhatrapati Sambhajinagar with MahaRERA compliance.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   openGraph: {
-    title: 'Prosify - Indian Real Estate Marketplace & Channel Partner Platform',
-    description: 'Comprehensive Indian real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, and Ahmedabad.',
+    title: 'Prosify - Maharashtra Real Estate Marketplace & Channel Partner Platform',
+    description: 'Premier Maharashtra real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, and Chhatrapati Sambhajinagar with MahaRERA compliance.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Prosify - Indian Real Estate Marketplace & Channel Partner Platform',
-    description: 'Comprehensive Indian real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, and Ahmedabad.',
+    title: 'Prosify - Maharashtra Real Estate Marketplace & Channel Partner Platform',
+    description: 'Premier Maharashtra real estate marketplace, project directory, inventory management, CRM, and channel partner affiliate platform across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, and Chhatrapati Sambhajinagar with MahaRERA compliance.',
   },
 };
 

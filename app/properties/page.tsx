@@ -397,7 +397,7 @@ function PropertiesContent() {
                   onChange={(e) => handleApplyCriteria({ ...criteria, city: e.target.value })}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-neutral-300 bg-neutral-50"
                 >
-                  <option value="ALL">All 9 Indian Metros</option>
+                  <option value="ALL">All Maharashtra Metro Cities</option>
                   {cities.map((c) => (
                     <option key={c} value={c}>
                       {c}

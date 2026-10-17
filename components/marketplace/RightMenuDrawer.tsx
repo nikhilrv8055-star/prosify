@@ -141,7 +141,7 @@ export function RightMenuDrawer({
             className={itemStyle}
           >
             <span>Micro-Markets</span>
-            <span className={simpleTagStyle}>9 Indian Metros</span>
+            <span className={simpleTagStyle}>Maharashtra Metros</span>
           </Link>
 
           {/* 6. AI Smart Match */}

@@ -30,13 +30,14 @@ interface CrmInquiryFormProps {
 const TOP_CITIES = [
   'Mumbai',
   'Pune',
-  'Bangalore',
-  'Hyderabad',
-  'Chennai',
-  'Delhi NCR (Gurugram/Noida)',
-  'Ahmedabad',
-  'Kolkata',
-  'Other / Pan-India',
+  'Nagpur',
+  'Nashik',
+  'Thane',
+  'Navi Mumbai',
+  'Chhatrapati Sambhajinagar',
+  'Solapur',
+  'Kolhapur',
+  'Other Maharashtra City',
 ];
 
 const INQUIRY_TYPES = [

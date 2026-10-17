@@ -228,10 +228,11 @@ export function ContactInquiryForm({
                 <option value="Thane">Thane</option>
                 <option value="Navi Mumbai">Navi Mumbai</option>
                 <option value="Pune">Pune</option>
-                <option value="Bengaluru">Bengaluru</option>
-                <option value="Delhi NCR">Delhi NCR</option>
-                <option value="Hyderabad">Hyderabad</option>
-                <option value="Other">Other City</option>
+                <option value="Nagpur">Nagpur</option>
+                <option value="Nashik">Nashik</option>
+                <option value="Chhatrapati Sambhajinagar">Chhatrapati Sambhajinagar</option>
+                <option value="Kolhapur">Kolhapur</option>
+                <option value="Other">Other Maharashtra City</option>
               </select>
             </div>
           </div>

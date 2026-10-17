@@ -8,7 +8,7 @@ import { MapPin, ShieldCheck, Phone, MessageSquare, Star } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Micro-Market Real Estate Consultants & Local Advisory Desks | Prosify',
   description:
-    'Connect with verified local real estate project consultants in Thane West, Kharghar Navi Mumbai, Bandra BKC, Whitefield Bengaluru, Hitec City Hyderabad, and Gurugram. Direct developer pricing and zero brokerage.',
+    'Connect with verified local real estate project consultants in Thane West, Kharghar Navi Mumbai, Bandra BKC, Pune Hinjawadi, Nagpur MIHAN, and Nashik Gangapur Road. Direct developer pricing and zero brokerage.',
 };
 
 export default function MicroMarketsPage() {
@@ -29,12 +29,12 @@ export default function MicroMarketsPage() {
           </h1>
 
           <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Local knowledge makes all the difference. Our micro-market consultants provide neighborhood price benchmarks, upcoming infrastructure roadmaps, and direct developer allocations across 8 prime metros.
+            Local knowledge makes all the difference. Our micro-market consultants provide neighborhood price benchmarks, upcoming infrastructure roadmaps, and direct developer allocations across Maharashtra’s premier metro cities.
           </p>
 
           <div className="pt-2 flex items-center justify-center gap-3">
             <a
-              href="https://wa.me/919167991679"
+              href="https://wa.me/919326303244"
               target="_blank"
               rel="noopener noreferrer"
               className="px-5 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#0da674] text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95"

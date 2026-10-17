@@ -1,78 +1,75 @@
 import {
-  AffiliateUser,
-  AffiliateConversion,
-  AffiliatePayoutRecord,
-  AffiliateSettings,
-  AffiliateCreative,
-} from '@/lib/types';
+  INITIAL_AFFILIATES,
+  INITIAL_AFFILIATE_PAYOUTS,
+  INITIAL_AFFILIATE_SETTINGS,
+  INITIAL_AFFILIATE_CREATIVES as MOCK_CREATIVES,
+} from './mockData';
 
-export const INITIAL_AFFILIATE_SETTINGS: AffiliateSettings = {
-  defaultCommissionPercent: 2.0,
-  cookieDurationDays: 60,
-  minimumPayoutAmount: 5000,
-  autoApproveAffiliates: true,
-  allowCustomSlugs: true,
-  leadBonusAmount: 250,
-  siteVisitBonusAmount: 1500,
-  payoutCycle: 'WEEKLY',
-  reraComplianceMandatory: false,
-  termsAndConditions:
-    'Affiliates earn up to 3.0% commission on registered property bookings and ₹1,500 on verified buyer site visits. Commissions are credited upon developer token verification or deed registration under MahaRERA guidelines. Payouts processed every Tuesday via UPI or NEFT.',
-};
+export { INITIAL_AFFILIATE_PAYOUTS, INITIAL_AFFILIATE_SETTINGS };
+export const INITIAL_AFFILIATE_MEMBERS = INITIAL_AFFILIATES;
+export const INITIAL_AFFILIATES_LIST = INITIAL_AFFILIATES;
 
-export const INITIAL_AFFILIATE_MEMBERS: AffiliateUser[] = [];
+export interface AffiliateMarketingAsset {
+  id: string;
+  title: string;
+  type: 'BANNER' | 'WHATSAPP_TEMPLATE' | 'SOCIAL_POST' | 'EMAIL_SWIPE';
+  aspectRatio?: string;
+  dimensions?: string;
+  imageUrl?: string;
+  headline: string;
+  copyText: string;
+  targetCategory: string;
+}
 
-export const INITIAL_AFFILIATE_CONVERSIONS: AffiliateConversion[] = [];
-
-export const INITIAL_AFFILIATE_PAYOUTS: AffiliatePayoutRecord[] = [];
-
-export const INITIAL_AFFILIATE_CREATIVES: AffiliateCreative[] = [
+export const AFFILIATE_CREATIVES: AffiliateMarketingAsset[] = [
   {
     id: 'crt-1',
-    title: 'Pan-India High Yield Residential Investment Banner (9 Metros)',
+    title: 'Maharashtra Metro Cities High Yield Residential Investment Banner',
     type: 'BANNER',
     aspectRatio: '16:9',
     dimensions: '1200x630 (Social Banner)',
     imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&auto=format&fit=crop&q=80',
-    headline: 'Buy 100% RERA Verified 2 & 3 BHK Homes with Direct Developer Pricing',
+    headline: 'Buy 100% MahaRERA Verified 2 & 3 BHK Homes with Direct Developer Pricing',
     copyText:
-      'Looking for your dream home or high-yield investment across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi NCR, or Ahmedabad? Explore 100% RERA-certified projects with exclusive festive payment schemes (Pay 10% Now, Rest on Possession). Visit via my verified link: {LINK}',
+      'Looking for your dream home or high-yield investment across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, or Chhatrapati Sambhajinagar? Explore 100% MahaRERA-certified projects with exclusive festive payment schemes (Pay 10% Now, Rest on Possession). Visit via my verified link: {LINK}',
     targetCategory: 'Luxury & High-Rise Apartments',
   },
   {
     id: 'crt-2',
-    title: 'Instant WhatsApp Buyer Lead Broadcast (Pan-India)',
+    title: 'Instant WhatsApp Buyer Lead Broadcast (Maharashtra Metros)',
     type: 'WHATSAPP_TEMPLATE',
-    headline: 'Direct Developer Inventory Access Alert across 9 Metros',
+    headline: 'Direct Developer Inventory Access Alert across Maharashtra Metro Cities',
     copyText:
-      'Namaste! Are you planning to buy a 2 BHK, 3 BHK, or luxury villa in Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, or Ahmedabad? 🏡✨\n\nCheck out the curated list of verified pre-launch and ready-to-move projects with direct developer discounts through Prosify Real Estate:\n\n👉 Browse verified homes: {LINK}\n\n✓ Zero brokerage on new launches\n✓ Certified RERA compliance reports\n✓ Instant free site visit cab booking across all 9 cities',
+      'Namaste! Are you planning to buy a 2 BHK, 3 BHK, or luxury villa in Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, or Chhatrapati Sambhajinagar? 🏡✨\n\nCheck out the curated list of verified pre-launch and ready-to-move projects with direct developer discounts through Prosify Real Estate:\n\n👉 Browse verified homes: {LINK}\n\n✓ Zero brokerage on new launches\n✓ Certified MahaRERA compliance reports\n✓ Instant free site visit cab booking across Maharashtra metro hubs',
     targetCategory: 'WhatsApp Family & Investor Groups',
   },
   {
     id: 'crt-3',
-    title: 'Bangalore & Hyderabad Tech Corridor High-Yield Portfolio',
+    title: 'Pune & Mumbai MMR Tech Corridor High-Yield Portfolio',
     type: 'SOCIAL_POST',
-    headline: 'Why Tech Corridors (ORR, Whitefield, HITEC City) are Yielding 14% Annual Returns',
+    headline: 'Why Maharashtra IT & Coastal Corridors (Hinjawadi, Kharadi, BKC, Seawoods) are Yielding Peak Returns',
     copyText:
-      'Real estate in India’s leading IT hubs—Bangalore, Hyderabad, and Pune—continues to outperform equities in stability and appreciation. For tech professionals and high-net-worth investors looking to deploy capital in top developers like Sobha, My Home, Godrej, and Prestige — verify the units directly on Prosify.\n\nExplore curated investment inventory: {LINK}\n\n#RealEstateIndia #BangaloreHomes #HyderabadProperties #PropertyInvestment #Prosify',
+      'Real estate in Maharashtra’s economic powerhouses—Mumbai MMR, Pune, and Nagpur—continues to outperform equities in stability and appreciation. For corporate leaders and high-net-worth investors looking to deploy capital in top developers like Godrej, Lodha, Raymond, and Kolte-Patil — verify the units directly on Prosify.\n\nExplore curated Maharashtra investment inventory: {LINK}\n\n#MaharashtraRealEstate #MumbaiHomes #PuneProperties #MahaRERA #Prosify',
     targetCategory: 'Professional & Tech Investors',
   },
   {
     id: 'crt-4',
-    title: 'Delhi NCR, Gurugram & Noida Express Luxury Property Broadcast',
+    title: 'Nagpur & Nashik Expressway Luxury Corridor Broadcast',
     type: 'SOCIAL_POST',
-    headline: 'Ultra-Luxury Living & Golf Course Residences in Gurugram and Noida',
+    headline: 'Ultra-Luxury Living & Samruddhi Mahamarg Residences in Nagpur and Nashik',
     copyText:
-      'Explore handpicked luxury residences, sky mansions, and expressway townships in Gurugram Golf Course Road, Dwarka Expressway, and Noida Sector 150. Direct developer pricing with zero brokerage.\n\nCheck live inventory: {LINK}\n\n#GurugramRealEstate #NoidaHomes #DelhiNCR #Prosify',
+      'Explore handpicked luxury residences, sky mansions, and expressway townships in Nagpur MIHAN, Wardha Road, and Nashik Gangapur Road. Direct developer pricing with zero brokerage and 100% MahaRERA verification.\n\nCheck live inventory: {LINK}\n\n#NagpurRealEstate #NashikHomes #SamruddhiMahamarg #Prosify',
     targetCategory: 'Luxury Home Buyers',
   },
   {
     id: 'crt-5',
-    title: 'Email Newsletter Swipe for Property Buyers (Pan-India)',
+    title: 'Email Newsletter Swipe for Property Buyers (Maharashtra Metros)',
     type: 'EMAIL_SWIPE',
-    headline: 'Exclusive Weekend Site Visit Invites: Top 9 Metro Projects',
+    headline: 'Exclusive Weekend Site Visit Invites: Maharashtra Metro Projects',
     copyText:
-      'Subject: Exclusive Preview: Top 9 Metro High-Yield Properties (Direct Developer Rate)\n\nHi {First_Name},\n\nIf you have been waiting for the right moment to lock in a new apartment in Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, or Ahmedabad, this special unlocks verified units with zero price inflation.\n\nTake a look at available units and schedule a free VIP site visit:\n{LINK}\n\nBest regards,\n{Affiliate_Name}',
+      'Subject: Exclusive Preview: Maharashtra Top Metro High-Yield Properties (Direct Developer Rate)\n\nHi {First_Name},\n\nIf you have been waiting for the right moment to lock in a new apartment in Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, or Chhatrapati Sambhajinagar, this special unlocks verified units with zero price inflation.\n\nTake a look at available units and schedule a free VIP site visit:\n{LINK}\n\nBest regards,\n{Affiliate_Name}',
     targetCategory: 'Email Subscribers',
   },
 ];
+
+export const INITIAL_AFFILIATE_CREATIVES = MOCK_CREATIVES;

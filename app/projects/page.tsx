@@ -39,13 +39,13 @@ function ProjectsListContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#F4C430]">
-              RERA Registered Developments Across India
+              MahaRERA Registered Developments Across Maharashtra Metros
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
               Integrated Townships & Residential Projects
             </h1>
             <p className="text-sm text-neutral-400">
-              Browse masterplanned communities from India’s foremost developers across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi NCR, and Ahmedabad.
+              Browse masterplanned communities from Maharashtra’s foremost developers across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, and Chhatrapati Sambhajinagar.
             </p>
           </div>
 
@@ -67,7 +67,7 @@ function ProjectsListContent() {
               onChange={(e) => setCity(e.target.value)}
               className="w-full sm:w-48 py-2 px-3 text-xs sm:text-sm rounded-xl bg-neutral-900 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
             >
-              <option value="ALL">All 9 Indian Metros</option>
+              <option value="ALL">All Maharashtra Metro Cities</option>
               {cities.map((c) => (
                 <option key={c} value={c}>
                   {c}

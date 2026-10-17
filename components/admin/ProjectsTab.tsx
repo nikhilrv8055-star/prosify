@@ -184,7 +184,7 @@ export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) 
           onChange={(e) => setCityFilter(e.target.value)}
           className="px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-[#0EA5E9]"
         >
-          <option value="ALL">All 9 Metros</option>
+          <option value="ALL">All Maharashtra Metros</option>
           {PAN_INDIA_CITIES.map((c) => (
             <option key={c} value={c}>
               {c}

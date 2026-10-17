@@ -226,10 +226,13 @@ export function PostPropertyModal({ isOpen, onClose }: PostPropertyModalProps) {
                     className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-xs font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none"
                   >
                     <option>Mumbai MMR</option>
-                    <option>Bengaluru</option>
                     <option>Pune</option>
-                    <option>Hyderabad</option>
-                    <option>Delhi NCR</option>
+                    <option>Nagpur</option>
+                    <option>Nashik</option>
+                    <option>Thane</option>
+                    <option>Navi Mumbai</option>
+                    <option>Chhatrapati Sambhajinagar</option>
+                    <option>Kolhapur</option>
                   </select>
                 </div>
 

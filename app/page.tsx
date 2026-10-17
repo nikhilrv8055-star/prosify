@@ -179,11 +179,11 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              Find Your Perfect Home Across Top Indian Metros
+              Find Your Perfect Home Across Maharashtra’s Top Metro Cities
             </h1>
 
             <p className="text-base sm:text-lg text-neutral-300 font-normal leading-relaxed">
-              Explore verified properties, new launch projects, and high-yield real estate investments across Mumbai, Pune, Bangalore, Hyderabad, Chennai, Delhi, Noida, Gurugram, and Ahmedabad with direct RERA transparency.
+              Explore verified properties, new launch projects, and high-yield real estate investments across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, and Chhatrapati Sambhajinagar with direct MahaRERA transparency.
             </p>
           </div>
 
@@ -234,7 +234,7 @@ export default function HomePage() {
                     onChange={(e) => setCity(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#D4A017] bg-white font-medium text-neutral-800"
                   >
-                    <option value="All">All 9 Indian Metros</option>
+                    <option value="All">All Maharashtra Metro Cities</option>
                     {cities.map((c) => (
                       <option key={c} value={c}>
                         {c}

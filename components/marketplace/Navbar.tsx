@@ -67,7 +67,7 @@ function PartnerTrackerBanner() {
         Verified Referral / Partner Active: <strong>{partnerAttribution}</strong>
       </span>
       <span className="text-[11px] opacity-80 hidden sm:inline">
-        • Direct developer pricing and verified booking guarantee active across all 9 Indian Metros
+        • Direct developer pricing and verified booking guarantee active across Maharashtra Metro Cities
       </span>
     </div>
   );
@@ -137,9 +137,9 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
       href: '/micro-markets',
       icon: MapPin,
       highlight: false,
-      popupTitle: 'Pan-India Micro-Markets',
-      popupDesc: 'Analyze top investment hotspots and price trends across 9 major metropolitan regions.',
-      popupHighlight: 'Mumbai, Bangalore, Pune & more',
+      popupTitle: 'Maharashtra Metro Markets',
+      popupDesc: 'Analyze top investment hotspots and price trends across Maharashtra’s premier metropolitan regions.',
+      popupHighlight: 'Mumbai, Pune, Nagpur, Nashik & more',
     },
     {
       label: 'Developers',
