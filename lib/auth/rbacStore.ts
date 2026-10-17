@@ -40,14 +40,18 @@ export interface AgentProfileData {
 export interface RbacUser {
   id: string;
   secureId: string; // e.g. VEN-8921 or AGT-4310
+  assignedCode?: string;
   username: string; // Unique login ID / Email
   email: string;
   name: string;
   phone: string;
   role: UserRole;
   passwordHash: string; // Stored password (plain/hashed for demo verification)
+  password?: string;
   status: AccountStatus;
   requirePasswordChangeOnFirstLogin: boolean;
+  portalUrl?: string;
+  companyOrProject?: string;
   createdAt: string;
   lastLoginAt?: string;
   lastLoginIp?: string;
@@ -176,9 +180,23 @@ export const INITIAL_RBAC_USERS: RbacUser[] = [
 
 const LOCAL_STORAGE_KEY = 'prosify_rbac_users_db_v2';
 
-// In-memory singleton with LocalStorage sync on client
+// In-memory singleton with LocalStorage sync on client and persistent disk storage on server
 class RbacManager {
   private users: RbacUser[] = [...INITIAL_RBAC_USERS];
+
+  private getServerDb() {
+    if (typeof window === 'undefined') {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { serverUserDb } = require('./serverUserDb');
+        return serverUserDb;
+      } catch (e) {
+        console.warn('Failed to load serverUserDb in rbacStore:', e);
+        return null;
+      }
+    }
+    return null;
+  }
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -208,6 +226,10 @@ class RbacManager {
   }
 
   public getUsers(role?: UserRole): RbacUser[] {
+    const sDb = this.getServerDb();
+    if (sDb) {
+      return sDb.getAllUsers(role);
+    }
     if (role) {
       return this.users.filter((u) => u.role === role);
     }
@@ -215,16 +237,25 @@ class RbacManager {
   }
 
   public getUserById(id: string): RbacUser | undefined {
+    const sDb = this.getServerDb();
+    if (sDb) {
+      return sDb.findUserById(id);
+    }
     return this.users.find((u) => u.id === id || u.secureId === id);
   }
 
   public findUserByLogin(identifier: string): RbacUser | undefined {
+    const sDb = this.getServerDb();
+    if (sDb) {
+      return sDb.findUserByLogin(identifier);
+    }
     const clean = identifier.trim().toLowerCase();
     return this.users.find(
       (u) =>
         u.username.toLowerCase() === clean ||
         u.email.toLowerCase() === clean ||
         u.secureId.toLowerCase() === clean ||
+        (u.assignedCode && u.assignedCode.toLowerCase() === clean) ||
         u.phone.replace(/\D/g, '') === clean.replace(/\D/g, '')
     );
   }
@@ -253,14 +284,18 @@ class RbacManager {
     const newUser: RbacUser = {
       id: `user-${prefix.toLowerCase()}-${Date.now()}-${randCode}`,
       secureId,
+      assignedCode: secureId,
       username: `${secureId.toLowerCase()}@prosify.in`,
       email: userData.email.trim().toLowerCase(),
       name: userData.name.trim(),
       phone: userData.phone.trim(),
       role: userData.role,
+      password: tempPassword,
       passwordHash: tempPassword,
       status: userData.requirePasswordChange !== false ? 'PENDING_FIRST_LOGIN' : 'ACTIVE',
       requirePasswordChangeOnFirstLogin: userData.requirePasswordChange !== false,
+      portalUrl: userData.role === 'VENDOR' ? '/vendor' : '/agent',
+      companyOrProject: userData.businessOrAgencyName.trim(),
       createdAt: new Date().toISOString(),
     };
 
@@ -288,6 +323,12 @@ class RbacManager {
       };
     }
 
+    const sDb = this.getServerDb();
+    if (sDb) {
+      const saved = sDb.saveUser(newUser);
+      return { user: saved, temporaryPassword: tempPassword };
+    }
+
     this.users.unshift(newUser);
     this.persist();
 
@@ -295,10 +336,16 @@ class RbacManager {
   }
 
   public updatePassword(userId: string, newPassword: string): boolean {
+    const sDb = this.getServerDb();
+    if (sDb) {
+      return sDb.updatePassword(userId, newPassword);
+    }
+
     const user = this.getUserById(userId);
     if (!user) return false;
 
     user.passwordHash = newPassword;
+    user.password = newPassword;
     user.requirePasswordChangeOnFirstLogin = false;
     if (user.status === 'PENDING_FIRST_LOGIN') {
       user.status = 'ACTIVE';
@@ -308,6 +355,11 @@ class RbacManager {
   }
 
   public updateStatus(userId: string, status: AccountStatus): boolean {
+    const sDb = this.getServerDb();
+    if (sDb) {
+      return sDb.updateStatus(userId, status);
+    }
+
     const user = this.getUserById(userId);
     if (!user) return false;
 
@@ -317,6 +369,12 @@ class RbacManager {
   }
 
   public recordLogin(userId: string, ip?: string): void {
+    const sDb = this.getServerDb();
+    if (sDb) {
+      sDb.recordLogin(userId, ip);
+      return;
+    }
+
     const user = this.getUserById(userId);
     if (user) {
       user.lastLoginAt = new Date().toISOString();
@@ -326,6 +384,11 @@ class RbacManager {
   }
 
   public deleteUser(userId: string): boolean {
+    const sDb = this.getServerDb();
+    if (sDb) {
+      return sDb.deleteUser(userId);
+    }
+
     const initialLen = this.users.length;
     this.users = this.users.filter((u) => u.id !== userId && u.secureId !== userId);
     if (this.users.length < initialLen) {
@@ -337,3 +400,4 @@ class RbacManager {
 }
 
 export const rbacStore = new RbacManager();
+

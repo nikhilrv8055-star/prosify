@@ -161,6 +161,20 @@ export default function AgentDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
+  const [currentUser, setCurrentUser] = useState<{ secureId: string; name: string; username?: string } | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const match = document.cookie.match(/prosify_agent_session=([^;]+)/);
+      if (match && match[1]) {
+        const decoded = JSON.parse(atob(decodeURIComponent(match[1])));
+        if (decoded) {
+          setCurrentUser(decoded);
+        }
+      }
+    } catch {}
+  }, []);
+
   // Offline Lead Capture Form State
   const [offlineForm, setOfflineForm] = useState({
     name: '',
@@ -281,10 +295,10 @@ export default function AgentDashboardPage() {
           <span className="hidden sm:inline-block h-4 w-px bg-neutral-700" />
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              AGT-4310
+              {currentUser?.secureId || 'AGT-PARTNER'}
             </span>
             <span className="text-xs text-neutral-300 font-semibold hidden md:inline">
-              Suresh Patil • Patil Realty Consultants
+              {currentUser?.name || 'Senior Certified Channel Partner'}
             </span>
           </div>
         </div>

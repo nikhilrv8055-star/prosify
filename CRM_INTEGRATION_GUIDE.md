@@ -22,7 +22,7 @@ CRM_API_KEY="your_api_key_or_bearer_token"
 CRM_WEBHOOK_SECRET="your_optional_webhook_secret"
 ```
 
-> **Note on Fail-Safe Mode:** If `CRM_API_ENDPOINT` is left blank, the website continues to function smoothly in **Local Fail-Safe Mode**. All leads and signups are safely persisted in the local database (`leads` table) with `crmSyncStatus: "PENDING"`, so **no lead is ever lost**. Once you paste your CRM URL, pending leads can be synced with one click from the Admin Suite!
+> **Note on Fail-Safe Mode:** If `CRM_API_ENDPOINT` is left blank, the website continues to function smoothly in **Local Fail-Safe Mode**. All leads and signups are safely persisted in the local database (`leads` table) with `crmSyncStatus: "PENDING"`, so **no lead is ever lost**. Once you paste your CRM URL, pending leads can be synced with one click from the Admin Portal!
 
 ---
 
@@ -118,7 +118,7 @@ When a lead is submitted:
    - Attempt 2: After 500ms
    - Attempt 3: After 1,000ms
 4. If acknowledged (HTTP 200/201/204), lead is updated to `crmSyncStatus: "SYNCED"`.
-5. If the endpoint is down, it is marked `crmSyncStatus: "FAILED"` with the exact error message recorded. You can view all logs and retry with 1 click from the Admin Suite!
+5. If the endpoint is down, it is marked `crmSyncStatus: "FAILED"` with the exact error message recorded. You can view all logs and retry with 1 click from the Admin Portal!
 
 ---
 

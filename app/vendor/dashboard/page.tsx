@@ -166,6 +166,20 @@ export default function VendorDashboardPage() {
 
   // Add Item Modal
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ secureId: string; name: string; username?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const match = document.cookie.match(/prosify_vendor_session=([^;]+)/);
+      if (match && match[1]) {
+        const decoded = JSON.parse(atob(decodeURIComponent(match[1])));
+        if (decoded) {
+          setCurrentUser(decoded);
+        }
+      }
+    } catch {}
+  }, []);
+
   const [newItem, setNewItem] = useState({
     title: '',
     category: 'Masonry & Wall Materials',
@@ -210,10 +224,10 @@ export default function VendorDashboardPage() {
           <span className="hidden sm:inline-block h-4 w-px bg-neutral-700" />
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-              VEN-8921
+              {currentUser?.secureId || 'VEN-PARTNER'}
             </span>
             <span className="text-xs text-neutral-300 font-semibold hidden md:inline">
-              BuildTech Smart Materials &amp; Engineering
+              {currentUser?.name || 'Verified Vendor Enterprise'}
             </span>
           </div>
         </div>

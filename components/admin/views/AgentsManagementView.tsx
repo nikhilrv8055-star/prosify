@@ -38,6 +38,7 @@ import {
   deletePortalUser,
   savePortalUsers,
   setPortalSession,
+  syncPortalUsersFromCloud,
 } from '@/lib/auth/portalUsers';
 import {
   getScopedAgentData,
@@ -94,9 +95,16 @@ export function AgentsManagementView({ subview = 'agents-management' }: { subvie
 
   const refreshAgents = () => {
     setPortalAgents(getPortalUsers().filter((u) => u.role === 'AGENT'));
+    syncPortalUsersFromCloud().then((cloudUsers) => {
+      setPortalAgents(cloudUsers.filter((u) => u.role === 'AGENT'));
+    });
   };
 
   useEffect(() => {
+    // Live sync from persistent server storage on load/refresh
+    syncPortalUsersFromCloud().then((cloudUsers) => {
+      setPortalAgents(cloudUsers.filter((u) => u.role === 'AGENT'));
+    });
     const handleUpdate = () => refreshAgents();
     window.addEventListener('eni_portal_users_updated', handleUpdate);
     return () => window.removeEventListener('eni_portal_users_updated', handleUpdate);

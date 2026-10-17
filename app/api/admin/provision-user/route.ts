@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       requirePasswordChange,
     });
 
-    const loginUrl = role === 'VENDOR' ? 'https://prosify.in/vendor/login' : 'https://prosify.in/agent/login';
+    const loginUrl = role === 'VENDOR' ? '/vendor/login' : '/agent/login';
 
     return NextResponse.json({
       success: true,

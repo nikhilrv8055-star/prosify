@@ -125,6 +125,29 @@ export async function POST(req: NextRequest) {
       inMemoryCloudCredentials.unshift(record);
     }
 
+    // Save to unified server database for multi-device/browser persistence
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { serverUserDb } = require('@/lib/auth/serverUserDb');
+      serverUserDb.saveUser({
+        id: record.id,
+        secureId: record.assignedCode,
+        assignedCode: record.assignedCode,
+        username: record.username,
+        email: record.username.includes('@') ? record.username : `${record.username}@prosify.in`,
+        name: record.name,
+        phone: record.phone,
+        role: record.type.toUpperCase() as any,
+        password: record.password,
+        passwordHash: record.password,
+        status: 'ACTIVE',
+        portalUrl: record.type.toUpperCase() === 'VENDOR' ? '/vendor' : '/agent',
+        companyOrProject: record.companyOrProject,
+      });
+    } catch (dbErr) {
+      console.warn('Failed to save to serverUserDb in cloud-sync:', dbErr);
+    }
+
     return NextResponse.json({
       success: true,
       message: `${type} credentials securely generated, synchronized and stored to Cloud Storage bucket`,

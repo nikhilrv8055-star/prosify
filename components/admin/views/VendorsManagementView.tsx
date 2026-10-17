@@ -27,6 +27,7 @@ import {
   createPortalUser,
   deletePortalUser,
   setPortalSession,
+  syncPortalUsersFromCloud,
 } from '@/lib/auth/portalUsers';
 import {
   getScopedVendorData,
@@ -85,9 +86,16 @@ export function VendorsManagementView({ subview = 'vendors-registered' }: { subv
 
   const refreshVendors = () => {
     setPortalVendors(getPortalUsers().filter((u) => u.role === 'VENDOR'));
+    syncPortalUsersFromCloud().then((cloudUsers) => {
+      setPortalVendors(cloudUsers.filter((u) => u.role === 'VENDOR'));
+    });
   };
 
   useEffect(() => {
+    // Live sync from persistent server storage on load/refresh
+    syncPortalUsersFromCloud().then((cloudUsers) => {
+      setPortalVendors(cloudUsers.filter((u) => u.role === 'VENDOR'));
+    });
     const handleUpdate = () => refreshVendors();
     window.addEventListener('eni_portal_users_updated', handleUpdate);
     return () => window.removeEventListener('eni_portal_users_updated', handleUpdate);

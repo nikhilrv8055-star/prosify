@@ -64,7 +64,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify password
-    if (user.passwordHash !== password.trim()) {
+    const enteredPass = password.trim();
+    const isPasswordValid =
+      (user.passwordHash && user.passwordHash === enteredPass) ||
+      (user.password && user.password === enteredPass);
+
+    if (!isPasswordValid) {
       recordFailedLogin(ip, 'vendor');
       return NextResponse.json(
         { success: false, error: 'Invalid password. Please check and try again.' },
