@@ -44,6 +44,22 @@ export async function POST(req: NextRequest) {
       console.warn('Could not mirror to public uploads directory:', e);
     }
 
+    // Upload to Cloudflare R2 Storage Bucket
+    let r2Key = '';
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { uploadBufferToR2, buildR2Key } = require('@/lib/storage/r2Client');
+      r2Key = buildR2Key(file.name, 'logo');
+      await uploadBufferToR2({
+        buffer,
+        key: r2Key,
+        contentType: file.type || 'image/png',
+        metadata: { originalFilename: file.name, isWebsiteLogo: 'true' },
+      });
+    } catch (r2Err) {
+      console.warn('[R2 Storage Sync Notice in upload-logo]:', r2Err);
+    }
+
     // Timestamped universal logo URL for cache-busting
     const timestamp = Date.now();
     const universalLogoUrl = `/api/brand/logo?v=${timestamp}`;
@@ -60,6 +76,8 @@ export async function POST(req: NextRequest) {
       ...currentSettings,
       agencyName: brandName || currentSettings.agencyName || 'Prosify Technologies Private Limited',
       logoUrl: universalLogoUrl,
+      r2LogoKey: r2Key || currentSettings.r2LogoKey,
+      r2Bucket: 'prosify',
       logoName: file.name,
       logoType: file.type || 'image/png',
       logoUploadedAt: new Date().toISOString(),

@@ -27,6 +27,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { saveCachedBrandSettings } from '@/lib/data/useBrandSettings';
+import { R2ImageUploader } from '@/components/storage/R2ImageUploader';
 
 export function BasicSettingsView({ subview = 'settings-general' }: { subview?: string }) {
   const [activeTab, setActiveTab] = useState<
@@ -460,6 +461,21 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
               </button>
             </div>
           </div>
+
+          {/* Cloudflare R2 Dedicated Logo & Media Uploader */}
+          <R2ImageUploader
+            isLogoUploader={true}
+            uploadType="logo"
+            currentImageUrl={logoConfig.logoUrl}
+            onUploadComplete={(result) => {
+              setLogoConfig((prev) => ({
+                ...prev,
+                logoUrl: result.mediaUrl,
+                logoName: result.filename,
+              }));
+              showToast('✓ Cloudflare R2 Logo Stored & Published Universally!');
+            }}
+          />
 
           {/* Dual Live Preview Cards */}
           <div className="p-6 rounded-2xl bg-[#1E293B]/80 border border-slate-700 shadow-xl space-y-4">

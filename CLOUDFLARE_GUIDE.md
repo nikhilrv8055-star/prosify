@@ -159,3 +159,30 @@ Agar aap local ya staging par test kar rahe hain:
 - Cloudflare Dashboard -> **Overview** ya **Caching** -> **Development Mode** toggle **ON** kar dein.
 - Yeh 3 ghante tak Cloudflare edge caching ko poori tarah pause kar deta hai, jisse aap live multi-browser testing bina kisi cache issue ke kar sakte hain.
 
+---
+
+### Setting 5: Cloudflare R2 Object Storage Configuration (Bucket: `prosify`, Folder: `Photos/`)
+Aapke Cloudflare R2 storage credentials project me configure ho chuke hain:
+- **Bucket**: `prosify`
+- **Folder Path**: `Photos/`
+- **S3 Endpoint**: `https://477b7cf9388de6074251205b112c1164.r2.cloudflarestorage.com`
+- **SDK**: `@aws-sdk/client-s3` & `@aws-sdk/s3-request-presigner`
+
+**Important: Cloudflare R2 Bucket CORS Setup (Presigned URL Uploads ke liye):**
+Agar aap client browser se direct presigned URL upload use karna chahte hain, to Cloudflare Dashboard me CORS allow karna hota hai:
+1. Cloudflare Dashboard -> **R2 Object Storage** -> Bucket **prosify** par click karein.
+2. **Settings** tab me jayein -> **CORS Policy** section me **Add CORS policy** dabayein.
+3. Yeh JSON paste karein:
+   ```json
+   [
+     {
+       "AllowedOrigins": ["*"],
+       "AllowedMethods": ["GET", "PUT", "HEAD"],
+       "AllowedHeaders": ["*"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
+4. **Save** karein. Ab browser se direct R2 upload bina kisi CORS block ke chalega!
+
+

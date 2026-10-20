@@ -15,6 +15,9 @@ export interface BrandSettingsState {
   companyLegalName?: string;
   logoUrl?: string;
   logoName?: string;
+  r2LogoKey?: string;
+  r2LogoUrl?: string;
+  r2Bucket?: string;
   updatedAt?: string;
 }
 

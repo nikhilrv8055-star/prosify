@@ -33,10 +33,33 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. Check system_settings.json for a direct URL
+    // 2. Check system_settings.json for R2 key or direct URL
     if (fs.existsSync(SETTINGS_FILE)) {
       try {
         const settings = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
+        if (settings.r2LogoKey) {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const { getR2Object } = require('@/lib/storage/r2Client');
+            const r2Response = await getR2Object({ key: settings.r2LogoKey });
+            if (r2Response.Body) {
+              const chunks: any[] = [];
+              for await (const chunk of r2Response.Body) {
+                chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+              }
+              const buffer = Buffer.concat(chunks);
+              return new NextResponse(buffer, {
+                headers: {
+                  'Content-Type': r2Response.ContentType || 'image/png',
+                  'Cache-Control': 'public, max-age=30, must-revalidate',
+                  'X-Source': 'Cloudflare-R2',
+                },
+              });
+            }
+          } catch (r2Err) {
+            console.warn('R2 logo fetch fallback:', r2Err);
+          }
+        }
         if (settings.logoUrl && !settings.logoUrl.startsWith('/api/brand/logo')) {
           return NextResponse.redirect(new URL(settings.logoUrl, req.url));
         }
