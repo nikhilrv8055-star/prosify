@@ -26,8 +26,12 @@ import {
   Send,
   Loader2,
   Check,
+  Calculator,
+  Activity,
 } from 'lucide-react';
 import { ProsifyAnimatedLogo } from '@/components/brand/ProsifyAnimatedLogo';
+import { AgentCommissionCalculator } from '@/components/agent/AgentCommissionCalculator';
+import { AgentCrmSyncLogTab } from '@/components/agent/AgentCrmSyncLogTab';
 
 interface AgentLead {
   id: string;
@@ -155,7 +159,7 @@ const INITIAL_COMMISSIONS: ClosedCommissionDeal[] = [
 
 export default function AgentDashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'leads' | 'targets' | 'commissions' | 'add_lead'>('leads');
+  const [activeTab, setActiveTab] = useState<'leads' | 'targets' | 'commissions' | 'calculator' | 'crm_sync' | 'add_lead'>('leads');
   const [leads, setLeads] = useState<AgentLead[]>(INITIAL_AGENT_LEADS);
   const [commissions, setCommissions] = useState<ClosedCommissionDeal[]>(INITIAL_COMMISSIONS);
   const [searchQuery, setSearchQuery] = useState('');
@@ -369,6 +373,8 @@ export default function AgentDashboardPage() {
         <div className="flex items-center gap-2 border-b border-neutral-800 pb-2 overflow-x-auto">
           {[
             { id: 'leads', label: 'Assigned Leads Directory', icon: Users },
+            { id: 'calculator', label: 'Commission Calculator', icon: Calculator },
+            { id: 'crm_sync', label: 'CRM Sync & Webhooks', icon: Activity },
             { id: 'targets', label: 'Target vs. Achievement', icon: Target },
             { id: 'commissions', label: 'Commission Ledger', icon: DollarSign },
             { id: 'add_lead', label: '+ Add Offline Walk-in Lead', icon: UserPlus },
@@ -727,6 +733,20 @@ export default function AgentDashboardPage() {
                 )}
               </button>
             </form>
+          </div>
+        )}
+
+        {/* TAB 5: COMMISSION CALCULATOR */}
+        {activeTab === 'calculator' && (
+          <div className="space-y-4">
+            <AgentCommissionCalculator initialPropertyPrice={18500000} currentAgentTier="gold" />
+          </div>
+        )}
+
+        {/* TAB 6: CRM SYNC & WEBHOOK TELEMETRY */}
+        {activeTab === 'crm_sync' && (
+          <div className="space-y-4">
+            <AgentCrmSyncLogTab />
           </div>
         )}
       </main>

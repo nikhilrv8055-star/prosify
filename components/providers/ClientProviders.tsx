@@ -7,8 +7,6 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import { AttributionTracker } from '@/components/marketplace/AttributionTracker';
 import { FestivalThemeProvider } from '@/components/theme/FestivalThemeProvider';
 
-import { FloatingWhatsAppButton } from '@/components/marketplace/FloatingWhatsAppButton';
-
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const hideNextIndicator = () => {
@@ -36,7 +34,6 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
           {children}
           <AuthModal />
           <AttributionTracker />
-          <FloatingWhatsAppButton />
         </FestivalThemeProvider>
       </ToastProvider>
     </AuthProvider>

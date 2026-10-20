@@ -147,15 +147,20 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
       .catch(() => {});
   }, []);
 
-  const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
+
+  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 3 * 1024 * 1024) {
-      showToast('Logo file size must be less than 3MB');
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Logo file size must be less than 5MB');
       return;
     }
 
+    setSelectedLogoFile(file);
+
+    // Instant local preview
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
@@ -164,14 +169,63 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
         logoUrl: dataUrl,
         logoName: file.name,
       }));
-      showToast(`Selected "${file.name}". Click "Publish Logo to Live Website" to apply.`);
     };
     reader.readAsDataURL(file);
+
+    // Auto-upload to server API for universal multi-browser synchronization
+    setIsPublishingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
+      formData.append('brandName', logoConfig.brandName || general.siteName);
+
+      const res = await fetch('/api/admin/upload-logo', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data?.success && data?.settings) {
+        saveCachedBrandSettings(data.settings);
+        setLogoConfig((prev) => ({
+          ...prev,
+          logoUrl: data.logoUrl,
+          logoName: file.name,
+        }));
+        showToast('✓ Universal Logo Published! Live across all browsers & devices.');
+      } else {
+        showToast(data?.error || 'Failed to publish logo to server');
+      }
+    } catch {
+      showToast('Error uploading logo to server database');
+    } finally {
+      setIsPublishingLogo(false);
+    }
   };
 
   const handlePublishLogo = async () => {
     setIsPublishingLogo(true);
     try {
+      if (selectedLogoFile) {
+        const formData = new FormData();
+        formData.append('logo', selectedLogoFile);
+        formData.append('brandName', logoConfig.brandName || general.siteName);
+
+        const res = await fetch('/api/admin/upload-logo', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data?.success && data?.settings) {
+          saveCachedBrandSettings(data.settings);
+          setLogoConfig((prev) => ({
+            ...prev,
+            logoUrl: data.logoUrl,
+          }));
+          showToast('✓ Universal Logo Published! Live across all browsers & devices.');
+          return;
+        }
+      }
+
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -202,6 +256,7 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'reset_logo',
           logoUrl: '',
           logoName: 'Default Prosify Monogram',
         }),
@@ -209,12 +264,13 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
       const data = await res.json();
       if (data?.success && data?.settings) {
         saveCachedBrandSettings(data.settings);
+        setSelectedLogoFile(null);
         setLogoConfig((prev) => ({
           ...prev,
           logoUrl: '',
           logoName: 'Default Prosify Monogram',
         }));
-        showToast('Restored default golden Prosify Monogram logo!');
+        showToast('Restored default golden Prosify Monogram logo universally!');
       }
     } catch {
       showToast('Error resetting logo');

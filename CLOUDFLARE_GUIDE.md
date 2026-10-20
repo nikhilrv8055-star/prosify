@@ -102,3 +102,60 @@ Agar aap apna domain (jaise `prosify.in` ya `admin.prosify.in`) lagana chahte ha
 Deploy hone ke baad aap database connectivity check kar sakte hain:
 - Admin status URL: `https://your-app.workers.dev/api/admin/d1-status`
 - Response me `connected: true` aur `provider: "Cloudflare D1"` dikhega.
+
+---
+
+## ⚡ Cloudflare Extra Settings (Mandatory for Multi-Browser Real-Time Sync)
+
+Agar aap Cloudflare use kar rahe hain aur Admin se logo ya settings change karne ke baad **dusre browser ya mobile me purani website hi dikh rahi hai**, to Cloudflare ka **Edge Caching** dynamic API responses ko store kar raha hota hai. Iske solution ke liye yeh 3 settings Cloudflare Dashboard me configure karein:
+
+### Setting 1: Cache Bypass Rule for Dynamic APIs & Admin/Agent/Vendor Panels
+Cloudflare dashboard me Edge Cache ko dynamic routes ke liye bypass karna zaroori hai:
+1. Cloudflare Dashboard kholiye -> Apna Domain select karein (`prosify.in`).
+2. Left menu me **Caching** -> **Cache Rules** par click karein.
+3. **Create Rule** button dabayein:
+   - **Rule Name**: `Bypass Cache for Admin, Auth & API Routes`
+   - **When incoming requests match (Expression Editor)**:
+     ```text
+     (http.request.uri.path starts_with "/api/") or 
+     (http.request.uri.path starts_with "/admin") or 
+     (http.request.uri.path starts_with "/agent") or 
+     (http.request.uri.path starts_with "/vendor")
+     ```
+   - **Cache Eligibility**: Select karein **Bypass cache**
+   - **Browser Cache TTL**: Select karein **Bypass cache** (Respect origin headers)
+4. **Deploy** par click karein. Ab har browser aur device par Admin panel aur Auth instantly live sync hoga.
+
+---
+
+### Setting 2: One-Click Cloudflare Cache Purge (Jab naya logo ya branding upload ho)
+Jab bhi aap Admin Panel se logo ya major branding update karte hain aur turant har jagah reflect karwana chahte hain:
+1. Cloudflare Dashboard me **Caching** -> **Configuration** par jayein.
+2. **Purge Cache** section me:
+   - **Purge Everything** button dabayein, ya
+   - **Custom Purge** me URL dalein:
+     - `https://yourdomain.com/api/admin/settings`
+     - `https://yourdomain.com/api/brand/logo*`
+3. CLI se bhi purge kar sakte hain:
+   ```bash
+   npx wrangler pages deployment purge
+   ```
+
+---
+
+### Setting 3: WAF (Web Application Firewall) Allow Rule for Agent & Vendor Login
+Agent aur Vendor portal par fast logins aur credentials validation ke waqt Cloudflare bot detection challenge page na dikhaye, iske liye:
+1. Cloudflare Dashboard -> **Security** -> **WAF** -> **Custom Rules** par jayein.
+2. **Create Rule** dabayein:
+   - **Rule Name**: `Allow Portal Authentication API`
+   - **Field**: `URI Path` -> **contains** -> `/api/auth/`
+   - **Action**: `Skip` -> Check karein *All remaining WAF rules*.
+3. Click **Deploy**.
+
+---
+
+### Setting 4: Development Mode Toggle (Testing ke waqt)
+Agar aap local ya staging par test kar rahe hain:
+- Cloudflare Dashboard -> **Overview** ya **Caching** -> **Development Mode** toggle **ON** kar dein.
+- Yeh 3 ghante tak Cloudflare edge caching ko poori tarah pause kar deta hai, jisse aap live multi-browser testing bina kisi cache issue ke kar sakte hain.
+

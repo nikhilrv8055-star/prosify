@@ -1,134 +1,137 @@
-# RERA Compliance Integration: Looopupin (A031332600766)
+# Implementation Plan: Universal Admin Persistence, Credentials Sync, Cloudflare Caching & Agent Tools
 
-Seamlessly integrates official Real Estate Regulatory Authority (RERA) registration details for **Looopupin** into the platform's header, hero section, and a dedicated **Legal & Compliance** footer section while strictly preserving existing UI architecture and responsive styling.
+Fix the issue where admin changes (branding, uploaded logo, site settings) and newly provisioned agent/vendor credentials only persist in local storage or fail to reflect across multiple browsers. Add Cloudflare edge cache bypass recommendations, an interactive deal commission calculator, and a live CRM lead data sync log tab in the Agent Dashboard.
 
 ---
 
-## User Review & Critical Decisions
+## User Review Required
 
 > [!IMPORTANT]
-> The following implementation specifications directly fulfill all user compliance mandates without breaking existing UI aesthetics or mobile layouts:
+> **Universal Multi-Browser Persistence vs. Local Storage:**
+> Currently, several admin views write directly to browser `localStorage` or send large Base64 data strings without synchronous disk persistence. We will introduce a unified server-side persistence layer with an atomic filesystem storage backend (`/data/system_settings.json` and `/data/unified_users.json`) coupled with dedicated logo upload handling (`/api/admin/upload-logo` and `/api/brand/logo`) that serves fresh headers with cache-busting.
 
-- **Official Entity Name**: `Looopupin` (also referenced as `Loopup in`).
-- **Official RERA Registration Number**: `A031332600766`.
-- **RERA Compliance Disclaimer**: *"The project details and specifications are in compliance with the Real Estate Regulatory Authority (RERA)."*
-- **Header / Hero Badge**: Subtle, professional badge reading `RERA Registered: A031332600766` integrated with responsive scaling on desktop and mobile.
-- **Footer Section**: A dedicated 'Legal & Compliance' section in the website footer featuring the verified RERA credentials, company entity name, and compliance disclaimer.
-- **WhatsApp Direct Redirection Rule**: Preserved without modification (clean "WhatsApp" button redirecting to `https://wa.me/919167991679` with no visible phone number).
+- **Cloudflare Caching Behavior:** Dynamic API endpoints (`/api/*`, `/admin/*`, `/agent/*`, `/vendor/*`) require Cloudflare Edge Cache Bypass so that updates are immediately visible on all devices and browsers without stale cache.
+- **Agent Dashboard Enhancements:** The interactive commission calculator and CRM sync logs will be integrated into the primary `/agent/dashboard` route and made accessible via clean, high-density tabs following our dark glassmorphic design system.
 
 ---
 
-## 1. Overview & Core Concept
+## Proposed Changes
 
-- **What It Does**: Establishes transparent legal compliance across the website by displaying official MahaRERA credentials for **Looopupin** (`A031332600766`).
-- **Target Audience / Persona**: Prospective home buyers, property investors, channel partners, and regulatory compliance auditors seeking verified real estate credentials.
-- **Key Value**: Instills instant institutional trust and regulatory compliance while maintaining the platform's sleek aesthetic and high-converting user experience.
+### 1. Universal Multi-Browser Admin Persistence & Logo Management
 
----
+#### [Backend] Dedicated Logo Upload & Stream Engine
+- **`app/api/admin/upload-logo/route.ts`**:
+  - Accept `multipart/form-data` image uploads (PNG, JPG, SVG, WebP) up to 5MB.
+  - Write uploaded logo to persistent disk storage (`data/uploads/website_logo.png` and `/public/uploads/logo.png`).
+  - Update `system_settings.json` with a permanent public URL and timestamped cache-buster query: `/api/brand/logo?v=${Date.now()}`.
+- **`app/api/brand/logo/route.ts`**:
+  - Public route that streams the latest uploaded logo file with proper MIME types (`image/png`, `image/jpeg`, etc.).
+  - Set `Cache-Control: public, max-age=0, must-revalidate` so browsers and CDNs always check for freshness or respect version query parameters.
+- **`app/api/admin/settings/route.ts`**:
+  - Set explicit HTTP response headers: `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate`.
+  - Ensure any setting updated by admin (site name, logo URL, contact info, WhatsApp) persists synchronously to disk and memory.
 
-## 2. User Experience & Visual Design
-
-### Key User Flows & Visual Placement
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ Top Bar / Header: Subtle RERA Registered Badge: A031332600766          │
-├────────────────────────────────────────────────────────────────────────┤
-│ Navbar: Brand Wordmark ── Nav Links ── [Smart Match][Compare][WhatsApp]│
-├────────────────────────────────────────────────────────────────────────┤
-│ Hero Section:                                                          │
-│   [🛡️ RERA Registered: A031332600766 • Looopupin]                      │
-│   "Find Your Perfect Home Across Top Indian Metros"                    │
-├────────────────────────────────────────────────────────────────────────┤
-│ Footer (Dedicated Legal & Compliance Section):                         │
-│   • RERA Regn. No.: A031332600766                                      │
-│   • Official Operating Entity: Looopupin                               │
-│   • Standard Statutory Disclaimer:                                     │
-│     "The project details and specifications are in compliance with     │
-│      the Real Estate Regulatory Authority (RERA)."                     │
-└────────────────────────────────────────────────────────────────────────┘
-```
-
-- **Visual Identity & Theme**:
-  - **Color Palette**: Dark slate (`#171717`, `#0F172A`), deep obsidian with amber gold accents (`#D4A017`, `#F4C430`) and emerald verification indicators (`#10B981`).
-  - **Typography & Scale**: Crisp typography (`Plus Jakarta Sans`), with `tabular-nums` applied to the RERA registration number `A031332600766` to ensure clean tabular alignment.
-  - **Zero-Pill Discipline**: The top bar and footer compliance notes use subtle typography with standard separator dots (`•`), avoiding awkward floating pill badges that clash with the brand.
-  - **Responsive Scaling**: Mobile layouts automatically adjust badge padding, font sizes (from 11px on mobile to 12px/13px on desktop), and prevent horizontal overflow.
+#### [Frontend] Universal Logo & Brand State Hook
+- **`lib/data/useBrandSettings.ts`**:
+  - Fetch `/api/admin/settings` with `cache: 'no-store'`.
+  - Provide immediate live synchronization without relying solely on single-browser `localStorage`.
+- **`components/brand/ProsifyLogo.tsx`**:
+  - Dynamically render the universal logo using `/api/brand/logo` fallback and custom URL with graceful error handling and skeleton loading.
+- **`components/admin/views/BasicSettingsView.tsx`**:
+  - Connect file upload directly to `/api/admin/upload-logo` with instant multi-browser preview and status indicators.
 
 ---
 
-## 3. Key Product Decisions & Trade-Offs
+### 2. Universal Agent & Vendor Credentials Synchronization
 
-- **Decision 1: Centralized Configuration in `src/config/brand.ts`**
-  - *Chosen Approach*: Update `brandConfig.reraRegistration`, `brandConfig.companyLegalName`, and add structured fields (`brandConfig.reraNumber`, `brandConfig.officialName`, `brandConfig.reraDisclaimer`).
-  - *Why*: Guarantees single-source-of-truth consistency across the entire codebase (metadata, navbar, footer, project cards, and enquiry forms) without hardcoded fragmentation.
-  - *Alternatives Considered*: Hardcoding strings directly into components was rejected to avoid sync discrepancies.
-
-- **Decision 2: Dual Placement (Header Top Bar + Hero Badge)**
-  - *Chosen Approach*: Add the RERA tag in both the persistent top bar and the prominent hero trust row.
-  - *Why*: Satisfies both the header requirement (visible across all routes) and hero requirement (instant credibility above the fold on the homepage).
-  - *Alternatives Considered*: Placing only on the homepage hero would leave interior project and property search pages without visible RERA certification.
-
-- **Decision 3: Dedicated Footer 'Legal & Compliance' Block**
-  - *Chosen Approach*: Add a clear, distinct 5th column or dedicated compliance banner in `Footer.tsx` entitled **Legal & Compliance** containing the exact required text:
-    `RERA Regn. No.: A031332600766` with company name `Looopupin` and the standard disclaimer.
-  - *Why*: Fulfills regulatory transparency standards while harmonizing with the existing 4-column footer layout.
+#### [Backend] Unified Credentials Storage & Auth Matcher
+- **`lib/auth/serverUserDb.ts`**:
+  - Unify credential storage so that creating or modifying a user in `AgentsManagementView`, `VendorsManagementView`, or `UserProvisioningSuite` writes directly to `data/unified_users.json`.
+  - Ensure password updates, status changes (`ACTIVE` / `SUSPENDED`), and custom User IDs (`AGT-XXXX`, `VEN-XXXX`) are indexed and matched case-insensitively across:
+    1. Assigned ID (`secureId` / `assignedCode`)
+    2. Username (`agent@prosify.in`)
+    3. Registered Email
+    4. 10-digit mobile phone number
+- **`app/api/admin/cloud-sync/route.ts` & `app/api/admin/portal-users/route.ts`**:
+  - Ensure POST/PATCH/DELETE synchronously updates `serverUserDb` and writes to disk.
+- **`app/api/auth/agent/login/route.ts` & `app/api/auth/vendor/login/route.ts`**:
+  - Support instant cloud-authoritative password verification against `serverUserDb` so any newly configured password works immediately from any browser or incognito window.
 
 ---
 
-## 4. Technical Architecture & Component Strategy
+### 3. Cloudflare Configuration & Cache Bypass Guide
 
-### System & Component Mapping
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                 src/config/brand.ts                     │
-│  - companyLegalName: "Looopupin"                        │
-│  - reraRegistration: "RERA Regn. No.: A031332600766"    │
-│  - reraDisclaimer: "The project details and..."         │
-└──────────────┬───────────────────────────┬──────────────┘
-               │                           │
-               ▼                           ▼
-┌──────────────────────────────┐   ┌──────────────────────────────┐
-│ components/marketplace/      │   │ components/marketplace/      │
-│ Navbar.tsx                   │   │ Footer.tsx                   │
-│ - Top Bar Compliance Badge   │   │ - Dedicated 'Legal &         │
-│ - Desktop & Mobile Scaling   │   │   Compliance' Section        │
-└──────────────┬───────────────┘   │ - Exact RERA Regn & Co. Name │
-               │                   │ - Compliance Disclaimer      │
-               ▼                   └──────────────────────────────┘
-┌──────────────────────────────┐
-│ app/page.tsx (Hero Section)  │
-│ - Hero Trust Tag:            │
-│   RERA Registered:           │
-│   A031332600766              │
-└──────────────────────────────┘
-```
-
-### Component Changes Detail
-
-1. **`src/config/brand.ts`**:
-   - Update `companyLegalName: "Looopupin"`
-   - Update `reraRegistration: "RERA Regn. No.: A031332600766"`
-   - Add `reraDisclaimer: "The project details and specifications are in compliance with the Real Estate Regulatory Authority (RERA)."`
-   - Add `reraNumber: "A031332600766"`
-
-2. **`components/marketplace/Navbar.tsx`**:
-   - In `PartnerTrackerBanner` / Header top region: add subtle compliance indicator or top bar tag reading `RERA Registered: A031332600766`.
-   - Maintain the existing WhatsApp button (`https://wa.me/919167991679` with label `"WhatsApp"` only).
-
-3. **`app/page.tsx`**:
-   - Update the Hero trust badge above the main title to feature `RERA Registered: A031332600766` with verified ShieldCheck icon and `Looopupin`.
-
-4. **`components/marketplace/Footer.tsx`**:
-   - Structure a dedicated **Legal & Compliance** section.
-   - Display `RERA Regn. No.: A031332600766` along with company name `Looopupin`.
-   - Include standard disclaimer: *"The project details and specifications are in compliance with the Real Estate Regulatory Authority (RERA)."*
+#### [Documentation & Config]
+- **`CLOUDFLARE_GUIDE.md`**:
+  - Add explicit, copy-paste Cloudflare Dashboard rules:
+    1. **Cache Rules**: Rule for `*prosify.in/api/*` and `*prosify.in/admin/*` -> **Cache Level: Bypass**.
+    2. **Browser Cache TTL**: Respect origin headers (`no-store, no-cache`).
+    3. **Cloudflare Purge Instructions**: CLI command (`npx wrangler pages deployment purge`) and Dashboard steps to purge cache after branding updates.
+    4. **Web Application Firewall (WAF)**: Whitelist rules for `/api/auth/*` to prevent false-positive challenge pages on agent/vendor logins.
 
 ---
 
-## Verification & Validation Plan
+### 4. Interactive Deal Commission Calculator Component
 
-- **Compilation**: Run `compile_applet` to verify clean build with zero TypeScript / React errors.
-- **Linting**: Run `lint_applet` to ensure ESLint passes.
-- **UI Integrity Check**: Verify typography, responsive breakpoints (mobile, tablet, desktop), and confirm no UI elements or existing styles are broken.
+#### [Component] `components/agent/AgentCommissionCalculator.tsx`
+- **Interactive Inputs**:
+  - Property Value slider + manual numeric input (e.g. ₹50 Lakh to ₹25 Crore with quick presets: ₹75L, ₹1.5 Cr, ₹3.5 Cr, ₹8 Cr).
+  - Agent Tier Selector:
+    - **Silver** (2.0% base commission)
+    - **Gold** (2.5% premium commission + milestone incentive)
+    - **Platinum** (3.0% elite tier + quarterly bonus)
+    - **Diamond / MahaRERA Lead Partner** (3.5% maximum commission slab)
+  - Co-broker / Channel Partner Split toggle (100% solo, 50-50 split, or custom team cut).
+  - MahaRERA TDS deduction preview (5% Section 194H TDS calculator and net payable amount).
+- **Earnings Metrics**:
+  - Gross Commission Receivable
+  - Statutory TDS Deduction (5%)
+  - Net Bank Disbursable Amount
+  - Milestone Progress Indicator (how much deal volume needed to reach next tier)
+- **Export / Copy Quote**: 1-click button to copy formatted deal commission summary to clipboard.
+
+---
+
+### 5. Live CRM Sync Log Tab in Agent Dashboard
+
+#### [Component & Tab] `components/agent/AgentCrmSyncLogTab.tsx`
+- **Integration in `app/agent/dashboard/page.tsx`**:
+  - Add two new tabs to the Agent Dashboard header navigation:
+    - **"Commission Calculator"** (`calculator`)
+    - **"CRM Sync & Webhooks"** (`crm_sync`)
+- **Live Sync Log Features**:
+  - Connect to `/api/crm/sync-status` to display real-time lead dispatch events.
+  - High-density tabular status view:
+    - Timestamp (formatted with tabular figures `font-mono`)
+    - Lead Name & Mobile (masked for privacy)
+    - Target Property & Budget
+    - Dispatch Target (Webhook URL / Central CRM Endpoint)
+    - Status Badge: `SYNCED (200 OK)`, `PENDING (Queued)`, `FAILED (Timeout/Error)`
+    - Response Payload / Error Message collapsible inspector
+  - Interactive Actions:
+    - "Test CRM Ping" to verify webhook connectivity in real time.
+    - "Retry Sync" for any failed lead with instant status update.
+    - Refresh button with live polling indicator.
+
+---
+
+## Verification Plan
+
+### Automated Build Verification
+- Execute `compile_applet` to ensure TypeScript compilation, route exports, and Tailwind styling succeed without errors.
+
+### Functional Verification
+1. **Multi-Browser Logo Test**:
+   - Upload new logo in Admin -> Basic Settings -> Website Logo & Branding.
+   - Verify `/api/admin/settings` returns the new logo URL.
+   - Verify logo renders on public Navbar, Footer, and Admin header without manual localStorage seeding.
+2. **Multi-Browser Agent/Vendor Login Test**:
+   - Provision an Agent (`AGT-9124`) and Vendor (`VND-7821`) with custom passwords in Admin.
+   - Open a simulated fresh session (clear cookies/localStorage) and execute login POST to `/api/auth/agent/login` and `/api/auth/vendor/login`.
+   - Verify authentication succeeds and returns valid session tokens.
+3. **Commission Calculator Test**:
+   - In Agent Dashboard -> Commission Calculator tab, adjust property value and toggle between Silver, Gold, Platinum, and Diamond tiers.
+   - Verify calculations reflect exact percentages, TDS deduction, and net pay.
+4. **CRM Sync Log Test**:
+   - In Agent Dashboard -> CRM Sync tab, verify existing lead sync logs load from `/api/crm/sync-status`.
+   - Trigger a Test Ping and verify the log appears in the table with webhook response status.

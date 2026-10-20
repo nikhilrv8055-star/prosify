@@ -52,10 +52,14 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
         (cleanEmail === 'admin@prosify.in' || cleanEmail === 'admin') &&
         (cleanPassword === 'prosify@123#' || cleanPassword === 'prosify@123');
 
-      // Also support legacy fallback for developer compatibility
+      // Also support developer credentials & eni1526 admin identity
       const isLegacyMatch =
         (cleanEmail === 'admin@prosify.local' && cleanPassword === '1234') ||
-        (cleanEmail === 'eni1526' && cleanPassword === 'password123');
+        (cleanEmail === 'eni1526' &&
+          (cleanPassword === 'password123' ||
+            cleanPassword === 'prosify@123#' ||
+            cleanPassword === 'prosify@123' ||
+            cleanPassword === 'admin123'));
 
       if (isOfficialMatch || isLegacyMatch) {
         const authenticatedIdentity =

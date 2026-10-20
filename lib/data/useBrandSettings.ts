@@ -18,15 +18,15 @@ export interface BrandSettingsState {
   updatedAt?: string;
 }
 
-const SETTINGS_STORAGE_KEY = 'prosify_dynamic_settings_v1';
+const SETTINGS_STORAGE_KEY = 'prosify_dynamic_settings_v2';
 
 const DEFAULT_BRAND_SETTINGS: BrandSettingsState = {
   agencyName: brandConfig.companyLegalName,
-  whatsappNumber: '+91 91679 91679',
-  whatsappLink: 'https://wa.me/919167991679',
-  contactEmail: 'hello4home@gmail.com',
-  supportEmail: 'hello4home@gmail.com',
-  phone: '+91 91679 91679',
+  whatsappNumber: '+91 93263 03244',
+  whatsappLink: 'https://wa.me/919326303244',
+  contactEmail: 'contact@prosify.in',
+  supportEmail: 'support@prosify.in',
+  phone: '+91 93263 03244',
   reraRegistration: brandConfig.reraRegistration,
   reraNumber: brandConfig.reraNumber,
   companyLegalName: brandConfig.companyLegalName,
@@ -56,9 +56,8 @@ export function saveCachedBrandSettings(settings: BrandSettingsState) {
 export function useBrandSettings() {
   const [settings, setSettings] = useState<BrandSettingsState>(() => getCachedBrandSettings());
 
-  useEffect(() => {
-    // 1. Fetch live from server API
-    fetch('/api/admin/settings')
+  const fetchLiveSettings = () => {
+    fetch('/api/admin/settings', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data?.settings) {
@@ -67,21 +66,38 @@ export function useBrandSettings() {
         }
       })
       .catch(() => {});
+  };
 
-    // 2. Listen to real-time updates broadcast by Admin Panel
+  useEffect(() => {
+    // 1. Fetch fresh from server API immediately on mount
+    fetchLiveSettings();
+
+    // 2. Listen to real-time updates broadcast by Admin Panel in current window
     const handleUpdate = () => {
       setSettings(getCachedBrandSettings());
     };
 
+    // 3. Listen to cross-window / cross-tab updates
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === SETTINGS_STORAGE_KEY) {
+        setSettings(getCachedBrandSettings());
+      }
+    };
+
     window.addEventListener('prosify_settings_updated', handleUpdate);
-    return () => window.removeEventListener('prosify_settings_updated', handleUpdate);
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('prosify_settings_updated', handleUpdate);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   return {
     ...settings,
-    whatsappLink: settings.whatsappLink || 'https://wa.me/919167991679',
-    whatsappNumber: settings.whatsappNumber || '+91 91679 91679',
-    contactEmail: settings.contactEmail || 'hello4home@gmail.com',
-    supportEmail: settings.supportEmail || 'hello4home@gmail.com',
+    whatsappLink: settings.whatsappLink || 'https://wa.me/919326303244',
+    whatsappNumber: settings.whatsappNumber || '+91 93263 03244',
+    contactEmail: settings.contactEmail || 'contact@prosify.in',
+    supportEmail: settings.supportEmail || 'support@prosify.in',
   };
 }

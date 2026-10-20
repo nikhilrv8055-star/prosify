@@ -47,8 +47,12 @@ import {
   Camera,
   FolderPlus,
   ArrowRight,
+  Calculator,
+  Activity,
 } from 'lucide-react';
 import { ProsifyAnimatedLogo } from '@/components/brand/ProsifyAnimatedLogo';
+import { AgentCommissionCalculator } from '@/components/agent/AgentCommissionCalculator';
+import { AgentCrmSyncLogTab } from '@/components/agent/AgentCrmSyncLogTab';
 import { useToast } from '@/components/ui/toast';
 import { formatIndianPrice } from '@/lib/utils';
 import { store } from '@/lib/data/store';
@@ -417,6 +421,8 @@ export default function AgentAdminPage() {
     | 'prop-messages'
     | 'proj-add'
     | 'proj-manage'
+    | 'calculator'
+    | 'crm-sync'
     | 'profile'
     | 'edit-profile'
     | 'change-password';
@@ -1547,6 +1553,45 @@ export default function AgentAdminPage() {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* Tools & Utilities Group */}
+            <div className="pt-3 border-t border-neutral-800/80 space-y-1">
+              <span className="px-3 text-[10px] text-neutral-500 font-bold uppercase tracking-wider block">
+                Agent Tools
+              </span>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMenu('calculator');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+                  activeMenu === 'calculator'
+                    ? 'bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30'
+                    : 'text-neutral-400 hover:text-white hover:bg-neutral-800/40'
+                }`}
+              >
+                <Calculator className="w-4 h-4 text-emerald-400" />
+                <span>Commission Calculator</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMenu('crm-sync');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+                  activeMenu === 'crm-sync'
+                    ? 'bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30'
+                    : 'text-neutral-400 hover:text-white hover:bg-neutral-800/40'
+                }`}
+              >
+                <Activity className="w-4 h-4 text-sky-400" />
+                <span>CRM Sync &amp; Webhooks</span>
+              </button>
             </div>
 
             {/* 4. Profile Management & Actions */}
@@ -3352,6 +3397,24 @@ export default function AgentAdminPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          )}
+
+          {/* =================================================================== */}
+          {/* VIEW 10: COMMISSION CALCULATOR (`calculator`)                       */}
+          {/* =================================================================== */}
+          {activeMenu === 'calculator' && (
+            <div className="space-y-6">
+              <AgentCommissionCalculator initialPropertyPrice={20000000} currentAgentTier="gold" />
+            </div>
+          )}
+
+          {/* =================================================================== */}
+          {/* VIEW 11: CRM SYNC & WEBHOOK TELEMETRY (`crm-sync`)                  */}
+          {/* =================================================================== */}
+          {activeMenu === 'crm-sync' && (
+            <div className="space-y-6">
+              <AgentCrmSyncLogTab />
             </div>
           )}
         </main>
