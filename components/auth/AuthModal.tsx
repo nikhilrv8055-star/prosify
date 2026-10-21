@@ -74,33 +74,43 @@ export function AuthModal() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      // Simulate/trigger authentic Google One-Tap/SSO flow
-      const randomId = Math.random().toString(36).substring(2, 6);
-      const googleEmail = email || `user_${randomId}@gmail.com`;
-      const googleName = name || 'Google Verified User';
+      const { triggerGoogleAccountPicker, getGoogleOAuthUrl } = await import('@/lib/auth/google');
 
-      const ok = await loginWithGoogle({
-        email: googleEmail,
-        name: googleName,
-        role: selectedRole,
-        picture: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      let handled = false;
+      await triggerGoogleAccountPicker({
+        onSuccess: async (googleData) => {
+          handled = true;
+          const ok = await loginWithGoogle({
+            email: googleData.email,
+            name: googleData.name || googleData.email.split('@')[0],
+            role: selectedRole,
+            picture: googleData.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          });
+
+          if (ok) {
+            toast({
+              title: 'Google Sign-In Successful',
+              description: `Authenticated with Google as ${googleData.email}.`,
+              type: 'success',
+            });
+            closeAuthModal();
+          }
+          setIsGoogleLoading(false);
+        },
+        onError: () => {
+          // If One-Tap prompt is blocked or skipped, redirect directly via OAuth 2.0 endpoint
+          if (!handled) {
+            const redirectUrl = getGoogleOAuthUrl('/customer');
+            window.location.href = redirectUrl;
+          }
+        },
       });
-
-      if (ok) {
-        toast({
-          title: 'Google Sign-In Successful',
-          description: `Authenticated with Google as ${googleEmail}.`,
-          type: 'success',
-        });
-        closeAuthModal();
-      }
     } catch {
       toast({
         title: 'Google Sign-In Failed',
         description: 'Unable to connect to Google account. Please try standard sign-in.',
         type: 'error',
       });
-    } finally {
       setIsGoogleLoading(false);
     }
   };

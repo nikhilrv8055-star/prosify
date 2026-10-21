@@ -11,7 +11,7 @@ const googleLoginSchema = z.object({
   id_token: z.string().optional(),
   email: z.string().email('Invalid Google email address'),
   name: z.string().optional(),
-  picture: z.string().url().optional().or(z.literal('')),
+  picture: z.string().nullable().optional(),
   googleId: z.string().optional(),
   role: z.string().optional(),
   referrerCode: z.string().optional(),

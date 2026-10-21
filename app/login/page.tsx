@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { brandConfig } from '@/src/config/brand';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
 import { getPortalUsers, setPortalSession } from '@/lib/auth/portalUsers';
+import { triggerGoogleAccountPicker, getGoogleOAuthUrl } from '@/lib/auth/google';
 
 export default function LoginPage() {
   const { switchRole, login, loginWithGoogle, user } = useAuth();
@@ -26,14 +27,14 @@ export default function LoginPage() {
   const [googlePickerOpen, setGooglePickerOpen] = useState(false);
   const [customGoogleEmail, setCustomGoogleEmail] = useState('');
 
-  const handleGoogleSelect = async (accountEmail: string, accountName: string) => {
+  const handleGoogleSelect = async (accountEmail: string, accountName: string, avatarUrl?: string) => {
     setIsGoogleLoading(true);
     try {
       const ok = await loginWithGoogle({
         email: accountEmail,
         name: accountName,
         role: selectedRole,
-        picture: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+        picture: avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
       });
 
       if (ok) {
@@ -55,6 +56,34 @@ export default function LoginPage() {
       });
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleClick = async () => {
+    setIsGoogleLoading(true);
+    let handled = false;
+    try {
+      await triggerGoogleAccountPicker({
+        onSuccess: async (googleData) => {
+          handled = true;
+          await handleGoogleSelect(
+            googleData.email,
+            googleData.name || googleData.email.split('@')[0],
+            googleData.picture
+          );
+        },
+        onError: () => {
+          if (!handled) {
+            setGooglePickerOpen(true);
+            setIsGoogleLoading(false);
+          }
+        },
+      });
+    } catch {
+      if (!handled) {
+        setGooglePickerOpen(true);
+        setIsGoogleLoading(false);
+      }
     }
   };
 
@@ -184,7 +213,7 @@ export default function LoginPage() {
           <div className="mb-6">
             <button
               type="button"
-              onClick={() => setGooglePickerOpen(true)}
+              onClick={handleGoogleClick}
               disabled={isGoogleLoading}
               className="w-full py-3 px-4 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 font-semibold text-sm transition-all flex items-center justify-center gap-3 shadow-xs active:scale-[0.99] cursor-pointer disabled:opacity-50"
             >
@@ -528,6 +557,21 @@ export default function LoginPage() {
                   </div>
                   <div className="text-[11px] text-neutral-500 truncate">admin@prosify.in</div>
                 </div>
+              </button>
+            </div>
+
+            {/* Direct Google OAuth 2.0 Web Redirect Option */}
+            <div className="mb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const target = selectedRole === 'CHANNEL_PARTNER' ? '/partner' : selectedRole === 'DEVELOPER' ? '/developer' : '/properties';
+                  window.location.href = getGoogleOAuthUrl(target);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Authorize directly via accounts.google.com</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 

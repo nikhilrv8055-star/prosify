@@ -344,26 +344,26 @@ export default function AffiliatePortalPage() {
           setIsAuthLoading(false);
         },
         onError: async () => {
-          // Graceful fallback for non-Google environment: prompt email
-          const fallbackEmail = prompt('Enter your Google email for OAuth sign-in:', 'partner@prosify.in');
-          if (fallbackEmail) {
-            const res = await fetch('/api/affiliate/auth/google', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: fallbackEmail,
-                name: fallbackEmail.split('@')[0],
-              }),
-            });
-            const data = await res.json();
-            if (data.success && data.affiliate) {
-              setAffiliate(data.affiliate);
-              refreshData();
-              toast({
-                title: 'Signed in with Google!',
-                description: `Welcome, ${data.affiliate.name}!`,
-                type: 'success',
+          // If One-Tap prompt is skipped or blocked, redirect directly via Google OAuth 2.0
+          try {
+            const { getGoogleOAuthUrl } = await import('@/lib/auth/google');
+            window.location.href = getGoogleOAuthUrl('/affiliate');
+          } catch {
+            const fallbackEmail = prompt('Enter your Google email for OAuth sign-in:', 'partner@prosify.in');
+            if (fallbackEmail) {
+              const res = await fetch('/api/affiliate/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: fallbackEmail,
+                  name: fallbackEmail.split('@')[0],
+                }),
               });
+              const data = await res.json();
+              if (data.success && data.affiliate) {
+                setAffiliate(data.affiliate);
+                refreshData();
+              }
             }
           }
           setIsAuthLoading(false);
