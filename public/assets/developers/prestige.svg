@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+      <g transform="translate(10, 8)">
+        <polygon points="18,6 32,16 28,36 8,36 4,16" fill="#854D0E" fill-opacity="0.3" stroke="#CA8A04" stroke-width="1.8"/>
+        <path d="M12 20 L18 14 L24 20 L21 30 L15 30 Z" fill="#EAB308"/>
+        <text x="46" y="25" font-family="Georgia, serif" font-size="18" font-weight="800" fill="#FFFFFF" letter-spacing="1">Prestige</text>
+        <text x="47" y="39" font-family="system-ui, -apple-system, sans-serif" font-size="7.5" font-weight="600" fill="#FACC15" letter-spacing="1.2">ADD PRESTIGE TO YOUR LIFE</text>
+      </g>
+    </svg>

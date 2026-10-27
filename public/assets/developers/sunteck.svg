@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+      <g transform="translate(10, 8)">
+        <rect x="2" y="6" width="34" height="36" rx="6" fill="#A16207" fill-opacity="0.25" stroke="#D4AF37" stroke-width="1.5"/>
+        <path d="M10 30 C10 18, 26 18, 26 24 C26 32, 10 32, 26 38" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <text x="46" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" letter-spacing="1.5">Sunteck</text>
+        <text x="47" y="39" font-family="system-ui, -apple-system, sans-serif" font-size="7.5" font-weight="700" fill="#D4AF37" letter-spacing="2">SIGNATURE LIVING</text>
+      </g>
+    </svg>

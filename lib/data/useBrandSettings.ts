@@ -24,7 +24,7 @@ export interface BrandSettingsState {
 const SETTINGS_STORAGE_KEY = 'prosify_dynamic_settings_v2';
 
 const DEFAULT_BRAND_SETTINGS: BrandSettingsState = {
-  agencyName: brandConfig.companyLegalName,
+  agencyName: brandConfig.name,
   whatsappNumber: '+91 93263 03244',
   whatsappLink: 'https://wa.me/919326303244',
   contactEmail: 'contact@prosify.in',
@@ -33,8 +33,9 @@ const DEFAULT_BRAND_SETTINGS: BrandSettingsState = {
   reraRegistration: brandConfig.reraRegistration,
   reraNumber: brandConfig.reraNumber,
   companyLegalName: brandConfig.companyLegalName,
-  logoUrl: '',
-  logoName: '',
+  logoUrl: 'https://pub-7905aa2d4dfa43d69cee6dd8ca78c0e5.r2.dev/Photos/prosify-logo-CcMCTuhS.png',
+  logoName: 'prosify-logo-CcMCTuhS.png',
+  r2LogoUrl: 'https://pub-7905aa2d4dfa43d69cee6dd8ca78c0e5.r2.dev/Photos/prosify-logo-CcMCTuhS.png',
 };
 
 export function getCachedBrandSettings(): BrandSettingsState {
@@ -42,7 +43,12 @@ export function getCachedBrandSettings(): BrandSettingsState {
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (raw) {
-      return { ...DEFAULT_BRAND_SETTINGS, ...JSON.parse(raw) };
+      const parsed = JSON.parse(raw);
+      return {
+        ...DEFAULT_BRAND_SETTINGS,
+        ...parsed,
+        logoUrl: parsed.logoUrl && parsed.logoUrl.trim().length > 0 ? parsed.logoUrl : DEFAULT_BRAND_SETTINGS.logoUrl,
+      };
     }
   } catch {}
   return DEFAULT_BRAND_SETTINGS;
@@ -57,7 +63,8 @@ export function saveCachedBrandSettings(settings: BrandSettingsState) {
 }
 
 export function useBrandSettings() {
-  const [settings, setSettings] = useState<BrandSettingsState>(() => getCachedBrandSettings());
+  // Always initialize with DEFAULT_BRAND_SETTINGS for 100% deterministic SSR hydration
+  const [settings, setSettings] = useState<BrandSettingsState>(DEFAULT_BRAND_SETTINGS);
 
   const fetchLiveSettings = () => {
     fetch('/api/admin/settings', { cache: 'no-store' })
@@ -72,15 +79,19 @@ export function useBrandSettings() {
   };
 
   useEffect(() => {
-    // 1. Fetch fresh from server API immediately on mount
+    // 1. Sync cached settings post-hydration safely on client
+    const cached = getCachedBrandSettings();
+    setSettings(cached);
+
+    // 2. Fetch fresh from server API
     fetchLiveSettings();
 
-    // 2. Listen to real-time updates broadcast by Admin Panel in current window
+    // 3. Listen to real-time updates broadcast by Admin Panel in current window
     const handleUpdate = () => {
       setSettings(getCachedBrandSettings());
     };
 
-    // 3. Listen to cross-window / cross-tab updates
+    // 4. Listen to cross-window / cross-tab updates
     const handleStorage = (e: StorageEvent) => {
       if (e.key === SETTINGS_STORAGE_KEY) {
         setSettings(getCachedBrandSettings());

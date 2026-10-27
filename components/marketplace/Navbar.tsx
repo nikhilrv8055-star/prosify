@@ -37,12 +37,14 @@ interface NavbarProps {
 }
 
 function PartnerTrackerBanner() {
+  const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
   const pathname = usePathname() || '';
   const partnerQuery = searchParams?.get('partner') || searchParams?.get('ref') || searchParams?.get('cp');
   const partnerAttribution = partnerQuery ? partnerQuery.toUpperCase() : null;
 
   useEffect(() => {
+    setMounted(true);
     if (partnerQuery) {
       fetch('/api/tracking/events', {
         method: 'POST',
@@ -59,7 +61,7 @@ function PartnerTrackerBanner() {
     }
   }, [partnerQuery, searchParams, pathname]);
 
-  if (!partnerAttribution) return null;
+  if (!mounted || !partnerAttribution) return null;
 
   return (
     <div className="bg-[#D4A017] text-neutral-950 px-4 py-1.5 text-xs font-medium text-center flex items-center justify-center gap-2">

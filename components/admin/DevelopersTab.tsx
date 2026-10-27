@@ -162,12 +162,28 @@ export function DevelopersTab({ developers, onRefresh }: DevelopersTabProps) {
       store.updateDeveloper(editingDev.id, {
         ...formData,
       });
+
+      fetch('/api/admin/developers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingDev.id,
+          ...formData,
+        }),
+      }).catch((e) => console.warn('Developer server persist note:', e));
     } else {
-      store.createDeveloper({
+      const newDevData = {
         ...formData,
         slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         logoUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80',
-      });
+      };
+      store.createDeveloper(newDevData);
+
+      fetch('/api/admin/developers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newDevData),
+      }).catch((e) => console.warn('Developer server persist note:', e));
     }
 
     setIsModalOpen(false);
@@ -177,6 +193,9 @@ export function DevelopersTab({ developers, onRefresh }: DevelopersTabProps) {
   const handleDelete = (d: Developer) => {
     if (confirm(`Remove developer entity "${d.name}"?`)) {
       store.deleteDeveloper(d.id);
+      fetch(`/api/admin/developers?id=${encodeURIComponent(d.id)}`, {
+        method: 'DELETE',
+      }).catch((e) => console.warn('Developer server persist note:', e));
       onRefresh();
     }
   };

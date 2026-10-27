@@ -28,6 +28,8 @@ import { EnquiryModal } from '@/components/marketplace/EnquiryModal';
 import { SiteVisitModal } from '@/components/marketplace/SiteVisitModal';
 import { PropertyCard } from '@/components/marketplace/PropertyCard';
 import { store } from '@/lib/data/store';
+import { useLiveStore } from '@/lib/data/useLiveStore';
+import { Property } from '@/lib/types';
 import { formatIndianPrice, formatArea } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/authContext';
 import { useToast } from '@/components/ui/toast';
@@ -39,15 +41,40 @@ export default function PropertyDetailPage() {
   const slug = (params?.slug as string) || '';
   const { isSaved, toggleSavedProperty } = useAuth();
   const { toast } = useToast();
+  const { properties } = useLiveStore();
+  const [serverProperty, setServerProperty] = useState<Property | null>(null);
 
   const property = useMemo(() => {
-    return store.getPropertyBySlug(slug) || store.getPropertyById(slug);
-  }, [slug]);
+    const fromList = properties.find((p) => p.slug === slug || p.id === slug);
+    if (fromList) return fromList;
+    const fromStore = store.getPropertyBySlug(slug) || store.getPropertyById(slug);
+    if (fromStore) return fromStore;
+    return serverProperty;
+  }, [properties, slug, serverProperty]);
+
+  useEffect(() => {
+    if (!property && slug) {
+      fetch(`/api/properties/${slug}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.data) {
+            setServerProperty(data.data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [property, slug]);
 
   // Modals state
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [visitOpen, setVisitOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>(property?.coverImage || '');
+  const [selectedImage, setSelectedImage] = useState<string>('');
+
+  useEffect(() => {
+    if (property?.coverImage && !selectedImage) {
+      setSelectedImage(property.coverImage);
+    }
+  }, [property, selectedImage]);
   const [copied, setCopied] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 

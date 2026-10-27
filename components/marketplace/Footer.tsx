@@ -124,7 +124,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/affiliate" className="text-[#F4C430] font-semibold hover:underline flex items-center gap-1 transition-colors">
-                  <span>★ Affiliate & Partner Program (Up to 3%)</span>
+                  <span>★ Prosify Affiliate & Growth Partner Program</span>
                 </Link>
               </li>
               <li>
@@ -139,7 +139,7 @@ export function Footer() {
               </li>
               <li className="pt-2">
                 <a
-                  href="https://wa.me/919167991679"
+                  href={brandSettings.whatsappLink || "https://wa.me/919167991679"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-950/40 cursor-pointer"

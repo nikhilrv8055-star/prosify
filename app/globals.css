@@ -72,3 +72,58 @@ div[data-nextjs-route-announcer] {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
+/* Infinite Continuous Marquee Keyframes & Utilities */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-scroll-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-continuous {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 42s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-continuous:hover,
+.marquee-container:hover .animate-marquee-continuous {
+  animation-play-state: paused !important;
+}
+
+/* Gradient Mask Fade for marquee edges */
+.mask-fade-edges {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+/* Glassmorphic luxury partner card */
+.glass-partner-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-partner-card:hover {
+  background: rgba(21, 29, 44, 0.9);
+  border-color: rgba(212, 175, 55, 0.65);
+  box-shadow: 0 14px 32px -4px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(212, 175, 55, 0.4);
+  transform: translateY(-2px);
+}
+
+

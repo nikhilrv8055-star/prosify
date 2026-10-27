@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+      <g transform="translate(10, 8)">
+        <path d="M4 36 L18 8 L32 36 Z" fill="none" stroke="#14B8A6" stroke-width="2.5"/>
+        <line x1="10" y1="26" x2="26" y2="26" stroke="#14B8A6" stroke-width="2"/>
+        <text x="46" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="19" font-weight="800" fill="#FFFFFF" letter-spacing="1.5">ansal API</text>
+        <text x="47" y="39" font-family="system-ui, -apple-system, sans-serif" font-size="7.5" font-weight="600" fill="#14B8A6" letter-spacing="1.5">BUILDING LIFESTYLES</text>
+      </g>
+    </svg>

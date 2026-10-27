@@ -233,6 +233,42 @@ class RealEstateStore {
     });
   }
 
+  public syncFromExternalData(payload: {
+    properties?: Property[];
+    projects?: Project[];
+    developers?: Developer[];
+  }): void {
+    if (payload.properties && Array.isArray(payload.properties)) {
+      this.properties = payload.properties;
+    }
+    if (payload.projects && Array.isArray(payload.projects)) {
+      this.projects = payload.projects;
+    }
+    if (payload.developers && Array.isArray(payload.developers)) {
+      this.developers = payload.developers;
+    }
+    this.rebuildAllIndexes();
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(
+          'prosify_real_store_v1',
+          JSON.stringify({
+            properties: this.properties,
+            projects: this.projects,
+            developers: this.developers,
+            leads: this.leads,
+            units: this.units,
+            partners: this.partners,
+            bookings: this.bookings,
+            commissions: this.commissions,
+            lastUpdated: Date.now(),
+          })
+        );
+      } catch {}
+    }
+    this.notifyListeners();
+  }
+
   public ingestLead(lead: Lead): Lead {
     const idx = this.leads.findIndex((l) => l.id === lead.id);
     if (idx !== -1) {

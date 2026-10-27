@@ -1,137 +1,136 @@
-# Implementation Plan: Universal Admin Persistence, Credentials Sync, Cloudflare Caching & Agent Tools
+# Prosify Real-Time Admin-to-Website Synchronization & Platform Architecture
 
-Fix the issue where admin changes (branding, uploaded logo, site settings) and newly provisioned agent/vendor credentials only persist in local storage or fail to reflect across multiple browsers. Add Cloudflare edge cache bypass recommendations, an interactive deal commission calculator, and a live CRM lead data sync log tab in the Agent Dashboard.
+A complete, production-grade bidirectional synchronization system that connects the Prosify Admin Management Suite to the public customer-facing website (`/`, `/properties`, `/projects`, `/developers`, `/affiliate`, and `/contact`). Any modification made in Admin—including property additions and price adjustments, project updates, developer partner listings, homepage CMS headlines and section toggles, brand logos, contact numbers, and festival themes—persists in server-side storage and updates the public website live without requiring manual browser cache clearing.
 
 ---
 
-## User Review Required
+### User Review & Critical Decisions
 
 > [!IMPORTANT]
-> **Universal Multi-Browser Persistence vs. Local Storage:**
-> Currently, several admin views write directly to browser `localStorage` or send large Base64 data strings without synchronous disk persistence. We will introduce a unified server-side persistence layer with an atomic filesystem storage backend (`/data/system_settings.json` and `/data/unified_users.json`) coupled with dedicated logo upload handling (`/api/admin/upload-logo` and `/api/brand/logo`) that serves fresh headers with cache-busting.
+> The platform operates on a single unified truth model: data edited in Admin is saved directly to persistent server-backed stores (`data/*.json` and Next.js server API routes). Changes are broadcast instantly to active client windows via cross-tab sync and live polling/revalidation.
 
-- **Cloudflare Caching Behavior:** Dynamic API endpoints (`/api/*`, `/admin/*`, `/agent/*`, `/vendor/*`) require Cloudflare Edge Cache Bypass so that updates are immediately visible on all devices and browsers without stale cache.
-- **Agent Dashboard Enhancements:** The interactive commission calculator and CRM sync logs will be integrated into the primary `/agent/dashboard` route and made accessible via clean, high-density tabs following our dark glassmorphic design system.
-
----
-
-## Proposed Changes
-
-### 1. Universal Multi-Browser Admin Persistence & Logo Management
-
-#### [Backend] Dedicated Logo Upload & Stream Engine
-- **`app/api/admin/upload-logo/route.ts`**:
-  - Accept `multipart/form-data` image uploads (PNG, JPG, SVG, WebP) up to 5MB.
-  - Write uploaded logo to persistent disk storage (`data/uploads/website_logo.png` and `/public/uploads/logo.png`).
-  - Update `system_settings.json` with a permanent public URL and timestamped cache-buster query: `/api/brand/logo?v=${Date.now()}`.
-- **`app/api/brand/logo/route.ts`**:
-  - Public route that streams the latest uploaded logo file with proper MIME types (`image/png`, `image/jpeg`, etc.).
-  - Set `Cache-Control: public, max-age=0, must-revalidate` so browsers and CDNs always check for freshness or respect version query parameters.
-- **`app/api/admin/settings/route.ts`**:
-  - Set explicit HTTP response headers: `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate`.
-  - Ensure any setting updated by admin (site name, logo URL, contact info, WhatsApp) persists synchronously to disk and memory.
-
-#### [Frontend] Universal Logo & Brand State Hook
-- **`lib/data/useBrandSettings.ts`**:
-  - Fetch `/api/admin/settings` with `cache: 'no-store'`.
-  - Provide immediate live synchronization without relying solely on single-browser `localStorage`.
-- **`components/brand/ProsifyLogo.tsx`**:
-  - Dynamically render the universal logo using `/api/brand/logo` fallback and custom URL with graceful error handling and skeleton loading.
-- **`components/admin/views/BasicSettingsView.tsx`**:
-  - Connect file upload directly to `/api/admin/upload-logo` with instant multi-browser preview and status indicators.
+- **Confirmed Decision 1: Unified Server-Side Persistence**: Admin edits will write directly through robust REST API routes (`/api/admin/properties`, `/api/admin/projects`, `/api/admin/settings`, `/api/cms/homepage`) to persistent storage files in the `data/` directory. All public visitors on mobile, desktop, or incognito sessions will see the exact updated listings and settings.
+- **Confirmed Decision 2: Instant Public Reflection**: Client pages using `useLiveStore` and `useBrandSettings` will automatically rehydrate on window focus, cross-tab broadcast events, and regular interval revalidation. Edits made in the Admin tab will reflect on the public tab within milliseconds.
+- **Confirmed Decision 3: Safety Reset Capability**: An administrative "Reset to Curated Defaults" action will be provided in the Admin Settings tab, allowing administrators to restore the verified pan-India properties and developer seeds whenever needed.
 
 ---
 
-### 2. Universal Agent & Vendor Credentials Synchronization
+### 1. Overview & Core Concept
 
-#### [Backend] Unified Credentials Storage & Auth Matcher
-- **`lib/auth/serverUserDb.ts`**:
-  - Unify credential storage so that creating or modifying a user in `AgentsManagementView`, `VendorsManagementView`, or `UserProvisioningSuite` writes directly to `data/unified_users.json`.
-  - Ensure password updates, status changes (`ACTIVE` / `SUSPENDED`), and custom User IDs (`AGT-XXXX`, `VEN-XXXX`) are indexed and matched case-insensitively across:
-    1. Assigned ID (`secureId` / `assignedCode`)
-    2. Username (`agent@prosify.in`)
-    3. Registered Email
-    4. 10-digit mobile phone number
-- **`app/api/admin/cloud-sync/route.ts` & `app/api/admin/portal-users/route.ts`**:
-  - Ensure POST/PATCH/DELETE synchronously updates `serverUserDb` and writes to disk.
-- **`app/api/auth/agent/login/route.ts` & `app/api/auth/vendor/login/route.ts`**:
-  - Support instant cloud-authoritative password verification against `serverUserDb` so any newly configured password works immediately from any browser or incognito window.
+- **What It Does**: Bridges the administrative management portal with public customer-facing pages. When an administrator adds a new property, updates a pricing figure, marks a home as "Featured", customizes the homepage hero headline, updates contact numbers, or modifies the brand logo, those changes are immediately reflected on the live website. Homebuyers browsing the portal see up-to-the-minute inventory, real-time pricing, and active festival themes.
+- **Target Audience / Persona**:
+  - *Prosify Administrators & Operations Teams*: Real estate asset managers who need rapid inventory management, lead tracking, and content publishing without touching code.
+  - *Homebuyers & Investors*: Discerning buyers searching for Grade-A residential and commercial real estate across Mumbai MMR, Pune, Bengaluru, Delhi NCR, and Hyderabad.
+  - *Affiliate & Growth Partners*: Channel partners tracking referral links, real-time conversion payouts, and commission wallets.
+- **Key Value**: Eliminates the disconnect between admin inputs and public UI. Delivers an authoritative, responsive enterprise portal with zero static placeholders, full CRUD synchronization, and instant visual updates.
 
 ---
 
-### 3. Cloudflare Configuration & Cache Bypass Guide
+### 2. User Experience & Visual Design
 
-#### [Documentation & Config]
-- **`CLOUDFLARE_GUIDE.md`**:
-  - Add explicit, copy-paste Cloudflare Dashboard rules:
-    1. **Cache Rules**: Rule for `*prosify.in/api/*` and `*prosify.in/admin/*` -> **Cache Level: Bypass**.
-    2. **Browser Cache TTL**: Respect origin headers (`no-store, no-cache`).
-    3. **Cloudflare Purge Instructions**: CLI command (`npx wrangler pages deployment purge`) and Dashboard steps to purge cache after branding updates.
-    4. **Web Application Firewall (WAF)**: Whitelist rules for `/api/auth/*` to prevent false-positive challenge pages on agent/vendor logins.
+- **Key User Flows**:
+  1. *Admin Property Mutation Flow*: Admin opens `/admin` -> navigates to **Properties** -> edits property price from ₹1.25 Cr to ₹1.18 Cr and marks as "Featured" -> clicks **Save Changes**. The server API writes to the persistent store. Home page hero and `/properties` listing instantly display the updated price tag and featured badge.
+  2. *Homepage CMS Customization Flow*: Admin opens **Home Page CMS** in `/admin` -> edits the Hero headline to *"Luxury Waterfront Residences in South Mumbai"* -> clicks **Save Changes Live**. Public visitors on `/` see the new headline and updated subtext immediately.
+  3. *Brand & Contact Sync Flow*: Admin updates the support phone number or changes the logo in **Basic Settings** -> public navbar, footer, and WhatsApp redirection links immediately update to the new contact details.
+  4. *Customer Lead & Site Visit Flow*: Homebuyer submits an enquiry modal on a luxury property -> submission is captured via `/api/leads` -> Admin Command Center and Leads CRM increment the counter and display the lead with contact details and property context.
 
----
-
-### 4. Interactive Deal Commission Calculator Component
-
-#### [Component] `components/agent/AgentCommissionCalculator.tsx`
-- **Interactive Inputs**:
-  - Property Value slider + manual numeric input (e.g. ₹50 Lakh to ₹25 Crore with quick presets: ₹75L, ₹1.5 Cr, ₹3.5 Cr, ₹8 Cr).
-  - Agent Tier Selector:
-    - **Silver** (2.0% base commission)
-    - **Gold** (2.5% premium commission + milestone incentive)
-    - **Platinum** (3.0% elite tier + quarterly bonus)
-    - **Diamond / MahaRERA Lead Partner** (3.5% maximum commission slab)
-  - Co-broker / Channel Partner Split toggle (100% solo, 50-50 split, or custom team cut).
-  - MahaRERA TDS deduction preview (5% Section 194H TDS calculator and net payable amount).
-- **Earnings Metrics**:
-  - Gross Commission Receivable
-  - Statutory TDS Deduction (5%)
-  - Net Bank Disbursable Amount
-  - Milestone Progress Indicator (how much deal volume needed to reach next tier)
-- **Export / Copy Quote**: 1-click button to copy formatted deal commission summary to clipboard.
+- **Visual Identity & Theme**:
+  - *Aesthetic Direction*: Dark luxury architectural aesthetic tailored for high-ticket Indian real estate.
+  - *Color Palette & Mood*:
+    - Deep Neutral Canvas: `#0A0D14` (Obsidian Onyx) and `#111622` (Deep Navy Charcoal).
+    - Structural Surfaces: `#171F2E` with hairline borders (`rgba(255, 255, 255, 0.08)` or subtle gold `rgba(212, 175, 55, 0.2)`).
+    - Accent Budget (10%): Warm Metallic Gold (`#D4AF37`) and Emerald Trust Green (`#10B981`) for verified badges.
+  - *Typography & Hierarchy*:
+    - Display Headings: Refined geometric sans (`Plus Jakarta Sans`) with tight letter spacing.
+    - Tabular Figures: `tabular-nums` for all price figures, carpet areas, and affiliate balances.
+  - *Top Bar Contract*: Strict 3-zone layout:
+    - Zone 1: Clean Prosify wordmark and official logo.
+    - Zone 2: 4 single-line links (`Properties`, `Projects`, `Developers`, `Affiliate`).
+    - Zone 3: Primary CTA (`Post Requirement` / `Contact Desk`).
 
 ---
 
-### 5. Live CRM Sync Log Tab in Agent Dashboard
+### 3. Key Product Decisions & Trade-Offs
 
-#### [Component & Tab] `components/agent/AgentCrmSyncLogTab.tsx`
-- **Integration in `app/agent/dashboard/page.tsx`**:
-  - Add two new tabs to the Agent Dashboard header navigation:
-    - **"Commission Calculator"** (`calculator`)
-    - **"CRM Sync & Webhooks"** (`crm_sync`)
-- **Live Sync Log Features**:
-  - Connect to `/api/crm/sync-status` to display real-time lead dispatch events.
-  - High-density tabular status view:
-    - Timestamp (formatted with tabular figures `font-mono`)
-    - Lead Name & Mobile (masked for privacy)
-    - Target Property & Budget
-    - Dispatch Target (Webhook URL / Central CRM Endpoint)
-    - Status Badge: `SYNCED (200 OK)`, `PENDING (Queued)`, `FAILED (Timeout/Error)`
-    - Response Payload / Error Message collapsible inspector
-  - Interactive Actions:
-    - "Test CRM Ping" to verify webhook connectivity in real time.
-    - "Retry Sync" for any failed lead with instant status update.
-    - Refresh button with live polling indicator.
+- **Decision 1: File-System Backed Unified Server Database (`data/*.json`)**:
+  - *Chosen Approach*: Implement structured JSON storage for properties, projects, developers, CMS copy, and brand settings with atomic writes and in-memory read cache.
+  - *Why*: Provides reliable persistence across server reboots, container restarts, and browser sessions without requiring an external database cluster setup.
+  - *Alternatives Considered*: Pure browser `localStorage` (fails across different users/devices and breaks SSR); external SQL requiring external connection credentials (adds connection latency and potential failure points in preview environment).
+
+- **Decision 2: Dual Event-Driven & Polling Rehydration (`useLiveStore`)**:
+  - *Chosen Approach*: Public client components listen to `BroadcastChannel`, `storage` events, window focus (`visibilitychange`), and a lightweight SWR revalidation hook.
+  - *Why*: Guarantees that public tabs update both instantly in the same browser session and accurately on subsequent visits from external users.
+
+- **Decision 3: Complete Working Handlers with Zero Dead Buttons**:
+  - *Chosen Approach*: Audit and wire all search filters, category tabs, modal forms, affiliate copy-link triggers, compare property selectors, and contact submission buttons.
+  - *Why*: Ensures strict compliance with "sabkuchh working hona chahiye", eliminating dead clicks and mock stubs.
 
 ---
 
-## Verification Plan
+### 4. Technical Architecture & Data Strategy
 
-### Automated Build Verification
-- Execute `compile_applet` to ensure TypeScript compilation, route exports, and Tailwind styling succeed without errors.
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        PROSIFY ARCHITECTURE                            │
+└────────────────────────────────────────────────────────────────────────┘
 
-### Functional Verification
-1. **Multi-Browser Logo Test**:
-   - Upload new logo in Admin -> Basic Settings -> Website Logo & Branding.
-   - Verify `/api/admin/settings` returns the new logo URL.
-   - Verify logo renders on public Navbar, Footer, and Admin header without manual localStorage seeding.
-2. **Multi-Browser Agent/Vendor Login Test**:
-   - Provision an Agent (`AGT-9124`) and Vendor (`VND-7821`) with custom passwords in Admin.
-   - Open a simulated fresh session (clear cookies/localStorage) and execute login POST to `/api/auth/agent/login` and `/api/auth/vendor/login`.
-   - Verify authentication succeeds and returns valid session tokens.
-3. **Commission Calculator Test**:
-   - In Agent Dashboard -> Commission Calculator tab, adjust property value and toggle between Silver, Gold, Platinum, and Diamond tiers.
-   - Verify calculations reflect exact percentages, TDS deduction, and net pay.
-4. **CRM Sync Log Test**:
-   - In Agent Dashboard -> CRM Sync tab, verify existing lead sync logs load from `/api/crm/sync-status`.
-   - Trigger a Test Ping and verify the log appears in the table with webhook response status.
+    ┌───────────────────────────┐         ┌──────────────────────────┐
+    │     ADMIN SUITE UI        │         │  CUSTOMER PUBLIC WEBSITE │
+    │  (/admin - 17 Modules)    │         │ (/, /properties, etc.)   │
+    │                           │         │                          │
+    │ • Properties & Projects   │         │ • Hero & Search Engine   │
+    │ • Developers & Inventory  │         │ • Property Grid & Cards  │
+    │ • Homepage CMS & Settings │         │ • Trusted Partners Rail  │
+    │ • Affiliate & Leads CRM   │         │ • Dynamic Festival Theme │
+    └─────────────┬─────────────┘         └────────────▲─────────────┘
+                  │                                    │
+                  │ POST / PUT / DELETE                │ GET / Revalidate
+                  ▼                                    │
+    ┌───────────────────────────┐                      │
+    │    NEXT.JS API LAYER      │                      │
+    │                           │                      │
+    │ • /api/admin/properties   │                      │
+    │ • /api/admin/projects     │                      │
+    │ • /api/admin/settings     │                      │
+    │ • /api/cms/homepage       │──────────────────────┘
+    │ • /api/leads & visits     │
+    └─────────────┬─────────────┘
+                  │
+                  ▼
+    ┌──────────────────────────────────────────────────┐
+    │          PERSISTENT SERVER DATABASE              │
+    │             (/data/*.json Engine)                │
+    │                                                  │
+    │ • data/properties.json                           │
+    │ • data/projects.json                             │
+    │ • data/developers.json                           │
+    │ • data/homepage_cms.json                         │
+    │ • data/brand_settings.json                       │
+    │ • data/unified_affiliates.json                   │
+    └──────────────────────────────────────────────────┘
+```
+
+#### Component & State Flow:
+1. **`lib/data/serverStore.ts`**: Server-side singleton reading and writing to `data/properties.json`, `data/projects.json`, `data/developers.json`, and `data/homepage_cms.json`.
+2. **`app/api/properties/route.ts` & `app/api/admin/properties/route.ts`**: Full CRUD endpoints for creating, editing, publishing, and deleting properties.
+3. **`app/api/cms/homepage/route.ts`**: Fetches and saves live section titles, subtitles, and enable/disable states for the public home page.
+4. **`app/api/brand/settings/route.ts`**: Fetches and saves global brand configurations (company name, logo URL, WhatsApp support phone, contact email).
+5. **`lib/data/useLiveStore.ts`**: Client-side hook combining server fetch with local storage fallback and real-time cross-tab synchronization.
+6. **`components/marketplace/Navbar.tsx` & `Footer.tsx`**: Consume brand settings dynamically, displaying the active logo and contact information.
+7. **`app/page.tsx`**: Renders sections dynamically based on `homepage_cms.json` settings, displaying live featured properties and project listings.
+
+---
+
+### Verification & Testing Plan
+
+1. **Admin Property Edit Test**:
+   - Update property title and price in Admin. Verify immediate reflection on `/properties` and the home page.
+   - Add a new property with cover photo. Verify it appears on `/properties` with functional detail view at `/properties/[slug]`.
+2. **Homepage CMS Test**:
+   - Modify Hero headline and toggle off one section in Admin CMS. Verify homepage layout updates dynamically.
+3. **Brand Settings & WhatsApp Test**:
+   - Update WhatsApp contact number in Basic Settings. Verify WhatsApp floating button and header links navigate to the new link.
+4. **Public Lead Capture Test**:
+   - Submit a test inquiry on the public website. Verify it appears in Admin Command Center and Leads CRM.
+5. **Build & Lint Verification**:
+   - Run `compile_applet` and `lint_applet` to confirm zero compilation or TypeScript errors.

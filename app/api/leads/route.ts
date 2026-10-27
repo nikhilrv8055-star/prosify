@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data/store';
+import { createServerLead } from '@/lib/data/serverStore';
 import { z } from 'zod';
 import { getServerUser } from '@/lib/auth/serverAuth';
 import { applyRateLimit, getClientIp } from '@/lib/security/rateLimit';
@@ -112,15 +113,26 @@ export async function POST(req: NextRequest) {
     let partnerId = rawBody.partnerId;
     let partnerCode = rawBody.partnerCode;
     let partnerName = rawBody.partnerName;
+    const refCode = rawBody.partnerCode || rawBody.affiliateCode || rawBody.referralCode;
+    if (refCode && !partnerCode) {
+      partnerCode = refCode;
+    }
 
     // Check cookie fallback if partner was set in session
-    const partnerCookie = req.cookies.get('prosify_partner_ref')?.value || req.cookies.get('swarna_partner_ref')?.value;
+    const partnerCookie =
+      req.cookies.get('prosify_ref')?.value ||
+      req.cookies.get('prosify_partner_ref')?.value ||
+      req.cookies.get('swarna_partner_ref')?.value;
+
     if (!partnerId && partnerCookie) {
       const partner = store.getPartnerByCode(partnerCookie);
       if (partner) {
         partnerId = partner.id;
         partnerCode = partner.code;
         partnerName = partner.companyName;
+      } else {
+        partnerCode = partnerCookie;
+        partnerName = `Partner ${partnerCookie}`;
       }
     } else if (partnerCode && !partnerId) {
       const partner = store.getPartnerByCode(partnerCode);
@@ -184,6 +196,24 @@ export async function POST(req: NextRequest) {
       utmCampaign: validated.data.utmCampaign,
       assignedTo: 'Amit Sharma (Senior Relationship Mgr)',
     });
+
+    try {
+      createServerLead({
+        id: newLead.id,
+        name: newLead.name,
+        phone: newLead.phone,
+        email: newLead.email,
+        budget: newLead.budget,
+        preferredCity: newLead.preferredCity,
+        status: newLead.status,
+        source: newLead.source,
+        propertyId: newLead.propertyId,
+        projectId: newLead.projectId,
+        notes: newLead.notes,
+      });
+    } catch (e) {
+      console.warn('Lead server disk persist notice:', e);
+    }
 
     recordAuditEvent({
       action: 'LEAD_CREATE',

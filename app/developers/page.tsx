@@ -22,15 +22,17 @@ import {
 import { Navbar } from '@/components/marketplace/Navbar';
 import { Footer } from '@/components/marketplace/Footer';
 import { store } from '@/lib/data/store';
+import { useLiveStore } from '@/lib/data/useLiveStore';
 import { EnquiryModal } from '@/components/marketplace/EnquiryModal';
 
 export default function DevelopersPage() {
+  const { developers: allLiveDevelopers, projects: allLiveProjects } = useLiveStore();
   const [search, setSearch] = useState('');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [selectedDeveloperForEnquiry, setSelectedDeveloperForEnquiry] = useState<string | null>(null);
 
   const developers = useMemo(() => {
-    let list = store.getDevelopers();
+    let list = allLiveDevelopers;
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -44,9 +46,9 @@ export default function DevelopersPage() {
       list = list.filter((d) => d.isVerified);
     }
     return list;
-  }, [search, verifiedOnly]);
+  }, [search, verifiedOnly, allLiveDevelopers]);
 
-  const allProjects = useMemo(() => store.getProjects(), []);
+  const allProjects = allLiveProjects;
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50/50">

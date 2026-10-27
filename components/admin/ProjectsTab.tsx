@@ -118,20 +118,40 @@ export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) 
         image: formData.featuredImage,
         coverImage: formData.featuredImage,
       });
+
+      fetch('/api/admin/projects', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingProject.id,
+          ...formData,
+          featuredImage: formData.featuredImage,
+          image: formData.featuredImage,
+          coverImage: formData.featuredImage,
+        }),
+      }).catch((e) => console.warn('Project server persist note:', e));
     } else {
-      store.createProject({
+      const newProjData = {
         ...formData,
         slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         developerId: 'dev-1',
         featuredImage: formData.featuredImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
         image: formData.featuredImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+        coverImage: formData.featuredImage || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
         galleryImages: [],
         amenities: ['Clubhouse', 'Olympic Pool', 'Badminton Court', 'Jogging Track'],
         bhkTypes: ['2 BHK', '3 BHK'],
         totalLandAreaAcres: 12.5,
         masterBrochureUrl: '#',
         isPublished: true,
-      });
+      };
+      store.createProject(newProjData);
+
+      fetch('/api/admin/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProjData),
+      }).catch((e) => console.warn('Project server persist note:', e));
     }
 
     setIsModalOpen(false);
@@ -141,6 +161,9 @@ export function ProjectsTab({ projects, onRefresh, subview }: ProjectsTabProps) 
   const handleDelete = (p: Project) => {
     if (confirm(`Delete project "${p.name}"?`)) {
       store.deleteProject(p.id);
+      fetch(`/api/admin/projects?id=${encodeURIComponent(p.id)}`, {
+        method: 'DELETE',
+      }).catch((e) => console.warn('Project server persist note:', e));
       onRefresh();
     }
   };

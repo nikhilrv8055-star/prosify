@@ -285,6 +285,64 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
     setTimeout(() => setToast(null), 3500);
   };
 
+  const handleSaveGeneral = async () => {
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agencyName: general.siteName,
+        }),
+      });
+      const data = await res.json();
+      if (data?.settings) {
+        saveCachedBrandSettings(data.settings);
+      }
+      showToast('General brand parameters saved and published live to website!');
+    } catch {
+      showToast('Error saving settings to server.');
+    }
+  };
+
+  const handleSaveContact = async () => {
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactEmail: contactConfig.contactEmail,
+          whatsappNumber: contactConfig.escalationPhone,
+          phone: contactConfig.escalationPhone,
+        }),
+      });
+      const data = await res.json();
+      if (data?.settings) {
+        saveCachedBrandSettings(data.settings);
+      }
+      showToast('Contact and WhatsApp hotline saved and published live to website!');
+    } catch {
+      showToast('Error saving contact settings.');
+    }
+  };
+
+  const handleResetAllData = async () => {
+    if (confirm('Are you sure you want to restore all properties, projects, developers, and CMS to verified curated defaults?')) {
+      try {
+        const res = await fetch('/api/admin/reset', { method: 'POST' });
+        const data = await res.json();
+        if (data?.success) {
+          localStorage.removeItem('prosify_real_store_v1');
+          localStorage.removeItem('prosify_homepage_cms');
+          window.dispatchEvent(new CustomEvent('prosify:store-updated'));
+          showToast('All real estate data successfully reset to verified defaults!');
+          setTimeout(() => window.location.reload(), 1200);
+        }
+      } catch {
+        showToast('Reset failed. Please retry.');
+      }
+    }
+  };
+
   const handleSave = (sectionName: string) => {
     showToast(`${sectionName} parameters successfully updated!`);
   };
@@ -412,13 +470,22 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
               </button>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={() => handleSave('General Settings')}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl"
+                onClick={handleSaveGeneral}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer transition-colors shadow-md"
               >
                 Save General Settings
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetAllData}
+                className="px-3.5 py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 font-semibold text-xs rounded-xl cursor-pointer transition-colors"
+                title="Restore original curated properties, projects, and CMS"
+              >
+                Reset Platform Data to Defaults
               </button>
             </div>
           </div>
@@ -830,10 +897,10 @@ export function BasicSettingsView({ subview = 'settings-general' }: { subview?: 
             <div className="pt-2">
               <button
                 type="button"
-                onClick={() => handleSave('Contact Page')}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl"
+                onClick={handleSaveContact}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-md transition-colors"
               >
-                Save Contact Settings
+                Save Contact & WhatsApp Hotline
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@
 export const brandConfig = {
   name: "Prosify",
   shortName: "Prosify",
+  logoUrl: "https://pub-7905aa2d4dfa43d69cee6dd8ca78c0e5.r2.dev/Photos/prosify-logo-CcMCTuhS.png",
   adminName: "Prosify Admin",
   partnerPortalName: "Prosify Partner Network",
   developerPortalName: "Prosify Developer Network",

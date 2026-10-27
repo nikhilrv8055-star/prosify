@@ -118,11 +118,39 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  // 6. Security Headers
+  // 6. Referral & Affiliate Attribution (30-day cookie)
+  const refCode =
+    url.searchParams.get('ref') ||
+    url.searchParams.get('partner') ||
+    url.searchParams.get('cp') ||
+    url.searchParams.get('affiliate') ||
+    url.searchParams.get('code');
+
+  // 7. Security Headers & Cookie Attribution
   const response = NextResponse.next();
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  if (refCode && refCode.trim().length > 0) {
+    const cleanRef = refCode.trim().slice(0, 64);
+    // Set 30-day cookie (30 days * 24 hours * 60 mins * 60 secs)
+    response.cookies.set('prosify_ref', cleanRef, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: '/',
+      httpOnly: false, // accessible to client forms and server components
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+    // Also set legacy partner cookie for backward compatibility
+    response.cookies.set('prosify_partner_ref', cleanRef, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: '/',
+      httpOnly: false,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
 
   if (
     url.pathname.startsWith('/admin') ||

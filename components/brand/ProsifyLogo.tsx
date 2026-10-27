@@ -6,6 +6,9 @@ import Image from 'next/image';
 import { brandConfig } from '@/src/config/brand';
 import { useBrandSettings } from '@/lib/data/useBrandSettings';
 
+const DEFAULT_OFFICIAL_LOGO =
+  'https://pub-7905aa2d4dfa43d69cee6dd8ca78c0e5.r2.dev/Photos/prosify-logo-CcMCTuhS.png';
+
 interface ProsifyLogoProps {
   variant?: 'light' | 'dark' | 'header' | 'admin' | 'partner' | 'developer';
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -25,101 +28,56 @@ export const ProsifyLogo: React.FC<ProsifyLogoProps> = ({
 }) => {
   const { logoUrl } = useBrandSettings();
 
-  // Dimension definitions
-  const sizeMap = {
-    sm: {
-      box: 'w-7 h-7 rounded-lg text-sm',
-      text: 'text-base',
-      tagline: 'text-[9px]',
-      badge: 'text-[9px] px-1.5 py-0.5',
-    },
-    md: {
-      box: 'w-9 h-9 rounded-xl text-lg',
-      text: 'text-xl',
-      tagline: 'text-[10px]',
-      badge: 'text-[10px] px-2 py-0.5',
-    },
-    lg: {
-      box: 'w-11 h-11 rounded-xl text-xl',
-      text: 'text-2xl',
-      tagline: 'text-[11px]',
-      badge: 'text-[11px] px-2.5 py-0.5',
-    },
-    xl: {
-      box: 'w-14 h-14 rounded-2xl text-2xl',
-      text: 'text-3xl',
-      tagline: 'text-xs',
-      badge: 'text-xs px-3 py-1',
-    },
+  // Active logo source with Cloudflare R2 logo as primary default
+  const activeLogo = logoUrl && logoUrl.trim().length > 0 ? logoUrl : DEFAULT_OFFICIAL_LOGO;
+
+  // Prominent, big-size responsive dimensions for clear visual branding
+  const sizeClasses = {
+    sm: 'h-8 sm:h-9 max-w-[150px]',
+    md: 'h-11 sm:h-12 md:h-14 max-w-[240px]',
+    lg: 'h-14 sm:h-16 md:h-18 max-w-[300px]',
+    xl: 'h-18 sm:h-22 md:h-24 max-w-[380px]',
   };
 
-  const dims = sizeMap[size];
-
-  // Theme variant styling
-  const isDarkCanvas = ['light', 'admin', 'partner', 'developer'].includes(variant);
-
-  const emblemClasses =
-    'relative flex items-center justify-center font-serif font-black tracking-tight bg-gradient-to-tr from-[#B38711] via-[#D4A017] to-[#F4C430] text-neutral-950 shadow-sm transition-transform group-hover:scale-105 overflow-hidden';
-
-  const titleClasses = isDarkCanvas
-    ? 'text-white font-serif font-bold tracking-tight'
-    : 'text-[#171717] font-serif font-bold tracking-tight';
-
-  const taglineClasses = isDarkCanvas ? 'text-[#D4A017]' : 'text-neutral-500';
+  const currentSizeClass = sizeClasses[size] || sizeClasses.md;
 
   const content = (
     <div className={`inline-flex items-center gap-2.5 group select-none ${className}`}>
-      {/* Prosify Emblem or Custom Uploaded Logo */}
-      {logoUrl ? (
-        <div className="relative rounded-xl overflow-hidden flex items-center justify-center p-0.5 shrink-0">
-          <img
-            src={logoUrl}
-            alt={brandConfig.name}
-            className={`${
-              size === 'sm'
-                ? 'h-7 max-w-[120px]'
-                : size === 'lg'
-                ? 'h-11 max-w-[200px]'
-                : size === 'xl'
-                ? 'h-14 max-w-[240px]'
-                : 'h-9 max-w-[160px]'
-            } w-auto object-contain rounded-lg drop-shadow-xs`}
-          />
-        </div>
-      ) : (
-        <div className={`${dims.box} ${emblemClasses}`}>
-          {/* Default inner monogram */}
-          <span className="relative z-10 leading-none drop-shadow-sm">P</span>
-          <div className="absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/30" />
-        </div>
+      {/* Official Prosify Logo Image in prominent big size */}
+      <div className="relative flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-102">
+        <Image
+          src={activeLogo}
+          alt={brandConfig.name}
+          width={340}
+          height={96}
+          priority
+          referrerPolicy="no-referrer"
+          className={`${currentSizeClass} w-auto object-contain drop-shadow-sm`}
+        />
+      </div>
+
+      {/* Optional Badge (e.g. Admin / Partner portal tag) without repeating Prosify text */}
+      {badge && (
+        <span className="rounded-md font-mono text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-500 border border-amber-500/30 px-2 py-0.5 shadow-xs">
+          {badge}
+        </span>
       )}
 
-      {/* Prosify Wordmark */}
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <span className={`${dims.text} ${titleClasses}`}>
-            {brandConfig.name}
-          </span>
-          {badge && (
-            <span
-              className={`rounded-md font-mono font-semibold uppercase tracking-wider bg-[#D4A017]/15 text-[#D4A017] border border-[#D4A017]/30 ${dims.badge}`}
-            >
-              {badge}
-            </span>
-          )}
-        </div>
-        {showTagline && (
-          <span className={`${dims.tagline} font-mono tracking-wider uppercase ${taglineClasses}`}>
-            {brandConfig.tagline}
-          </span>
-        )}
-      </div>
+      {/* Optional Tagline (only if explicitly enabled, e.g. footer) */}
+      {showTagline && (
+        <span className="hidden sm:inline-block font-mono text-[10px] tracking-wider uppercase text-neutral-400">
+          {brandConfig.tagline}
+        </span>
+      )}
     </div>
   );
 
   if (href) {
     return (
-      <Link href={href} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A017] rounded-lg">
+      <Link
+        href={href}
+        className="inline-flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-xl transition-opacity hover:opacity-95"
+      >
         {content}
       </Link>
     );

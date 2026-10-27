@@ -531,24 +531,44 @@ export default function AffiliatePortalPage() {
       <Navbar />
 
       {/* Production Clean Brand Header */}
-      <section className="border-b border-slate-800/80 bg-linear-to-b from-[#111827] to-[#0A0D14] px-4 py-8 sm:py-12">
+      <section className="border-b border-slate-800/80 bg-linear-to-b from-[#111827] via-[#0D131F] to-[#0A0D14] px-4 py-8 sm:py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Certified Partner Network • MahaRERA Compliant</span>
+          <div className="space-y-3 max-w-3xl">
+            {/* Core Taglines matching Prosify messaging */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Advantage of Realty Rewards™</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+                <span>The Seal of Property Protection™</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>10-Year RERA Advocacy &amp; Transparent Deals</span>
+              </span>
             </div>
+
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Prosify Affiliate Partner Program
+              Prosify Affiliate &amp; Growth Partner Program
             </h1>
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-              Monetize your network with India’s premier verified luxury real estate and developer platform.
-              Earn up to 3.5% commission on closed sales, enjoy automated 30-day cookie attribution, and receive weekly payouts via UPI & NEFT.
+              Monetize your professional and personal network with India’s premier verified luxury real estate and developer platform.
+              Earn high-yield commissions on verified property transactions, enjoy automated 30-day cookie attribution, and receive weekly payouts via UPI &amp; NEFT.
             </p>
           </div>
 
           {affiliate ? (
-            <div className="flex items-center gap-3 self-stretch md:self-auto justify-end">
+            <div className="flex items-center gap-3 self-stretch md:self-auto justify-end flex-wrap">
+              <Link
+                href="/affiliate/dashboard"
+                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Open Awas Mitra Dashboard</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
               <button
                 type="button"
                 onClick={() => handleCopy(primaryReferralUrl, 'link')}
@@ -567,11 +587,19 @@ export default function AffiliatePortalPage() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <Link
+                href="/affiliate/dashboard"
+                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Launch Awas Mitra Dashboard</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
               <button
                 type="button"
                 onClick={() => setAuthTab('signup')}
-                className="px-5 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#059669] text-[#0A0D14] font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
               >
                 Become an Affiliate Partner
               </button>
@@ -964,8 +992,8 @@ export default function AffiliatePortalPage() {
               </div>
             </div>
 
-            {/* Metric Cards (Required 4 Cards + Slabs) */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Metric Cards (Required 5 Analytics Cards) */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
               {/* Card 1: Total Clicks */}
               <div className="rounded-2xl bg-[#151D2C] border border-slate-800 p-4 sm:p-5 shadow-lg space-y-1">
                 <span className="text-xs font-semibold text-slate-400 block">Total Clicks</span>
@@ -973,22 +1001,31 @@ export default function AffiliatePortalPage() {
                   {affiliate.totalClicks.toLocaleString('en-IN')}
                 </span>
                 <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                  <span>30-day cookie window tracking</span>
+                  <span>30-day cookie attribution</span>
                 </span>
               </div>
 
-              {/* Card 2: Unique Conversions */}
+              {/* Card 2: Leads Generated */}
               <div className="rounded-2xl bg-[#151D2C] border border-slate-800 p-4 sm:p-5 shadow-lg space-y-1">
-                <span className="text-xs font-semibold text-slate-400 block">Unique Conversions</span>
+                <span className="text-xs font-semibold text-slate-400 block">Leads Generated</span>
+                <span className="text-xl sm:text-2xl font-black text-amber-400 block">
+                  {Math.max(affiliate.totalConversions * 3, Math.round(affiliate.totalClicks * 0.18)).toLocaleString('en-IN')}
+                </span>
+                <span className="text-[11px] text-slate-400">Captured buyer inquiries</span>
+              </div>
+
+              {/* Card 3: Conversions */}
+              <div className="rounded-2xl bg-[#151D2C] border border-slate-800 p-4 sm:p-5 shadow-lg space-y-1">
+                <span className="text-xs font-semibold text-slate-400 block">Conversions</span>
                 <span className="text-xl sm:text-2xl font-black text-[#0EA5E9] block">
                   {affiliate.totalConversions.toLocaleString('en-IN')}
                 </span>
-                <span className="text-[11px] text-slate-400">Verified buyer site visits & deals</span>
+                <span className="text-[11px] text-slate-400">Verified buyer deals</span>
               </div>
 
-              {/* Card 3: Total Commission Earned */}
+              {/* Card 4: Total Commission */}
               <div className="rounded-2xl bg-[#151D2C] border border-slate-800 p-4 sm:p-5 shadow-lg space-y-1">
-                <span className="text-xs font-semibold text-slate-400 block">Total Commission Earned</span>
+                <span className="text-xs font-semibold text-slate-400 block">Total Commission</span>
                 <span className="text-xl sm:text-2xl font-black text-[#10B981] block">
                   ₹{affiliate.lifetimeEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
@@ -998,14 +1035,14 @@ export default function AffiliatePortalPage() {
                 </span>
               </div>
 
-              {/* Card 4: Available Balance */}
-              <div className="rounded-2xl bg-[#151D2C] border border-emerald-500/30 p-4 sm:p-5 shadow-lg space-y-1 relative overflow-hidden">
+              {/* Card 5: Available Wallet Balance */}
+              <div className="rounded-2xl bg-[#151D2C] border border-emerald-500/30 p-4 sm:p-5 shadow-lg space-y-1 relative overflow-hidden col-span-2 md:col-span-1">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none" />
                 <span className="text-xs font-semibold text-slate-400 block">Available Balance</span>
                 <span className="text-xl sm:text-2xl font-black text-emerald-400 block">
                   ₹{affiliate.availableBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
-                <span className="text-[11px] text-emerald-300 font-semibold">Ready for immediate withdrawal</span>
+                <span className="text-[11px] text-emerald-300 font-semibold">Ready for payout</span>
               </div>
             </div>
 

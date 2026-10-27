@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+      <g transform="translate(10, 8)">
+        <!-- Emblem -->
+        <rect x="0" y="4" width="38" height="38" rx="6" fill="#D4AF37" fill-opacity="0.15" stroke="#D4AF37" stroke-width="1.5"/>
+        <path d="M19 10 L28 26 L10 26 Z" fill="#D4AF37"/>
+        <circle cx="19" cy="18" r="3" fill="#0A0D14"/>
+        <line x1="8" y1="34" x2="30" y2="34" stroke="#D4AF37" stroke-width="2" stroke-linecap="round"/>
+        <!-- Text -->
+        <text x="50" y="27" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="900" fill="#FFFFFF" letter-spacing="3">LODHA</text>
+        <text x="51" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="7" font-weight="600" fill="#D4AF37" letter-spacing="1.5">BUILDING A BETTER LIFE</text>
+      </g>
+    </svg>

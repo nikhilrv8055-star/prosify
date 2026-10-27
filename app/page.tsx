@@ -45,12 +45,15 @@ import { useFestivalTheme } from '@/components/theme/FestivalThemeProvider';
 import { brandConfig } from '@/src/config/brand';
 import { ContactInquiryForm } from '@/components/crm/ContactInquiryForm';
 import { HighIntentCtaModal, HighIntentModalType } from '@/components/crm/HighIntentCtaModal';
+import { TrustedPartnersMarquee } from '@/components/partners/TrustedPartnersMarquee';
+import { useHomepageCms } from '@/lib/data/useHomepageCms';
 
 export default function HomePage() {
   const router = useRouter();
   const { toggleCompareProperty, comparedPropertyIds } = useAuth();
   const { toast } = useToast();
   const { properties: allProperties, projects: allProjects, developers: allDevelopers, cities } = useLiveStore();
+  const { getSection } = useHomepageCms();
   const {
     config: themeConfig,
     currentTheme,
@@ -58,6 +61,17 @@ export default function HomePage() {
     activeBannerImage,
     activeBadgeText,
   } = useFestivalTheme();
+
+  // Dynamic CMS Section Titles & Toggles
+  const heroSec = getSection(
+    'sec-hero',
+    'Find Your Perfect Home Across Maharashtra’s Top Metro Cities',
+    'Explore verified properties, new launch projects, and high-yield real estate investments across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, and Chhatrapati Sambhajinagar with direct MahaRERA transparency.'
+  );
+  const brandSec = getSection('sec-brand', 'Our Trusted Developer Partners', 'Showcasing India’s premier conglomerates (Lodha, Godrej, Oberoi, Piramal, L&T Realty).');
+  const propSec = getSection('sec-prop', 'Featured Verified Properties', 'Curated high-demand inventory with zero brokerage and direct developer transparency');
+  const projSec = getSection('sec-about', 'Trending New Launch Projects', 'Explore integrated townships, clubhouses, and pre-launch booking pricing');
+  const citySec = getSection('sec-city', 'Explore Popular Maharashtra Hubs', 'Strategic Corridors across MMR and Pune');
 
   // Search form state
   const [searchTab, setSearchTab] = useState<'BUY' | 'PROJECTS' | 'COMMERCIAL'>('BUY');
@@ -179,11 +193,11 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              Find Your Perfect Home Across Maharashtra’s Top Metro Cities
+              {heroSec.title}
             </h1>
 
             <p className="text-base sm:text-lg text-neutral-300 font-normal leading-relaxed">
-              Explore verified properties, new launch projects, and high-yield real estate investments across Mumbai, Pune, Nagpur, Nashik, Thane, Navi Mumbai, and Chhatrapati Sambhajinagar with direct MahaRERA transparency.
+              {heroSec.subtitle}
             </p>
           </div>
 
@@ -391,7 +405,7 @@ export default function HomePage() {
               Strategic Corridors
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 mt-1">
-              Explore Popular Maharashtra Hubs
+              {citySec.title}
             </h2>
           </div>
           <Link
@@ -463,10 +477,10 @@ export default function HomePage() {
                 Handpicked Collections
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 mt-1">
-                Featured Verified Properties
+                {propSec.title}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-                Curated high-demand inventory with zero brokerage and direct developer transparency
+                {propSec.subtitle}
               </p>
             </div>
 
@@ -502,10 +516,10 @@ export default function HomePage() {
               Masterplanned Communities
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 mt-1">
-              Trending New Launch Projects
+              {projSec.title}
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-              Explore integrated townships, clubhouses, and pre-launch booking pricing
+              {projSec.subtitle}
             </p>
           </div>
 
@@ -525,40 +539,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trusted Developers Showcase */}
-      <section className="py-14 bg-neutral-100 border-t border-neutral-200 w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#D4A017]">
-              Grade-A Real Estate Partners
-            </span>
-            <h3 className="text-2xl font-bold text-neutral-950">
-              India’s Leading Real Estate Developers
-            </h3>
-            <p className="text-xs text-neutral-600">
-              Direct inventory synchronization with certified track records of timely delivery
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {developers.map((dev) => (
-              <Link
-                key={dev.id}
-                href={`/developers/${dev.slug}`}
-                className="bg-white/65 backdrop-blur-xl p-4 rounded-2xl border border-white/70 text-center hover:border-[#D4A017] hover:bg-white/85 hover:shadow-[0_14px_32px_rgba(212,160,23,0.18)] shadow-[0_8px_24px_rgba(31,38,135,0.05)] transition-all group flex flex-col items-center justify-between gap-2 ring-1 ring-black/[0.02]"
-              >
-                <div className="w-12 h-12 rounded-full bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-800 font-bold text-sm group-hover:scale-105 transition-transform">
-                  <Building className="w-6 h-6 text-[#D4A017]" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-xs text-neutral-900 line-clamp-1">{dev.name}</h4>
-                  <p className="text-[11px] text-neutral-500 mt-0.5">{dev.ongoingProjects} Active Projects</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Our Trusted Partners Infinite Continuous Marquee */}
+      <TrustedPartnersMarquee />
 
       {/* HIGH-INTENT EVENT TRIGGERS (Requirement 1.3) */}
       <section className="py-10 bg-linear-to-r from-neutral-900 via-[#171717] to-neutral-900 text-white border-y border-neutral-800">

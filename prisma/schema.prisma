@@ -919,11 +919,78 @@ model PayoutRequest {
 
 model AffiliateProgramConfig {
   id                   String           @id @default(uuid())
-  cookieDurationDays   Int              @default(60)
+  cookieDurationDays   Int              @default(30)
   defaultCommissionRate Float           @default(2.5)
   minimumPayoutAmount  Float            @default(1000)
   fraudProtectionActive Boolean         @default(true)
   selfReferralBlocked  Boolean          @default(true)
   updatedAt            DateTime         @updatedAt
 }
+
+// Prosify Awas Mitra / Growth Partner Model
+model Affiliate {
+  id                   String            @id @default(uuid())
+  name                 String
+  email                String            @unique
+  phone                String
+  referralCode         String            @unique // e.g. AM-RAHUL24
+  customSlug           String?           @unique
+  tier                 String            @default("Awas Mitra 2.5%") // Awas Mitra 2.5%, Gold 3.0%, Prime 3.5%
+  commissionRate       Float             @default(2.5) // 2.5%, 3.0%, 3.5%
+  availableBalance     Float             @default(0.0) // Withdrawable Balance (₹)
+  pendingCommission    Float             @default(0.0) // Pipeline Commission (₹)
+  lifetimeEarnings     Float             @default(0.0)
+  totalClicks          Int               @default(0) // Link Clicks (30d)
+  totalLeads           Int               @default(0) // My Leads & Site Visits
+  status               String            @default("ACTIVE") // ACTIVE, SUSPENDED
+  upiId                String?
+  bankName             String?
+  bankAccountNumber    String?
+  bankIfscCode         String?
+  accountHolderName    String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  payouts              AffiliatePayout[]
+  leads                AffiliateLead[]
+}
+
+// Dedicated Affiliate Lead attribution & milestone tracking
+model AffiliateLead {
+  id                   String            @id @default(uuid())
+  affiliateId          String
+  affiliate            Affiliate         @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  clientName           String
+  clientPhone          String            // stored in full, masked on UI (+91 98******21)
+  clientEmail          String?
+  projectName          String
+  propertySlug         String?
+  budgetRange          String?
+  status               String            @default("NEW_INQUIRY") // NEW_INQUIRY, VERIFIED, SITE_VISIT_DONE, BOOKED, CLOSED
+  siteVisitBonusEarned Float             @default(0.0) // ₹500 milestone bonus on verified site visit
+  dealValue            Float?            // Agreement value
+  commissionAmount     Float?            // 2.5% to 3.5% of agreement value
+  commissionStage      String            @default("PENDING") // PENDING, VERIFIED, UNLOCKED, PAID
+  notes                String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+// Weekly UPI/NEFT Payouts with UTR Tracking
+model AffiliatePayout {
+  id                   String            @id @default(uuid())
+  affiliateId          String
+  affiliate            Affiliate         @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  amount               Float
+  tdsDeduction         Float             @default(0.0) // 5% TDS
+  netPayable           Float
+  paymentMethod        String            @default("UPI") // UPI, NEFT, IMPS
+  destinationDetails   String            // UPI ID or Account Number + IFSC
+  status               String            @default("PENDING") // PENDING, PROCESSING, PROCESSED, REJECTED
+  utrNumber            String?           // Bank UTR number
+  notes                String?
+  requestedAt          DateTime          @default(now())
+  processedAt          DateTime?
+}
+
 

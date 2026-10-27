@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+      <g transform="translate(10, 8)">
+        <path d="M6 38 L19 12 L32 38 Z" fill="none" stroke="#2563EB" stroke-width="3"/>
+        <circle cx="19" cy="24" r="5" fill="#38BDF8"/>
+        <text x="46" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="800" fill="#FFFFFF" letter-spacing="1">adani</text>
+        <text x="110" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#38BDF8">Realty</text>
+        <text x="47" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="7" font-weight="600" fill="#94A3B8" letter-spacing="1">GROWTH WITH GOODNESS</text>
+      </g>
+    </svg>

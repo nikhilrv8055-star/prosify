@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+      <g transform="translate(10, 8)">
+        <polygon points="18,6 34,38 2,38" fill="#B91C1C" fill-opacity="0.3" stroke="#DC2626" stroke-width="2"/>
+        <polygon points="18,16 28,34 8,34" fill="#DC2626"/>
+        <text x="46" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="900" fill="#FFFFFF" letter-spacing="3">DLF</text>
+        <text x="48" y="41" font-family="system-ui, -apple-system, sans-serif" font-size="7.5" font-weight="700" fill="#EF4444" letter-spacing="2">BUILDING INDIA</text>
+      </g>
+    </svg>

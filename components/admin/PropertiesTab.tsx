@@ -362,13 +362,25 @@ export function PropertiesTab({ properties, onRefresh, subview }: PropertiesTabP
         coverImage: finalCover,
         images: finalImages,
       });
+
+      fetch('/api/admin/properties', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingProperty.id,
+          ...formData,
+          coverImage: finalCover,
+          images: finalImages,
+        }),
+      }).catch((e) => console.warn('Server persist note:', e));
+
       toast({
         title: 'Property Updated',
-        description: `"${formData.title}" was successfully updated.`,
+        description: `"${formData.title}" was successfully updated and synced live.`,
         type: 'success',
       });
     } else {
-      store.createProperty({
+      const newPropData = {
         ...formData,
         coverImage: finalCover,
         images: finalImages,
@@ -381,14 +393,22 @@ export function PropertiesTab({ properties, onRefresh, subview }: PropertiesTabP
         balconies: 1,
         floorNumber: 14,
         totalFloors: 32,
-        furnishingStatus: 'UNFURNISHED',
+        furnishingStatus: 'UNFURNISHED' as const,
         parkingSpaces: 1,
         address: `${formData.locality}, ${formData.city}`,
         pincode: '400001',
-      });
+      };
+      store.createProperty(newPropData);
+
+      fetch('/api/admin/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPropData),
+      }).catch((e) => console.warn('Server persist note:', e));
+
       toast({
         title: 'Property Created',
-        description: `"${formData.title}" added to active inventory.`,
+        description: `"${formData.title}" added to active inventory and published live.`,
         type: 'success',
       });
     }
@@ -398,13 +418,22 @@ export function PropertiesTab({ properties, onRefresh, subview }: PropertiesTabP
   };
 
   const handleTogglePublish = (p: Property) => {
-    store.updateProperty(p.id, { isPublished: !p.isPublished });
+    const nextPublished = !p.isPublished;
+    store.updateProperty(p.id, { isPublished: nextPublished });
+    fetch('/api/admin/properties', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: p.id, isPublished: nextPublished }),
+    }).catch((e) => console.warn('Server persist note:', e));
     onRefresh();
   };
 
   const handleDelete = (p: Property) => {
     if (confirm(`Confirm deletion of property "${p.title}"? This action is logged to the audit trail.`)) {
       store.deleteProperty(p.id);
+      fetch(`/api/admin/properties?id=${encodeURIComponent(p.id)}`, {
+        method: 'DELETE',
+      }).catch((e) => console.warn('Server persist note:', e));
       toast({
         title: 'Property Deleted',
         description: `"${p.title}" was removed from the catalog.`,

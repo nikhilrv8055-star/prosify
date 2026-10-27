@@ -1,6 +1,20 @@
 import { prisma } from '@/lib/prisma';
 import { store } from '@/lib/data/store';
 import {
+  getServerProperties,
+  createServerProperty,
+  updateServerProperty,
+  deleteServerProperty,
+  getServerProjects,
+  createServerProject,
+  updateServerProject,
+  deleteServerProject,
+  getServerDevelopers,
+  createServerDeveloper,
+  updateServerDeveloper,
+  deleteServerDeveloper,
+} from '@/lib/data/serverStore';
+import {
   Property,
   Project,
   Developer,
@@ -125,8 +139,40 @@ export class DataService {
       }
     }
 
-    // Fallback / In-Memory Store
-    return store.getProperties(filters);
+    // Fallback / Persistent Server Store
+    let props = getServerProperties();
+    if (filters?.city && filters.city !== 'ALL') {
+      props = props.filter((p) => p.city.toLowerCase() === filters.city!.toLowerCase());
+    }
+    if (filters?.propertyType && filters.propertyType !== 'ALL') {
+      props = props.filter((p) => p.propertyType === filters.propertyType);
+    }
+    if (filters?.listingType && filters.listingType !== 'ALL') {
+      props = props.filter((p) => p.listingType === filters.listingType);
+    }
+    if (filters?.bhk && filters.bhk !== 'ALL') {
+      props = props.filter((p) => p.bhk.includes(filters.bhk!));
+    }
+    if (filters?.minPrice) {
+      props = props.filter((p) => p.price >= filters.minPrice!);
+    }
+    if (filters?.maxPrice) {
+      props = props.filter((p) => p.price <= filters.maxPrice!);
+    }
+    if (filters?.verifiedOnly) {
+      props = props.filter((p) => p.isVerified);
+    }
+    if (filters?.searchQuery) {
+      const q = filters.searchQuery.toLowerCase();
+      props = props.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.locality.toLowerCase().includes(q) ||
+          p.city.toLowerCase().includes(q) ||
+          (p.developerName && p.developerName.toLowerCase().includes(q))
+      );
+    }
+    return props;
   }
 
   async getPropertyBySlug(slug: string): Promise<Property | null> {
@@ -184,26 +230,35 @@ export class DataService {
       }
     }
 
-    return store.getPropertyBySlug(slug) || null;
+    const props = getServerProperties();
+    return props.find((p) => p.slug === slug || p.id === slug) || null;
   }
 
   async getPropertyById(id: string): Promise<Property | null> {
-    const prop = store.getPropertyById(id);
-    return prop || null;
+    const props = getServerProperties();
+    return props.find((p) => p.id === id || p.slug === id) || null;
   }
 
   async createProperty(data: Omit<Property, 'id' | 'createdAt'>): Promise<Property> {
-    const newProp = store.createProperty(data);
+    const newProp = createServerProperty(data);
+    store.createProperty(newProp);
     return newProp;
   }
 
   async updateProperty(id: string, data: Partial<Property>): Promise<Property | null> {
-    const updated = store.updateProperty(id, data);
-    return updated || null;
+    const updated = updateServerProperty(id, data);
+    if (updated) {
+      store.updateProperty(id, data);
+    }
+    return updated;
   }
 
   async deleteProperty(id: string): Promise<boolean> {
-    return store.deleteProperty(id);
+    const ok = deleteServerProperty(id);
+    if (ok) {
+      store.deleteProperty(id);
+    }
+    return ok;
   }
 
   // ==========================================
@@ -274,34 +329,54 @@ export class DataService {
       }
     }
 
-    return store.getProjects(filters);
+    // Fallback / Persistent Server Store
+    let projs = getServerProjects();
+    if (filters?.city && filters.city !== 'ALL') {
+      projs = projs.filter((p) => p.city.toLowerCase() === filters.city!.toLowerCase());
+    }
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      projs = projs.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.locality.toLowerCase().includes(q) ||
+          p.city.toLowerCase().includes(q) ||
+          p.developerName.toLowerCase().includes(q)
+      );
+    }
+    return projs;
   }
 
   async getProjectBySlug(slug: string): Promise<Project | null> {
-    const project = store.getProjectBySlug(slug);
-    return project || null;
+    const projs = getServerProjects();
+    return projs.find((p) => p.slug === slug || p.id === slug) || null;
   }
 
   async getProjectById(id: string): Promise<Project | null> {
-    const project = store.getProjectById(id);
-    return project || null;
+    const projs = getServerProjects();
+    return projs.find((p) => p.id === id) || null;
   }
 
   async createProject(data: Omit<Project, 'id'>): Promise<Project> {
-    return store.createProject(data);
+    const newProj = createServerProject(data);
+    store.createProject(newProj);
+    return newProj;
   }
 
   async updateProject(id: string, data: Partial<Project>): Promise<Project | null> {
-    const updated = store.updateProject(id, data);
-    return updated || null;
+    const updated = updateServerProject(id, data);
+    if (updated) {
+      store.updateProject(id, data);
+    }
+    return updated;
   }
 
   async deleteProject(id: string): Promise<boolean> {
-    const projects = store.getAllProjectsForAdmin();
-    const exists = projects.find((p) => p.id === id);
-    if (!exists) return false;
-    store.updateProject(id, { isPublished: false });
-    return true;
+    const ok = deleteServerProject(id);
+    if (ok) {
+      store.deleteProject(id);
+    }
+    return ok;
   }
 
   // ==========================================
@@ -344,7 +419,7 @@ export class DataService {
       }
     }
 
-    let list = store.getDevelopers();
+    let list = getServerDevelopers();
     if (filters?.search) {
       const q = filters.search.toLowerCase();
       list = list.filter((d) => d.name.toLowerCase().includes(q) || d.about.toLowerCase().includes(q));
@@ -356,29 +431,38 @@ export class DataService {
   }
 
   async getDeveloperBySlug(slug: string): Promise<Developer | null> {
-    const dev = store.getDeveloperBySlug(slug);
-    return dev || null;
+    const devs = getServerDevelopers();
+    return devs.find((d) => d.slug === slug || d.id === slug) || null;
   }
 
   async getDeveloperById(id: string): Promise<Developer | null> {
-    const dev = store.getDeveloperById(id);
-    return dev || null;
+    const devs = getServerDevelopers();
+    return devs.find((d) => d.id === id) || null;
   }
 
   async createDeveloper(data: Omit<Developer, 'id'>): Promise<Developer> {
-    return store.createDeveloper(data);
+    const newDev = createServerDeveloper(data);
+    store.createDeveloper(newDev);
+    return newDev;
   }
 
   async updateDeveloper(id: string, data: Partial<Developer>): Promise<Developer | null> {
-    const updated = store.updateDeveloper(id, data);
-    return updated || null;
+    const updated = updateServerDeveloper(id, data);
+    if (updated) {
+      store.updateDeveloper(id, data);
+    }
+    return updated;
   }
 
   async deleteDeveloper(id: string): Promise<boolean> {
-    const dev = store.getDeveloperById(id);
-    if (!dev) return false;
-    store.addAuditLog('DEVELOPER_DELETE', 'Developer', `Deleted developer ${dev.name}`, id);
-    return true;
+    const ok = deleteServerDeveloper(id);
+    if (ok) {
+      const dev = store.getDeveloperById(id);
+      if (dev) {
+        store.addAuditLog('DEVELOPER_DELETE', 'Developer', `Deleted developer ${dev.name}`, id);
+      }
+    }
+    return ok;
   }
 
   // ==========================================

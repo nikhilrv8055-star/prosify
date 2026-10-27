@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+      <g transform="translate(10, 8)">
+        <circle cx="18" cy="24" r="14" fill="#EAB308" fill-opacity="0.2" stroke="#EAB308" stroke-width="2"/>
+        <path d="M18 13 L18 17 M18 31 L18 35 M7 24 L11 24 M25 24 L29 24" stroke="#EAB308" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="18" cy="24" r="5" fill="#EAB308"/>
+        <text x="46" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="19" font-weight="900" fill="#FFFFFF" letter-spacing="2">SURAJ</text>
+        <text x="47" y="39" font-family="system-ui, -apple-system, sans-serif" font-size="7.5" font-weight="600" fill="#EAB308" letter-spacing="1.5">ESTATE DEVELOPERS</text>
+      </g>
+    </svg>
