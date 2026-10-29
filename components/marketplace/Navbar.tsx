@@ -23,12 +23,14 @@ import {
   Shield,
   UserCheck,
   MessageCircle,
+  Award,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/authContext';
 import { ProsifyLogo } from '@/components/brand/ProsifyLogo';
 import { SmartMatcherModal } from '@/components/marketplace/SmartMatcherModal';
 import { MobileBurgerMenu } from './MobileBurgerMenu';
 import { PropertyRequirementModal } from './PropertyRequirementModal';
+import { SoftwareDevelopmentModal } from './SoftwareDevelopmentModal';
 import { brandConfig } from '@/src/config/brand';
 
 interface NavbarProps {
@@ -82,19 +84,20 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [internalMatcherOpen, setInternalMatcherOpen] = useState(false);
   const [requirementModalOpen, setRequirementModalOpen] = useState(false);
-  const currentType = useSyncExternalStore(
-    (callback) => {
-      window.addEventListener('popstate', callback);
-      return () => window.removeEventListener('popstate', callback);
-    },
-    () => (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('type') : null),
-    () => null
-  );
+  const [softwareModalOpen, setSoftwareModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Safe search param extraction matching server and client
+  const currentType = searchParams?.get('type') || null;
 
   const { comparedPropertyIds } = useAuth();
 
-  // Active compare count
-  const compareCount = comparedPropertyIds && comparedPropertyIds.length > 0 ? comparedPropertyIds.length : 2;
+  // Active compare count that stays consistent between SSR and initial hydration
+  const compareCount = mounted && comparedPropertyIds ? comparedPropertyIds.length : 2;
 
   const handleOpenMatcher = () => {
     if (onOpenMatcher) {
@@ -160,6 +163,15 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
       popupTitle: 'Commercial & Retail Spaces',
       popupDesc: 'Invest in high-rental-yield grade-A office spaces, SCO plots & retail shopping centers.',
       popupHighlight: '7% to 9% Yield • Pre-Leased',
+    },
+    {
+      label: 'Affiliate Program',
+      href: '/affiliate',
+      icon: Award,
+      highlight: false,
+      popupTitle: 'Prosify Affiliate & Growth Partner Program',
+      popupDesc: 'Monetize your network! Share verified property links, tag client leads, and get weekly settlements.',
+      popupHighlight: 'Awas Mitra • Earn Up To 3.5%',
     },
   ];
 
@@ -324,19 +336,6 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
                 </div>
               </div>
 
-              {/* WhatsApp Button */}
-              <a
-                href="https://wa.me/919326303244"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative px-3.5 py-2 rounded-xl text-xs font-bold backdrop-blur-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-300/80 hover:border-emerald-400 text-emerald-950 shadow-[0_2px_10px_rgba(16,185,129,0.1)] hover:shadow-[0_8px_20px_rgba(16,185,129,0.2)] transition-all duration-200 ease-out flex items-center gap-1.5 hover:scale-105 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-                title="WhatsApp"
-              >
-                <div className="absolute inset-x-2 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none rounded-t-xl" />
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-600 transition-transform" />
-                <span>WhatsApp</span>
-              </a>
-
               {/* Desktop Hamburger Menu Trigger in Transparent Glass */}
               <div className="relative group">
                 <button
@@ -391,19 +390,6 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
 
             {/* Mobile / Android Top Bar Actions */}
             <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
-              {/* Quick WhatsApp for Mobile */}
-              <a
-                href="https://wa.me/919167991679"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1 text-xs font-bold active:scale-95 transition-all"
-                aria-label="WhatsApp"
-                title="WhatsApp"
-              >
-                <MessageCircle className="w-4 h-4 text-emerald-600" />
-                <span className="text-[11px] hidden xs:inline">WhatsApp</span>
-              </a>
-
               {/* Quick Smart Match for Mobile */}
               <button
                 type="button"
@@ -422,7 +408,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
                 aria-label="Compare Properties"
               >
                 <Scale className="w-4 h-4 text-amber-400" />
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#D4A017] text-neutral-950 font-black text-[10px] flex items-center justify-center border-2 border-white shadow-xs">
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#D4A017] text-neutral-950 font-black text-[10px] flex items-center justify-center border-2 border-white shadow-xs" suppressHydrationWarning>
                   {compareCount}
                 </span>
               </Link>
@@ -450,12 +436,19 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         onOpenMatcher={handleOpenMatcher}
+        onOpenSoftwareServices={() => setSoftwareModalOpen(true)}
       />
 
       {/* Tell Us Your Property Requirement Modal */}
       <PropertyRequirementModal
         isOpen={requirementModalOpen}
         onClose={() => setRequirementModalOpen(false)}
+      />
+
+      {/* Software Development Services Modal */}
+      <SoftwareDevelopmentModal
+        isOpen={softwareModalOpen}
+        onClose={() => setSoftwareModalOpen(false)}
       />
 
       {/* ============================================================== */}

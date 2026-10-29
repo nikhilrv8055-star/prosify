@@ -206,7 +206,7 @@ export function Footer() {
             <strong>RERA Compliance Disclaimer:</strong> {brandConfig.name} operates as a verified digital real-estate platform and marketing distribution network registered under {brandConfig.reraRegistration} (Entity: {brandConfig.companyLegalName}). {brandConfig.reraDisclaimer} Property prices and unit availability are subject to developer revision without prior notice.
           </p>
           <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-            <p>© {new Date().getFullYear()} {brandConfig.name} • {brandConfig.companyLegalName}. All rights reserved.</p>
+            <p suppressHydrationWarning>© {new Date().getFullYear()} {brandConfig.name} • {brandConfig.companyLegalName}. All rights reserved.</p>
             <div className="flex items-center gap-4 text-xs text-neutral-400">
               <Link href="/about" className="hover:text-white">About {brandConfig.name}</Link>
               <span>•</span>

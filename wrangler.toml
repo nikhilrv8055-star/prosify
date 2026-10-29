@@ -1,0 +1,89 @@
+# ==============================================================================
+# Cloudflare Worker / Pages Configuration - Prosify Luxury Real Estate
+# ==============================================================================
+
+name = "prosify"
+main = ".open-next/worker.js"
+compatibility_date = "2025-02-15"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "prosify"
+
+# ==============================================================================
+# Cloudflare D1 Database Binding (Edge Serverless SQLite)
+# Production Database ID: e1e0fd5e-8efa-4b3b-aa83-53518b7d1e60
+# ==============================================================================
+
+[[d1_databases]]
+binding = "DB"
+database_name = "prosify"
+database_id = "e1e0fd5e-8efa-4b3b-aa83-53518b7d1e60"
+migrations_dir = "migrations"
+
+# ==============================================================================
+# Cloudflare KV Namespace Binding (Zero-Latency Session & Cache Store)
+# ==============================================================================
+
+[[kv_namespaces]]
+binding = "KV_CACHE"
+id = "801fe9ecb7d04f2884fe6701c36cfff9"
+
+# ==============================================================================
+# Cloudflare R2 Object Storage Binding (Brochures & Floor Plans - Zero Egress)
+# ==============================================================================
+
+[[r2_buckets]]
+binding = "R2_UPLOADS"
+bucket_name = "prosify-uploads"
+
+[vars]
+NODE_ENV = "production"
+NEXT_PUBLIC_SITE_NAME = "Prosify Luxury Real Estate"
+
+# ==============================================================================
+# Environment Configuration: Production
+# ==============================================================================
+
+[env.production]
+name = "prosify"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "prosify"
+database_id = "e1e0fd5e-8efa-4b3b-aa83-53518b7d1e60"
+migrations_dir = "migrations"
+
+[[env.production.kv_namespaces]]
+binding = "KV_CACHE"
+id = "801fe9ecb7d04f2884fe6701c36cfff9"
+
+[[env.production.r2_buckets]]
+binding = "R2_UPLOADS"
+bucket_name = "prosify-uploads"
+
+# ==============================================================================
+# Environment Configuration: Preview (Branch Deployments)
+# ==============================================================================
+
+[env.preview]
+name = "prosify-preview"
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "prosify"
+database_id = "e1e0fd5e-8efa-4b3b-aa83-53518b7d1e60"
+migrations_dir = "migrations"
+
+[[env.preview.kv_namespaces]]
+binding = "KV_CACHE"
+id = "801fe9ecb7d04f2884fe6701c36cfff9"
+
+[[env.preview.r2_buckets]]
+binding = "R2_UPLOADS"
+bucket_name = "prosify-uploads"

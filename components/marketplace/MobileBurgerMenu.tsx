@@ -56,9 +56,15 @@ interface MobileBurgerMenuProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenMatcher?: () => void;
+  onOpenSoftwareServices?: () => void;
 }
 
-export function MobileBurgerMenu({ isOpen, onClose, onOpenMatcher }: MobileBurgerMenuProps) {
+export function MobileBurgerMenu({
+  isOpen,
+  onClose,
+  onOpenMatcher,
+  onOpenSoftwareServices,
+}: MobileBurgerMenuProps) {
   const { user, isAuthenticated, openAuthModal } = useAuth();
   const { toast } = useToast();
 
@@ -208,6 +214,7 @@ export function MobileBurgerMenu({ isOpen, onClose, onOpenMatcher }: MobileBurge
             if (serviceType) setServicesInitialService(serviceType);
             setServicesModalOpen(true);
           }}
+          onOpenSoftwareServices={onOpenSoftwareServices}
           onOpenReferEarn={() => setReferEarnOpen(true)}
           onOpenCareers={() => setCareersOpen(true)}
           onOpenCorporateEnquiry={() => setCorporateEnquiryOpen(true)}

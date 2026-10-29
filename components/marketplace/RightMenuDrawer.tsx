@@ -12,6 +12,7 @@ interface RightMenuDrawerProps {
   onOpenRequirement?: () => void;
   onOpenMatcher?: () => void;
   onOpenServices: (serviceType?: 'interiors' | 'movers' | 'loan' | 'legal') => void;
+  onOpenSoftwareServices?: () => void;
   onOpenReferEarn: () => void;
   onOpenCareers: () => void;
   onOpenCorporateEnquiry: () => void;
@@ -27,6 +28,7 @@ export function RightMenuDrawer({
   onOpenRequirement,
   onOpenMatcher,
   onOpenServices,
+  onOpenSoftwareServices,
   onOpenReferEarn,
   onOpenCareers,
   onOpenCorporateEnquiry,
@@ -218,6 +220,20 @@ export function RightMenuDrawer({
             >
               <span>Submit Property Requirement</span>
               <span className={simpleTagStyle}>Buyer Desk</span>
+            </button>
+          )}
+
+          {/* Software Development Services */}
+          {onOpenSoftwareServices && (
+            <button
+              type="button"
+              onClick={() => handleDirectAction(onOpenSoftwareServices)}
+              className={itemStyle}
+            >
+              <div className="flex items-center gap-2">
+                <span>Software Development Services</span>
+              </div>
+              <span className={simpleTagStyle}>PropTech & Apps</span>
             </button>
           )}
 

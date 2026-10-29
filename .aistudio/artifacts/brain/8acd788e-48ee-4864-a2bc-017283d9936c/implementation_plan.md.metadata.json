@@ -1,6 +1,6 @@
 {
-  "summary":  "Comprehensive architectural blueprint and implementation plan for full bidirectional real-time synchronization between the Prosify Admin Suite and the public customer-facing website, ensuring all property, project, developer, CMS, brand settings, and CRM inquiry changes persist server-side and reflect dynamically without manual refresh.",
-  "updatedAt":  "2026-10-26T18:06:42.244745353Z",
+  "summary":  "Implementation plan to remove the Software Services button from the top navigation bar while keeping the full services navigation clean and accessible.",
+  "updatedAt":  "2026-10-29T11:37:28.262386583Z",
   "requestFeedback":  true,
   "userFacing":  true
 }
