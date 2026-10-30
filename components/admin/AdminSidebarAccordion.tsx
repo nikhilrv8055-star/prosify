@@ -274,9 +274,9 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     badge: '3.0%',
     items: [
       { id: 'affiliate-settings', label: 'Settings & Commission' },
-      { id: 'affiliate-members', label: 'Registered Affiliates', badge: 5 },
+      { id: 'affiliate-members', label: 'Registered Affiliates' },
       { id: 'affiliate-conversions', label: 'Conversions & Referral Logs' },
-      { id: 'affiliate-payouts', label: 'Payouts & Withdrawals', badge: 2 },
+      { id: 'affiliate-payouts', label: 'Payouts & Withdrawals' },
       { id: 'affiliate-creatives', label: 'Marketing Creatives & Banners' },
     ],
   },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverAffiliateDb } from '@/lib/data/serverAffiliateDb';
+import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
 export const AFFILIATE_COOKIE_NAME = 'prosify_affiliate_session';
 
@@ -8,16 +9,13 @@ export async function POST(req: NextRequest) {
     const { email, name } = await req.json();
 
     if (!email) {
-      return NextResponse.json(
-        { success: false, error: 'Google account email is required.' },
-        { status: 400 }
-      );
+      return createErrorResponse('BAD_REQUEST', 'Google account email is required.', 400);
     }
 
     let affiliate = serverAffiliateDb.getAffiliateByEmail(email);
 
     if (!affiliate) {
-      // Auto-provision brand new affiliate profile with 0.00 balances and unique tracking code
+      // Auto-provision brand new real affiliate profile with 0.00 balances and unique tracking code
       const registered = serverAffiliateDb.registerAffiliate({
         name: name || email.split('@')[0],
         email,
@@ -27,9 +25,10 @@ export async function POST(req: NextRequest) {
     }
 
     if (affiliate.status === 'SUSPENDED') {
-      return NextResponse.json(
-        { success: false, error: 'Your affiliate account has been suspended. Please contact partner support.' },
-        { status: 403 }
+      return createErrorResponse(
+        'BAD_REQUEST',
+        'Your affiliate account has been suspended. Please contact partner support.',
+        403
       );
     }
 
@@ -44,14 +43,17 @@ export async function POST(req: NextRequest) {
     };
     const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString('base64');
 
-    const res = NextResponse.json({
-      success: true,
-      message: `Signed in with Google as ${affiliate.name}!`,
-      affiliate: {
-        ...affiliate,
-        referralUrl,
+    const res = NextResponse.json(
+      {
+        success: true,
+        message: `Signed in with Google as ${affiliate.name}!`,
+        affiliate: {
+          ...affiliate,
+          referralUrl,
+        },
       },
-    });
+      { headers: NO_CACHE_HEADERS }
+    );
 
     res.cookies.set(AFFILIATE_COOKIE_NAME, sessionToken, {
       path: '/',
@@ -62,9 +64,6 @@ export async function POST(req: NextRequest) {
 
     return res;
   } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || 'Google OAuth failed' },
-      { status: 500 }
-    );
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Google OAuth failed', 500);
   }
 }

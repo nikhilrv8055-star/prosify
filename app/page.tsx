@@ -14,7 +14,6 @@ import {
   ArrowRight,
   TrendingUp,
   CheckCircle2,
-  Users,
   Building,
   PhoneCall,
   SlidersHorizontal,
@@ -584,19 +583,6 @@ export default function HomePage() {
               >
                 <Briefcase className="w-4 h-4 text-amber-400" />
                 <span>Download Brochure</span>
-              </button>
-
-              {/* Trigger 3: Apply for Affiliate */}
-              <button
-                type="button"
-                onClick={() => {
-                  setHighIntentType('affiliate');
-                  setHighIntentOpen(true);
-                }}
-                className="px-5 py-3 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 font-semibold text-xs sm:text-sm border border-emerald-800/80 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-              >
-                <Users className="w-4 h-4 text-emerald-400" />
-                <span>Apply for Affiliate</span>
               </button>
             </div>
           </div>

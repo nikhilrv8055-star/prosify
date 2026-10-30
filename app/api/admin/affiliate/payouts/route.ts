@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverAffiliateDb } from '@/lib/data/serverAffiliateDb';
+import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,14 +26,17 @@ export async function GET(req: NextRequest) {
 
     const pendingCount = all.filter((p) => p.status === 'PENDING').length;
 
-    return NextResponse.json({
-      success: true,
-      count: enriched.length,
-      pendingCount,
-      payouts: enriched,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        count: enriched.length,
+        pendingCount,
+        payouts: enriched,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Error fetching payouts', 500);
   }
 }
 
@@ -42,17 +46,11 @@ export async function PATCH(req: NextRequest) {
     const { payoutId, action, transactionRef, rejectionNote } = body;
 
     if (!payoutId || !action) {
-      return NextResponse.json(
-        { success: false, error: 'payoutId and action (APPROVE | PROCESS | REJECT) are required.' },
-        { status: 400 }
-      );
+      return createErrorResponse('BAD_REQUEST', 'payoutId and action (APPROVE | PROCESS | REJECT) are required.', 400);
     }
 
     if (action === 'PROCESS' && (!transactionRef || !transactionRef.trim())) {
-      return NextResponse.json(
-        { success: false, error: 'Transaction reference (UTR / Bank Ref Number) is required to mark as processed.' },
-        { status: 400 }
-      );
+      return createErrorResponse('BAD_REQUEST', 'Transaction reference (UTR / Bank Ref Number) is required to mark as processed.', 400);
     }
 
     const updatedPayout = serverAffiliateDb.adminProcessPayout({
@@ -65,21 +63,21 @@ export async function PATCH(req: NextRequest) {
     // Get fresh affiliate profile to return updated balance
     const updatedAffiliate = serverAffiliateDb.getAffiliateById(updatedPayout.affiliateId);
 
-    return NextResponse.json({
-      success: true,
-      message:
-        action === 'PROCESS'
-          ? `Payout of ₹${updatedPayout.amount.toLocaleString('en-IN')} marked as Processed! Affiliate balance debited in real-time.`
-          : action === 'APPROVE'
-          ? `Payout request approved.`
-          : `Payout request rejected.`,
-      payout: updatedPayout,
-      updatedAffiliateBalance: updatedAffiliate?.availableBalance,
-    });
-  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Error processing payout' },
-      { status: 400 }
+      {
+        success: true,
+        message:
+          action === 'PROCESS'
+            ? `Payout of ₹${updatedPayout.amount.toLocaleString('en-IN')} marked as Processed! Affiliate balance debited in real-time.`
+            : action === 'APPROVE'
+            ? `Payout request approved.`
+            : `Payout request rejected.`,
+        payout: updatedPayout,
+        updatedAffiliateBalance: updatedAffiliate?.availableBalance,
+      },
+      { headers: NO_CACHE_HEADERS }
     );
+  } catch (error: any) {
+    return createErrorResponse('BAD_REQUEST', error.message || 'Error processing payout', 400);
   }
 }

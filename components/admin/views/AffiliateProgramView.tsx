@@ -277,7 +277,7 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
     }
   };
 
-  const handleCreateMember = (e: React.FormEvent) => {
+  const handleCreateMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMemberForm.name || !newMemberForm.email || !newMemberForm.referralCode) {
       toast({
@@ -288,56 +288,50 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
       return;
     }
 
-    const newMember: AffiliateUser = {
-      id: `aff-${Date.now().toString().slice(-4)}`,
-      name: newMemberForm.name,
-      email: newMemberForm.email,
-      phone: newMemberForm.phone || '+91 98000 00000',
-      referralCode: newMemberForm.referralCode.toUpperCase().replace(/\s+/g, ''),
-      customSlug: newMemberForm.customSlug || newMemberForm.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      tier: newMemberForm.tier,
-      commissionRatePercent: Number(newMemberForm.commissionRatePercent) || 2.0,
-      totalClicks: 0,
-      totalLeads: 0,
-      totalSiteVisits: 0,
-      totalBookings: 0,
-      totalEarned: 0,
-      payableBalance: 0,
-      paidAmount: 0,
-      status: 'active',
-      joinedAt: new Date().toISOString().split('T')[0],
-      payoutDetails: {
-        payoutType: newMemberForm.upiId ? 'UPI' : 'BANK_TRANSFER',
-        upiId: newMemberForm.upiId,
-        accountNumber: newMemberForm.bankAccount,
-        ifscCode: newMemberForm.ifsc,
-      },
-      panCard: newMemberForm.panCard,
-      reraNumber: newMemberForm.reraNumber,
-    };
+    try {
+      const res = await fetch('/api/admin/affiliate/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMemberForm),
+      });
 
-    setMembers([newMember, ...members]);
-    setAddMemberModalOpen(false);
-    setNewMemberForm({
-      name: '',
-      email: '',
-      phone: '',
-      referralCode: '',
-      customSlug: '',
-      tier: 'Bronze',
-      commissionRatePercent: 2.0,
-      upiId: '',
-      bankAccount: '',
-      ifsc: '',
-      panCard: '',
-      reraNumber: '',
-    });
-
-    toast({
-      title: 'Affiliate Registered Successfully',
-      description: `${newMember.name} (Code: ${newMember.referralCode}) has been onboarded!`,
-      type: 'success',
-    });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast({
+          title: 'Affiliate Registered Successfully',
+          description: data.message || `${newMemberForm.name} (Code: ${newMemberForm.referralCode}) has been onboarded!`,
+          type: 'success',
+        });
+        setAddMemberModalOpen(false);
+        setNewMemberForm({
+          name: '',
+          email: '',
+          phone: '',
+          referralCode: '',
+          customSlug: '',
+          tier: 'Bronze',
+          commissionRatePercent: 2.0,
+          upiId: '',
+          bankAccount: '',
+          ifsc: '',
+          panCard: '',
+          reraNumber: '',
+        });
+        await fetchLiveMembers();
+      } else {
+        toast({
+          title: 'Registration Error',
+          description: data.error?.message || data.error || 'Failed to onboard affiliate',
+          type: 'error',
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Network Error',
+        description: err.message || 'Failed to onboard affiliate',
+        type: 'error',
+      });
+    }
   };
 
   const handleUpdateConversionStatus = (id: string, newStatus: 'APPROVED' | 'PAID' | 'REJECTED') => {

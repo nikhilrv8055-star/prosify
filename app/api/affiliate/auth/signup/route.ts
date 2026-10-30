@@ -1,34 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverAffiliateDb } from '@/lib/data/serverAffiliateDb';
+import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
 export const AFFILIATE_COOKIE_NAME = 'prosify_affiliate_session';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, password } = body;
+    const { name, email, phone, password, city, agencyName, panCard, reraNumber, bankDetails } = body;
 
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { success: false, error: 'Full name, email address, and password are required.' },
-        { status: 400 }
-      );
+    if (!name || !name.trim()) {
+      return createErrorResponse('BAD_REQUEST', 'Full name is required.', 400);
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { success: false, error: 'Password must be at least 6 characters long.' },
-        { status: 400 }
-      );
+    if (!email || !email.trim()) {
+      return createErrorResponse('BAD_REQUEST', 'Email address is required.', 400);
     }
 
-    // Register partner with unique tracking code and 0.00 balances
+    if (!password || password.length < 6) {
+      return createErrorResponse('BAD_REQUEST', 'Password must be at least 6 characters long.', 400);
+    }
+
+    // Register real affiliate with unique tracking code and default 0.00 balances
     const { affiliate, verificationCode } = serverAffiliateDb.registerAffiliate({
-      name,
-      email,
-      phone,
-      password,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone?.trim() || '+91 98000 00000',
+      password: password.trim(),
+      city: city?.trim() || 'Mumbai',
+      agencyName: agencyName?.trim() || 'Independent Partner',
+      panCard: panCard?.trim() || '',
+      reraNumber: reraNumber?.trim() || '',
       isGoogle: false,
+      bankDetails: bankDetails || undefined,
     });
 
     const referralUrl = `https://prosify.in/?ref=${affiliate.referralCode}`;
@@ -42,15 +46,18 @@ export async function POST(req: NextRequest) {
     };
     const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString('base64');
 
-    const response = NextResponse.json({
-      success: true,
-      message: 'Affiliate account created successfully! Please verify your email.',
-      affiliate: {
-        ...affiliate,
-        referralUrl,
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: 'Affiliate account created successfully! Your profile is registered and live.',
+        affiliate: {
+          ...affiliate,
+          referralUrl,
+        },
+        verificationCode,
       },
-      verificationCode, // For verification step display
-    });
+      { headers: NO_CACHE_HEADERS }
+    );
 
     response.cookies.set(AFFILIATE_COOKIE_NAME, sessionToken, {
       path: '/',
@@ -61,9 +68,6 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || 'Signup failed' },
-      { status: 400 }
-    );
+    return createErrorResponse('BAD_REQUEST', error.message || 'Signup failed', 400);
   }
 }

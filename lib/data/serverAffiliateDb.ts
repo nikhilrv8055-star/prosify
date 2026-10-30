@@ -1,5 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { executeD1 } from '@/lib/db/d1';
+import { store } from '@/lib/data/store';
 
 export interface BankDetails {
   accountHolderName: string;
@@ -18,6 +20,10 @@ export interface AffiliateProfile {
   passwordHash?: string;
   referralCode: string;
   customSlug?: string;
+  city?: string;
+  agencyName?: string;
+  panCard?: string;
+  reraNumber?: string;
   tier: 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
   commissionRatePercent: number;
   availableBalance: number;
@@ -91,157 +97,38 @@ interface AffiliateDatabase {
 const DATA_DIR = path.join(process.cwd(), 'data');
 const AFFILIATE_DB_FILE = path.join(DATA_DIR, 'unified_affiliates.json');
 
-// Default initial seeds
-const INITIAL_AFFILIATES: AffiliateProfile[] = [
-  {
-    id: 'aff_siddharth_8055',
-    name: 'Siddharth Varma',
-    email: 'siddharth.v@realtyaffiliates.in',
-    phone: '+91 98201 44556',
-    passwordHash: 'prosify@123#',
-    referralCode: 'PRO-8055',
-    customSlug: 'siddharth-luxury',
-    tier: 'Diamond',
-    commissionRatePercent: 3.5,
-    availableBalance: 125000.0,
-    pendingBalance: 45000.0,
-    lifetimeEarnings: 845000.0,
-    totalClicks: 4820,
-    totalConversions: 142,
-    status: 'ACTIVE',
-    emailVerified: true,
-    bankDetails: {
-      accountHolderName: 'Siddharth Varma',
-      accountNumber: '001201509923',
-      ifscCode: 'HDFC0000060',
-      bankName: 'HDFC Bank, Fort Branch',
-      upiId: 'siddharth.varma@okaxis',
-    },
-    createdAt: '2026-02-01T10:00:00.000Z',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'aff_rohan_4210',
-    name: 'Rohan Deshmukh',
-    email: 'rohan.realty@gmail.com',
-    phone: '+91 98989 77665',
-    passwordHash: 'prosify@123#',
-    referralCode: 'PRO-4210',
-    customSlug: 'rohan-pune',
-    tier: 'Gold',
-    commissionRatePercent: 3.0,
-    availableBalance: 48000.0,
-    pendingBalance: 18500.0,
-    lifetimeEarnings: 312000.0,
-    totalClicks: 2150,
-    totalConversions: 48,
-    status: 'ACTIVE',
-    emailVerified: true,
-    bankDetails: {
-      accountHolderName: 'Rohan Deshmukh',
-      accountNumber: '921020045612345',
-      ifscCode: 'ICIC0000104',
-      bankName: 'ICICI Bank, Shivaji Nagar',
-      upiId: 'rohan.deshmukh@icici',
-    },
-    createdAt: '2026-03-15T11:30:00.000Z',
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-const INITIAL_COMMISSIONS: AffiliateCommission[] = [
-  {
-    id: 'comm_901',
-    affiliateId: 'aff_siddharth_8055',
-    referralCode: 'PRO-8055',
-    orderId: 'ORD-PROS-2026-1049',
-    buyerName: 'Vikram Joshi',
-    buyerPhone: '+91 98333 44551',
-    dealAmount: 42000000,
-    commissionPercent: 3.5,
-    commissionAmount: 147000,
-    description: 'Oberoi Sky City 3BHK Sky Residences #3204 (Deed Registration)',
-    status: 'APPROVED',
-    createdAt: '2026-10-10T14:32:00.000Z',
-    approvedAt: '2026-10-12T10:00:00.000Z',
-  },
-  {
-    id: 'comm_902',
-    affiliateId: 'aff_siddharth_8055',
-    referralCode: 'PRO-8055',
-    orderId: 'ORD-PROS-2026-1052',
-    buyerName: 'Amit Singhal',
-    buyerPhone: '+91 98200 11223',
-    dealAmount: 16500000,
-    commissionPercent: 3.5,
-    commissionAmount: 57750,
-    description: 'Godrej Riviera 3BHK Waterfront Tower A #1402 (Token Booking)',
-    status: 'PROCESSED',
-    createdAt: '2026-10-05T11:15:00.000Z',
-    approvedAt: '2026-10-06T15:00:00.000Z',
-    paidAt: '2026-10-08T12:00:00.000Z',
-  },
-  {
-    id: 'comm_903',
-    affiliateId: 'aff_rohan_4210',
-    referralCode: 'PRO-4210',
-    orderId: 'ORD-PROS-2026-1088',
-    buyerName: 'Priya Kulkarni',
-    buyerPhone: '+91 99670 99881',
-    dealAmount: 9500000,
-    commissionPercent: 3.0,
-    commissionAmount: 28500,
-    description: 'Kalpataru Paramount 2 BHK Smart Modern Tower #0804',
-    status: 'PENDING',
-    createdAt: '2026-10-14T16:45:00.000Z',
-  },
-];
-
-const INITIAL_PAYOUTS: PayoutRequest[] = [
-  {
-    id: 'pay_req_101',
-    affiliateId: 'aff_siddharth_8055',
-    affiliateName: 'Siddharth Varma',
-    affiliateEmail: 'siddharth.v@realtyaffiliates.in',
-    amount: 35000,
-    tdsAmount: 1750,
-    netAmount: 33250,
-    payoutMethod: 'UPI',
-    payoutDetails: 'UPI ID: siddharth.varma@okaxis',
-    status: 'PENDING',
-    requestedAt: '2026-10-15T18:45:00.000Z',
-  },
-  {
-    id: 'pay_req_102',
-    affiliateId: 'aff_rohan_4210',
-    affiliateName: 'Rohan Deshmukh',
-    affiliateEmail: 'rohan.realty@gmail.com',
-    amount: 25000,
-    tdsAmount: 1250,
-    netAmount: 23750,
-    payoutMethod: 'NEFT',
-    payoutDetails: 'ICICI Bank A/c 921020045612345 (IFSC: ICIC0000104)',
-    status: 'PENDING',
-    requestedAt: '2026-10-16T10:15:00.000Z',
-  },
-  {
-    id: 'pay_req_100',
-    affiliateId: 'aff_siddharth_8055',
-    affiliateName: 'Siddharth Varma',
-    affiliateEmail: 'siddharth.v@realtyaffiliates.in',
-    amount: 50000,
-    tdsAmount: 2500,
-    netAmount: 47500,
-    payoutMethod: 'UPI',
-    payoutDetails: 'UPI ID: siddharth.varma@okaxis',
-    status: 'PROCESSED',
-    transactionRef: 'UPI-PROS-2026-9812401',
-    requestedAt: '2026-10-01T10:30:00.000Z',
-    processedAt: '2026-10-02T12:15:00.000Z',
-  },
-];
+// Strict Zero-Mock: Initial arrays start empty. Only real user/admin registrations are stored.
+const INITIAL_AFFILIATES: AffiliateProfile[] = [];
+const INITIAL_COMMISSIONS: AffiliateCommission[] = [];
+const INITIAL_PAYOUTS: PayoutRequest[] = [];
 
 let cachedDb: AffiliateDatabase | null = null;
+
+const isDemoAffiliate = (a: any): boolean => {
+  if (!a) return true;
+  const id = String(a.id || '');
+  const email = String(a.email || '').toLowerCase();
+  const code = String(a.referralCode || '').toUpperCase();
+  return (
+    id.startsWith('aff_siddharth') ||
+    id.startsWith('aff_rohan') ||
+    id.startsWith('aff-1') ||
+    id.startsWith('aff-2') ||
+    id.startsWith('aff-3') ||
+    id.startsWith('aff-4') ||
+    email.includes('realtyaffiliates.in') ||
+    email.includes('rohan.realty@gmail.com') ||
+    email.includes('propadvisor@gmail.com') ||
+    email.includes('puneinvestors.com') ||
+    email.includes('techprop@outlook.com') ||
+    code.includes('8055') ||
+    code.includes('4210') ||
+    code.includes('9942') ||
+    code.includes('2041') ||
+    code.includes('8819') ||
+    code.includes('5502')
+  );
+};
 
 function loadDb(): AffiliateDatabase {
   if (cachedDb) return cachedDb;
@@ -255,31 +142,48 @@ function loadDb(): AffiliateDatabase {
       const content = fs.readFileSync(AFFILIATE_DB_FILE, 'utf-8');
       const parsed = JSON.parse(content);
       if (parsed && Array.isArray(parsed.affiliates)) {
+        // Enforce removal of any demo affiliates from disk file
+        const cleanAffiliates: AffiliateProfile[] = parsed.affiliates.filter(
+          (a: any) => !isDemoAffiliate(a)
+        );
+        const validAffiliateIds = new Set(cleanAffiliates.map((a) => a.id));
+
+        const cleanClicks = (parsed.clicks || []).filter((c: any) =>
+          validAffiliateIds.has(c.affiliateId)
+        );
+        const cleanCommissions = (parsed.commissions || []).filter((c: any) =>
+          validAffiliateIds.has(c.affiliateId)
+        );
+        const cleanPayouts = (parsed.payouts || []).filter((p: any) =>
+          validAffiliateIds.has(p.affiliateId)
+        );
+
         cachedDb = {
-          affiliates: parsed.affiliates,
-          clicks: parsed.clicks || [],
-          commissions: parsed.commissions || [],
-          payouts: parsed.payouts || [],
+          affiliates: cleanAffiliates,
+          clicks: cleanClicks,
+          commissions: cleanCommissions,
+          payouts: cleanPayouts,
         };
+        saveDb(cachedDb);
         return cachedDb;
       }
     }
 
     cachedDb = {
-      affiliates: INITIAL_AFFILIATES,
+      affiliates: [],
       clicks: [],
-      commissions: INITIAL_COMMISSIONS,
-      payouts: INITIAL_PAYOUTS,
+      commissions: [],
+      payouts: [],
     };
     saveDb(cachedDb);
     return cachedDb;
   } catch (err) {
     console.warn('[ServerAffiliateDb] Error reading affiliate db, initializing default:', err);
     cachedDb = {
-      affiliates: INITIAL_AFFILIATES,
+      affiliates: [],
       clicks: [],
-      commissions: INITIAL_COMMISSIONS,
-      payouts: INITIAL_PAYOUTS,
+      commissions: [],
+      payouts: [],
     };
     return cachedDb;
   }
@@ -302,7 +206,44 @@ export const serverAffiliateDb = {
    */
   getAllAffiliates(searchQuery?: string, statusFilter?: string) {
     const db = loadDb();
-    let list = [...db.affiliates];
+    let list = db.affiliates.filter((a) => !isDemoAffiliate(a));
+
+    // Also harmonize with any real affiliate added to in-memory store
+    try {
+      const existingEmails = new Set(list.map((a) => a.email.toLowerCase()));
+      const storeAffiliates = store.getAffiliates();
+      for (const sa of storeAffiliates) {
+        if (sa && sa.email && !existingEmails.has(sa.email.toLowerCase()) && !isDemoAffiliate(sa)) {
+          list.push({
+            id: sa.id,
+            name: sa.name,
+            email: sa.email,
+            phone: sa.phone || '',
+            referralCode: sa.referralCode || sa.affiliateCode || 'PRO-MUM',
+            city: sa.city || 'Mumbai',
+            agencyName: sa.agencyName || 'Independent Partner',
+            tier: ((sa.tier ? sa.tier.charAt(0).toUpperCase() + sa.tier.slice(1).toLowerCase() : 'Bronze') as any),
+            commissionRatePercent: sa.commissionRatePercent || 2.5,
+            availableBalance: sa.payableBalance || 0,
+            pendingBalance: 0,
+            lifetimeEarnings: sa.totalEarnings || sa.totalEarned || 0,
+            totalClicks: sa.totalClicks || 0,
+            totalConversions: sa.totalDealsClosed || 0,
+            status: sa.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE',
+            emailVerified: true,
+            bankDetails: {
+              accountHolderName: sa.payoutDetails?.accountHolderName || sa.name,
+              accountNumber: sa.payoutDetails?.accountNumber || sa.bankAccountNumber || '',
+              ifscCode: sa.payoutDetails?.ifscCode || sa.bankIfsc || '',
+              bankName: sa.payoutDetails?.bankName || '',
+              upiId: sa.payoutDetails?.upiId || sa.upiId || '',
+            },
+            createdAt: sa.joinedAt ? new Date(sa.joinedAt).toISOString() : new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }
+    } catch {}
 
     if (statusFilter && statusFilter !== 'ALL') {
       list = list.filter((a) => a.status === statusFilter);
@@ -353,7 +294,7 @@ export const serverAffiliateDb = {
   },
 
   /**
-   * Register a new affiliate with default ZERO values and unique tracking ID
+   * Register a new affiliate with default ZERO values, unique tracking ID, and cross-store & D1 sync
    */
   registerAffiliate(params: {
     name: string;
@@ -361,6 +302,14 @@ export const serverAffiliateDb = {
     phone?: string;
     password?: string;
     isGoogle?: boolean;
+    city?: string;
+    agencyName?: string;
+    panCard?: string;
+    reraNumber?: string;
+    tier?: 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
+    commissionRatePercent?: number;
+    referralCode?: string;
+    bankDetails?: Partial<BankDetails>;
   }): { affiliate: AffiliateProfile; verificationCode: string } {
     const db = loadDb();
     const cleanEmail = params.email.trim().toLowerCase();
@@ -370,8 +319,9 @@ export const serverAffiliateDb = {
       throw new Error(`An affiliate account with email ${cleanEmail} already exists.`);
     }
 
+    const cityPrefix = params.city ? params.city.substring(0, 3).toUpperCase() : 'PRO';
     const randSuffix = Math.floor(1000 + Math.random() * 9000);
-    const referralCode = `PRO-${randSuffix}`;
+    const referralCode = params.referralCode ? params.referralCode.trim().toUpperCase() : `${cityPrefix}-${randSuffix}`;
     const id = `aff_${Date.now()}_${randSuffix}`;
     const verificationCode = `${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -382,8 +332,12 @@ export const serverAffiliateDb = {
       phone: params.phone?.trim() || '+91 98000 00000',
       passwordHash: params.password?.trim() || 'prosify@123#',
       referralCode,
-      tier: 'Bronze',
-      commissionRatePercent: 2.5,
+      city: params.city?.trim() || 'Mumbai',
+      agencyName: params.agencyName?.trim() || 'Independent Partner',
+      panCard: params.panCard?.trim() || '',
+      reraNumber: params.reraNumber?.trim() || '',
+      tier: params.tier || 'Bronze',
+      commissionRatePercent: params.commissionRatePercent ?? 2.5,
       availableBalance: 0.0,
       pendingBalance: 0.0,
       lifetimeEarnings: 0.0,
@@ -393,11 +347,11 @@ export const serverAffiliateDb = {
       emailVerified: Boolean(params.isGoogle),
       verificationCode,
       bankDetails: {
-        accountHolderName: params.name.trim(),
-        accountNumber: '',
-        ifscCode: '',
-        bankName: '',
-        upiId: '',
+        accountHolderName: params.bankDetails?.accountHolderName || params.name.trim(),
+        accountNumber: params.bankDetails?.accountNumber || '',
+        ifscCode: params.bankDetails?.ifscCode || '',
+        bankName: params.bankDetails?.bankName || '',
+        upiId: params.bankDetails?.upiId || '',
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -406,7 +360,50 @@ export const serverAffiliateDb = {
     db.affiliates.unshift(newAffiliate);
     saveDb(db);
 
+    // Synchronize to in-memory store so all panels instantly see the newly registered affiliate
+    try {
+      store.registerAffiliate({
+        name: newAffiliate.name,
+        email: newAffiliate.email,
+        phone: newAffiliate.phone,
+        city: newAffiliate.city || 'Mumbai',
+        agencyName: newAffiliate.agencyName,
+        upiId: newAffiliate.bankDetails.upiId,
+        bankAccountNumber: newAffiliate.bankDetails.accountNumber,
+        bankIfsc: newAffiliate.bankDetails.ifscCode,
+      });
+    } catch (storeErr) {
+      console.warn('[ServerAffiliateDb] Store sync notice:', storeErr);
+    }
+
+    // Edge D1 SQLite persistence (Parameterized bindings and SQLite syntax)
+    try {
+      executeD1(
+        `INSERT OR IGNORE INTO users (id, email, name, phone, role, created_at, updated_at) VALUES (?, ?, ?, ?, 'AFFILIATE', datetime('now'), datetime('now'))`,
+        [newAffiliate.id, newAffiliate.email, newAffiliate.name, newAffiliate.phone]
+      ).catch(() => {});
+
+      executeD1(
+        `INSERT OR REPLACE INTO affiliate_accounts (user_id, referral_code, tier, commission_rate, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        [newAffiliate.id, newAffiliate.referralCode, newAffiliate.tier, newAffiliate.commissionRatePercent]
+      ).catch(() => {});
+    } catch (d1Err) {
+      console.warn('[ServerAffiliateDb] Cloudflare D1 execute notice:', d1Err);
+    }
+
     return { affiliate: newAffiliate, verificationCode };
+  },
+
+  /**
+   * Delete an affiliate by ID
+   */
+  deleteAffiliate(id: string): boolean {
+    const db = loadDb();
+    const idx = db.affiliates.findIndex((a) => a.id === id);
+    if (idx === -1) return false;
+    db.affiliates.splice(idx, 1);
+    saveDb(db);
+    return true;
   },
 
   /**

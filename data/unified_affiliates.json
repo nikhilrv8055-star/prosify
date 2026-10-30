@@ -1,0 +1,38 @@
+{
+  "affiliates": [
+    {
+      "id": "aff_1793358785563_2821",
+      "name": "Nikhil Verma",
+      "email": "nikhilrv8055@gmail.com",
+      "phone": "+91 98201 80550",
+      "passwordHash": "Password123#",
+      "referralCode": "MUM-2821",
+      "city": "Mumbai",
+      "agencyName": "Independent Partner",
+      "panCard": "",
+      "reraNumber": "",
+      "tier": "Bronze",
+      "commissionRatePercent": 2.5,
+      "availableBalance": 0,
+      "pendingBalance": 0,
+      "lifetimeEarnings": 0,
+      "totalClicks": 0,
+      "totalConversions": 0,
+      "status": "ACTIVE",
+      "emailVerified": false,
+      "verificationCode": "885834",
+      "bankDetails": {
+        "accountHolderName": "Nikhil Verma",
+        "accountNumber": "",
+        "ifscCode": "",
+        "bankName": "",
+        "upiId": ""
+      },
+      "createdAt": "2026-10-30T11:13:05.563Z",
+      "updatedAt": "2026-10-30T11:13:05.563Z"
+    }
+  ],
+  "clicks": [],
+  "commissions": [],
+  "payouts": []
+}

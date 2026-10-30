@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverAffiliateDb } from '@/lib/data/serverAffiliateDb';
 import { store } from '@/lib/data/store';
+import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
 // RBAC Middleware Helper
 function verifyAdminRole(req: NextRequest): boolean {
@@ -24,7 +26,7 @@ function verifyAdminRole(req: NextRequest): boolean {
 export async function GET(req: NextRequest) {
   try {
     if (!verifyAdminRole(req)) {
-      return NextResponse.json({ success: false, error: 'Unauthorized. Admin role required.' }, { status: 403 });
+      return createErrorResponse('BAD_REQUEST', 'Unauthorized. Admin role required.', 403);
     }
 
     const { searchParams } = new URL(req.url);
@@ -32,101 +34,82 @@ export async function GET(req: NextRequest) {
     const statusFilter = searchParams.get('status')?.toUpperCase() || 'ALL';
     const sortBy = searchParams.get('sortBy') || 'joinedAt';
 
-    const affiliates = store.getAffiliates();
-    const payouts = store.getAffiliatePayoutRequests();
-    const conversions = store.getAffiliateConversions();
+    // Retrieve real affiliates from server database
+    const affiliates = serverAffiliateDb.getAllAffiliates(search, statusFilter);
+    const payouts = serverAffiliateDb.getPayouts();
+    const commissions = serverAffiliateDb.getCommissions();
 
     // Calculate Global Affiliate Metrics
     const totalPayoutsDisbursed = payouts
-      .filter((p) => p.status === 'APPROVED')
+      .filter((p) => p.status === 'PROCESSED' || p.status === 'APPROVED')
       .reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
-    const platformRevenueFromAffiliates = conversions.reduce((acc, curr) => acc + (curr.dealAmount || curr.dealValue || 0), 0);
+    const platformRevenueFromAffiliates = commissions.reduce(
+      (acc, curr) => acc + (curr.dealAmount || 0),
+      0
+    );
 
     const activeAffiliatesCount = affiliates.filter((a) => a.status === 'ACTIVE').length;
     const pendingPayoutRequestsCount = payouts.filter((p) => p.status === 'PENDING').length;
 
-    // Filter & search directory
-    let filteredList = [...affiliates];
-
-    if (search) {
-      filteredList = filteredList.filter(
-        (a) =>
-          a.name.toLowerCase().includes(search) ||
-          a.email.toLowerCase().includes(search) ||
-          a.phone?.includes(search) ||
-          a.affiliateCode?.toLowerCase().includes(search) ||
-          a.referralCode?.toLowerCase().includes(search)
-      );
-    }
-
-    if (statusFilter !== 'ALL') {
-      filteredList = filteredList.filter((a) => a.status?.toUpperCase() === statusFilter);
-    }
-
     // Sorting
+    const sorted = [...affiliates];
     if (sortBy === 'totalEarnings') {
-      filteredList.sort((a, b) => (b.totalEarnings || b.totalEarned || 0) - (a.totalEarnings || a.totalEarned || 0));
+      sorted.sort((a, b) => (b.lifetimeEarnings || 0) - (a.lifetimeEarnings || 0));
     } else if (sortBy === 'joinedAt') {
-      filteredList.sort((a, b) => (b.joinedAt || '').localeCompare(a.joinedAt || ''));
+      sorted.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     }
 
-    return NextResponse.json({
-      success: true,
-      metrics: {
-        totalPayoutsDisbursed,
-        platformRevenueFromAffiliates,
-        activeAffiliates: activeAffiliatesCount,
-        pendingPayoutRequests: pendingPayoutRequestsCount,
-        totalAffiliates: affiliates.length,
+    return NextResponse.json(
+      {
+        success: true,
+        metrics: {
+          totalPayoutsDisbursed,
+          platformRevenueFromAffiliates,
+          activeAffiliates: activeAffiliatesCount,
+          pendingPayoutRequests: pendingPayoutRequestsCount,
+          totalAffiliates: affiliates.length,
+        },
+        affiliates: sorted,
       },
-      affiliates: filteredList,
-    });
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || 'Error in admin affiliate API' }, { status: 500 });
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Error in admin affiliate API', 500);
   }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
     if (!verifyAdminRole(req)) {
-      return NextResponse.json({ success: false, error: 'Unauthorized. Admin role required.' }, { status: 403 });
+      return createErrorResponse('BAD_REQUEST', 'Unauthorized. Admin role required.', 403);
     }
 
     const body = await req.json();
     const { affiliateId, commissionRate, status, notes } = body;
 
     if (!affiliateId) {
-      return NextResponse.json({ success: false, error: 'Affiliate ID is required' }, { status: 400 });
+      return createErrorResponse('BAD_REQUEST', 'Affiliate ID is required', 400);
     }
 
-    const aff = store.getAffiliateById(affiliateId);
-    if (!aff) {
-      return NextResponse.json({ success: false, error: 'Affiliate not found' }, { status: 404 });
+    const updates: any = {};
+    if (typeof commissionRate === 'number') updates.commissionRatePercent = commissionRate;
+    if (status) updates.status = status.toUpperCase();
+
+    const updated = serverAffiliateDb.updateAffiliate(affiliateId, updates);
+    if (!updated) {
+      return createErrorResponse('NOT_FOUND', 'Affiliate profile not found', 404);
     }
 
-    if (commissionRate !== undefined) {
-      const numRate = Number(commissionRate);
-      if (isNaN(numRate) || numRate < 0 || numRate > 20) {
-        return NextResponse.json({ success: false, error: 'Invalid commission rate (must be 0% - 20%)' }, { status: 400 });
-      }
-      store.updateAffiliateCommissionRate(affiliateId, numRate);
-    }
-
-    if (status) {
-      const validStatuses = ['ACTIVE', 'UNDER_REVIEW', 'BANNED', 'SUSPENDED'];
-      if (!validStatuses.includes(status.toUpperCase())) {
-        return NextResponse.json({ success: false, error: 'Invalid affiliate status' }, { status: 400 });
-      }
-      store.updateAffiliateStatus(affiliateId, status.toUpperCase() as any);
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: `Affiliate ${aff.name} updated successfully`,
-      affiliate: store.getAffiliateById(affiliateId),
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Affiliate #${affiliateId} successfully updated.`,
+        affiliate: updated,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || 'Error updating affiliate' }, { status: 500 });
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Error updating affiliate', 500);
   }
 }

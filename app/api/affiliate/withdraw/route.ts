@@ -45,10 +45,10 @@ export async function GET(req: NextRequest) {
   const user = auth.user;
   const userKey = user.partnerCode?.toUpperCase() || user.id;
 
-  // Retrieve or initialize balance
+  // Retrieve or initialize balance (starts clean at zero)
   let balance = affiliateBalances.get(userKey);
   if (!balance) {
-    balance = { totalEarned: 485000, payableBalance: 65000, paidAmount: 420000 };
+    balance = { totalEarned: 0, payableBalance: 0, paidAmount: 0 };
     affiliateBalances.set(userKey, balance);
   }
 
