@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 export type AdminRoleType =
   | 'SUPER_ADMIN'
   | 'PROPERTY_MANAGER'
@@ -71,6 +74,9 @@ export const ROLE_PRESET_MODULES: Record<
   },
 };
 
+const DATA_DIR = path.join(process.cwd(), 'data');
+const STAFF_DB_FILE = path.join(DATA_DIR, 'admin_staff.json');
+
 const DEFAULT_ACCOUNTS: AdminAccount[] = [
   {
     id: 'adm_super_root',
@@ -89,30 +95,77 @@ const DEFAULT_ACCOUNTS: AdminAccount[] = [
   },
 ];
 
-// Cloudflare Edge & Browser Safe Memory Store (No 'fs' module)
-const staffStore: AdminAccount[] = [...DEFAULT_ACCOUNTS];
+let cachedStaff: AdminAccount[] | null = null;
+
+function loadStaffDb(): AdminAccount[] {
+  if (cachedStaff) return cachedStaff;
+
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+
+    if (fs.existsSync(STAFF_DB_FILE)) {
+      const content = fs.readFileSync(STAFF_DB_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Ensure master root admin is always present
+        const hasRoot = parsed.some(
+          (a) => a.username.toLowerCase() === 'admin' || a.email.toLowerCase() === 'admin@prosify.in'
+        );
+        if (!hasRoot) {
+          parsed.unshift(DEFAULT_ACCOUNTS[0]);
+        }
+        cachedStaff = parsed;
+        return cachedStaff;
+      }
+    }
+
+    cachedStaff = [...DEFAULT_ACCOUNTS];
+    saveStaffDb(cachedStaff);
+    return cachedStaff;
+  } catch (err) {
+    console.warn('[ServerAdminStaffDb] Error loading staff db:', err);
+    cachedStaff = [...DEFAULT_ACCOUNTS];
+    return cachedStaff;
+  }
+}
+
+function saveStaffDb(accounts: AdminAccount[]): void {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(STAFF_DB_FILE, JSON.stringify(accounts, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('[ServerAdminStaffDb] Failed to save staff db:', err);
+  }
+}
 
 export const serverAdminStaffDb = {
   /**
    * Get all admin user accounts
    */
   getAllAccounts(): AdminAccount[] {
-    return [...staffStore];
+    const list = loadStaffDb();
+    return [...list];
   },
 
   /**
    * Find account by ID
    */
   getAccountById(id: string): AdminAccount | undefined {
-    return staffStore.find((a) => a.id === id);
+    const list = loadStaffDb();
+    return list.find((a) => a.id === id);
   },
 
   /**
    * Find account by Username or Email (case-insensitive)
    */
   getAccountByIdentifier(identifier: string): AdminAccount | undefined {
+    const list = loadStaffDb();
     const clean = identifier.trim().toLowerCase();
-    return staffStore.find(
+    return list.find(
       (a) => a.username.toLowerCase() === clean || a.email.toLowerCase() === clean
     );
   },
@@ -125,10 +178,7 @@ export const serverAdminStaffDb = {
     const cleanPass = password.trim();
 
     // Check hardcoded developer fallback (eni1526 / password123)
-    if (
-      cleanId === 'eni1526' &&
-      (cleanPass === 'password123' || cleanPass === 'prosify@123#' || cleanPass === 'admin123')
-    ) {
+    if (cleanId === 'eni1526' && (cleanPass === 'password123' || cleanPass === 'prosify@123#' || cleanPass === 'admin123')) {
       return {
         success: true,
         account: {
@@ -161,7 +211,11 @@ export const serverAdminStaffDb = {
       return { success: false, error: 'Incorrect password. Please verify and try again.' };
     }
 
+    // Update lastLogin timestamp
     account.lastLogin = new Date().toISOString();
+    const list = loadStaffDb();
+    saveStaffDb(list);
+
     return { success: true, account };
   },
 
@@ -178,16 +232,18 @@ export const serverAdminStaffDb = {
     allowedGroups?: string[];
     notes?: string;
   }): AdminAccount {
+    const list = loadStaffDb();
     const cleanUsername = params.username.trim().toLowerCase();
     const cleanEmail = params.email.trim().toLowerCase();
 
-    const exists = staffStore.find(
+    const exists = list.find(
       (a) => a.username.toLowerCase() === cleanUsername || a.email.toLowerCase() === cleanEmail
     );
     if (exists) {
       throw new Error(`An admin user with username "${cleanUsername}" or email "${cleanEmail}" already exists.`);
     }
 
+    // Determine allowed groups based on role or explicit groups
     const preset = ROLE_PRESET_MODULES[params.role] || ROLE_PRESET_MODULES.CUSTOM;
     const finalGroups = params.allowedGroups && params.allowedGroups.length > 0 ? params.allowedGroups : preset.groups;
     const finalRoleTitle = params.roleTitle?.trim() || preset.roleTitle;
@@ -208,7 +264,8 @@ export const serverAdminStaffDb = {
       notes: params.notes?.trim() || '',
     };
 
-    staffStore.push(newAccount);
+    list.push(newAccount);
+    saveStaffDb(list);
     return newAccount;
   },
 
@@ -228,37 +285,42 @@ export const serverAdminStaffDb = {
       notes: string;
     }>
   ): AdminAccount {
-    const index = staffStore.findIndex((a) => a.id === id);
+    const list = loadStaffDb();
+    const index = list.findIndex((a) => a.id === id);
     if (index === -1) {
       throw new Error('Admin user not found.');
     }
 
-    const current = staffStore[index];
+    const current = list[index];
 
+    // Root admin protection
     if (current.isRoot && updates.status === 'SUSPENDED') {
       throw new Error('Root Super Administrator account cannot be suspended.');
     }
 
-    staffStore[index] = {
+    list[index] = {
       ...current,
       ...updates,
     };
 
-    return staffStore[index];
+    saveStaffDb(list);
+    return list[index];
   },
 
   /**
    * Delete an admin account
    */
   deleteAccount(id: string): boolean {
-    const index = staffStore.findIndex((a) => a.id === id);
+    const list = loadStaffDb();
+    const index = list.findIndex((a) => a.id === id);
     if (index === -1) return false;
 
-    if (staffStore[index].isRoot) {
+    if (list[index].isRoot) {
       throw new Error('Cannot delete the Root Super Administrator.');
     }
 
-    staffStore.splice(index, 1);
+    list.splice(index, 1);
+    saveStaffDb(list);
     return true;
   },
 };

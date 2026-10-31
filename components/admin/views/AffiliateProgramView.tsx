@@ -26,6 +26,7 @@ import {
   Send,
   Building,
   Award,
+  RefreshCw,
 } from 'lucide-react';
 import {
   AffiliateUser,
@@ -221,15 +222,15 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
   }, []);
 
   // Calculations
-  const totalAffiliates = members.length;
-  const activeAffiliates = members.filter((m) => m.status === 'active').length;
-  const totalPaidOut = payouts
-    .filter((p) => p.status === 'PAID')
-    .reduce((acc, p) => acc + p.amount, 0);
-  const pendingPayoutAmount = payouts
-    .filter((p) => p.status === 'PENDING')
-    .reduce((acc, p) => acc + p.amount, 0);
-  const totalDealVolume = conversions.reduce((acc, c) => acc + c.dealValue, 0);
+  const totalAffiliates = (members || []).length;
+  const activeAffiliates = (members || []).filter((m) => m && m.status === 'active').length;
+  const totalPaidOut = (payouts || [])
+    .filter((p) => p && p.status === 'PAID')
+    .reduce((acc, p) => acc + (p?.amount || 0), 0);
+  const pendingPayoutAmount = (payouts || [])
+    .filter((p) => p && p.status === 'PENDING')
+    .reduce((acc, p) => acc + (p?.amount || 0), 0);
+  const totalDealVolume = (conversions || []).reduce((acc, c) => acc + (c?.dealValue || 0), 0);
 
   // Handlers
   const handleSaveSettings = () => {
@@ -539,8 +540,9 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
   };
 
   // Filtered & Paginated lists
-  const filteredMembers = members.filter((m) => {
-    const q = memberSearch.trim().toLowerCase();
+  const filteredMembers = (members || []).filter((m) => {
+    if (!m) return false;
+    const q = (memberSearch || '').trim().toLowerCase();
     const matchesSearch =
       !q ||
       (m.name || '').toLowerCase().includes(q) ||
@@ -556,18 +558,21 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
     return matchesSearch && matchesTier && matchesStatus;
   });
 
-  const totalMemberPages = Math.ceil(filteredMembers.length / membersPerPage) || 1;
-  const paginatedMembers = filteredMembers.slice(
+  const totalMemberPages = Math.ceil((filteredMembers || []).length / membersPerPage) || 1;
+  const paginatedMembers = (filteredMembers || []).slice(
     (memberCurrentPage - 1) * membersPerPage,
     memberCurrentPage * membersPerPage
   );
 
-  const filteredConversions = conversions.filter((c) => {
+  const filteredConversions = (conversions || []).filter((c) => {
+    if (!c) return false;
+    const q = (conversionSearch || '').toLowerCase();
     const matchesSearch =
-      c.buyerName.toLowerCase().includes(conversionSearch.toLowerCase()) ||
-      c.affiliateName.toLowerCase().includes(conversionSearch.toLowerCase()) ||
-      c.propertyTitle.toLowerCase().includes(conversionSearch.toLowerCase()) ||
-      c.referralCode.toLowerCase().includes(conversionSearch.toLowerCase());
+      !q ||
+      (c.buyerName || '').toLowerCase().includes(q) ||
+      (c.affiliateName || '').toLowerCase().includes(q) ||
+      (c.propertyTitle || '').toLowerCase().includes(q) ||
+      (c.referralCode || '').toLowerCase().includes(q);
     const matchesStage = conversionStageFilter === 'ALL' || c.stage === conversionStageFilter;
     const matchesStatus = conversionStatusFilter === 'ALL' || c.status === conversionStatusFilter;
     return matchesSearch && matchesStage && matchesStatus;
@@ -785,7 +790,7 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60">
-                  {paginatedMembers.map((member) => (
+                  {(paginatedMembers || []).map((member) => (
                     <tr key={member.id} className="hover:bg-neutral-800/30 transition-colors">
                       {/* Name & Contact */}
                       <td className="py-4 px-4">
@@ -1025,7 +1030,7 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60">
-                  {filteredConversions.map((conv) => (
+                  {(filteredConversions || []).map((conv) => (
                     <tr key={conv.id} className="hover:bg-neutral-800/30 transition-colors">
                       <td className="py-4 px-4 font-mono text-[11px] text-neutral-400">
                         <span className="font-bold text-white">{conv.id}</span>
@@ -1185,7 +1190,7 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60">
-                  {payouts.map((pay) => (
+                  {(payouts || []).map((pay) => (
                     <tr key={pay.id} className="hover:bg-neutral-800/30 transition-colors">
                       <td className="py-4 px-4 font-mono font-bold text-white">{pay.id}</td>
                       <td className="py-4 px-4 font-bold text-amber-400">{pay.affiliateName}</td>
@@ -1260,7 +1265,7 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {creatives.map((crt) => (
+            {(creatives || []).map((crt) => (
               <div
                 key={crt.id}
                 className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 transition-all flex flex-col justify-between"

@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { NO_CACHE_HEADERS } from '@/lib/db/d1';
+import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
 export const dynamic = 'force-dynamic';
 
-function getD1Database(): any {
+async function getD1(): Promise<any> {
   try {
-    const globalContext = (globalThis as any).__cloudflare_context__?.env?.DB;
-    if (globalContext) return globalContext;
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+    const ctx = await getCloudflareContext({ async: true });
+    if (ctx?.env?.DB) return ctx.env.DB;
   } catch (e) {}
 
   if ((process.env as any)?.DB) return (process.env as any).DB;
+  if ((globalThis as any)?.__cloudflare_context__?.env?.DB) {
+    return (globalThis as any).__cloudflare_context__.env.DB;
+  }
   if ((globalThis as any)?.DB) return (globalThis as any).DB;
+
   return null;
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const db = getD1Database();
-
-    // Fallback if D1 is initializing or not bound
+    const db = await getD1();
     if (!db) {
-      console.warn('D1 binding not detected in admin affiliate API. Returning safe fallback.');
       return NextResponse.json(
         {
           success: true,
@@ -37,25 +39,31 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { results } = await db.prepare(`
-      SELECT 
-        id,
-        user_name AS name,
-        email,
-        phone,
-        city,
-        agency_name AS agencyName,
-        pan_card AS panCard,
-        rera_number AS reraNumber,
-        ref_code AS referralCode,
-        tier,
-        status,
-        created_at AS createdAt
-      FROM affiliates
-      ORDER BY id DESC
-    `).all();
+    let results: any[] = [];
+    try {
+      const queryRes = await db.prepare(`
+        SELECT 
+          id,
+          user_name AS name,
+          email,
+          phone,
+          city,
+          agency_name AS agencyName,
+          pan_card AS panCard,
+          rera_number AS reraNumber,
+          ref_code AS referralCode,
+          tier,
+          status,
+          created_at AS createdAt
+        FROM affiliates
+        ORDER BY id DESC
+      `).all();
+      results = queryRes?.results || [];
+    } catch (queryErr) {
+      console.warn('D1 affiliates table query fallback:', queryErr);
+    }
 
-    const rawList = (results as any[]) || [];
+    const rawList = results || [];
 
     const affiliates = rawList.map((item) => ({
       id: item.id || `aff_${item.referralCode}`,
@@ -93,22 +101,7 @@ export async function GET(req: NextRequest) {
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error: any) {
-    console.error('Safe Catch in Admin Affiliate GET:', error);
-    // Return empty array instead of 500 error to prevent React boundary crash
-    return NextResponse.json(
-      {
-        success: true,
-        metrics: {
-          totalPayoutsDisbursed: 0,
-          platformRevenueFromAffiliates: 0,
-          activeAffiliates: 0,
-          pendingPayoutRequests: 0,
-          totalAffiliates: 0,
-        },
-        affiliates: [],
-        warning: error.message || 'Database fetch failed',
-      },
-      { headers: NO_CACHE_HEADERS }
-    );
+    console.error('Admin Affiliate GET Error:', error);
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Error fetching affiliates', 500);
   }
 }
