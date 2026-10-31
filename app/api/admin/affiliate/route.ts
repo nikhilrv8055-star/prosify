@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
 import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
 export const runtime = 'edge';
 
-// RBAC Middleware Helper
 function verifyAdminRole(req: NextRequest): boolean {
   const authHeader = req.headers.get('authorization') || req.headers.get('x-admin-token');
   const sessionUser = req.headers.get('x-admin-user');
@@ -24,12 +22,12 @@ function verifyAdminRole(req: NextRequest): boolean {
 
 function getD1Database(): any {
   try {
-    const { env } = getRequestContext();
-    if ((env as any)?.DB) return (env as any).DB;
-  } catch (e) {
-    // Edge context fallback
-  }
+    const globalContext = (globalThis as any).__cloudflare_context__?.env?.DB;
+    if (globalContext) return globalContext;
+  } catch (e) {}
+
   if ((process.env as any)?.DB) return (process.env as any).DB;
+  if ((globalThis as any)?.DB) return (globalThis as any).DB;
   return null;
 }
 
@@ -49,7 +47,6 @@ export async function GET(req: NextRequest) {
     const statusFilter = searchParams.get('status')?.toUpperCase() || 'ALL';
     const sortBy = searchParams.get('sortBy') || 'joinedAt';
 
-    // 1. Fetch live registered affiliates from Cloudflare D1
     let query = `
       SELECT 
         id,
@@ -93,7 +90,6 @@ export async function GET(req: NextRequest) {
     const { results } = await db.prepare(query).bind(...params).all();
     const rawAffiliates = (results as any[]) || [];
 
-    // Format fields expected by the Admin UI
     const affiliates = rawAffiliates.map((item) => ({
       id: item.id || `aff_${item.referralCode}`,
       name: item.name || 'Partner',
@@ -115,9 +111,7 @@ export async function GET(req: NextRequest) {
       conversions: 0,
     }));
 
-    // 2. Metrics calculation directly from live D1 list
     const activeAffiliatesCount = affiliates.filter((a) => a.status === 'ACTIVE').length;
-    const totalAffiliates = affiliates.length;
 
     return NextResponse.json(
       {
@@ -127,7 +121,7 @@ export async function GET(req: NextRequest) {
           platformRevenueFromAffiliates: 0,
           activeAffiliates: activeAffiliatesCount,
           pendingPayoutRequests: 0,
-          totalAffiliates,
+          totalAffiliates: affiliates.length,
         },
         affiliates,
       },
@@ -176,7 +170,6 @@ export async function PATCH(req: NextRequest) {
 
     params.push(affiliateId);
 
-    // Update the record inside Cloudflare D1
     const result = await db
       .prepare(`UPDATE affiliates SET ${updates.join(', ')} WHERE id = ? OR ref_code = ?`)
       .bind(...params, affiliateId)
