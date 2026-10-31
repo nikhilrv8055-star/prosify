@@ -1,32 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { rbacStore, UserRole, AccountStatus } from '@/lib/auth/rbacStore';
+import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
+
+export const dynamic = 'force-dynamic';
+
+function getD1Database(): any {
+  try {
+    const globalContext = (globalThis as any).__cloudflare_context__?.env?.DB;
+    if (globalContext) return globalContext;
+  } catch (e) {}
+
+  if ((process.env as any)?.DB) return (process.env as any).DB;
+  if ((globalThis as any)?.DB) return (globalThis as any).DB;
+  return null;
+}
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const role = searchParams.get('role')?.toUpperCase() as UserRole | undefined;
-    const users = rbacStore.getUsers(role);
+    const db = getD1Database();
+    if (!db) {
+      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
+    }
 
-    return NextResponse.json({
-      success: true,
-      count: users.length,
-      users: users.map((u) => ({
-        id: u.id,
-        secureId: u.secureId,
-        username: u.username,
-        email: u.email,
-        name: u.name,
-        phone: u.phone,
-        role: u.role,
-        status: u.status,
-        requirePasswordChange: u.requirePasswordChangeOnFirstLogin,
-        createdAt: u.createdAt,
-        lastLoginAt: u.lastLoginAt,
-        vendorProfile: u.vendorProfile,
-        agentProfile: u.agentProfile,
-      })),
-    });
+    const { searchParams } = new URL(req.url);
+    const role = searchParams.get('role')?.toUpperCase();
+
+    let query = 'SELECT * FROM portal_users';
+    const params: any[] = [];
+
+    if (role && (role === 'VENDOR' || role === 'AGENT')) {
+      query += ' WHERE role = ?';
+      params.push(role);
+    }
+
+    query += ' ORDER BY created_at DESC';
+
+    const { results } = await db.prepare(query).bind(...params).all();
+    const rows = (results as any[]) || [];
+
+    const formattedUsers = rows.map((u) => ({
+      id: u.id,
+      secureId: u.secure_id || u.id,
+      username: u.username || u.email,
+      email: u.email,
+      name: u.name,
+      phone: u.phone,
+      role: u.role,
+      status: u.status || 'ACTIVE',
+      requirePasswordChange: Boolean(u.require_password_change),
+      createdAt: u.created_at,
+      lastLoginAt: u.last_login_at,
+      vendorProfile:
+        u.role === 'VENDOR'
+          ? {
+              businessName: u.business_or_agency_name,
+              category: u.category_or_rera,
+              gstNumber: u.official_id_or_gst,
+              territory: u.territory,
+            }
+          : undefined,
+      agentProfile:
+        u.role === 'AGENT'
+          ? {
+              agencyName: u.business_or_agency_name,
+              reraNumber: u.category_or_rera,
+              officialId: u.official_id_or_gst,
+              territory: u.territory,
+            }
+          : undefined,
+    }));
+
+    return NextResponse.json(
+      {
+        success: true,
+        count: formattedUsers.length,
+        users: formattedUsers,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
+    console.error('Fetch Provisioned Users Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
@@ -65,47 +117,92 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if email or username already taken
-    const existing = rbacStore.findUserByLogin(email);
+    const db = getD1Database();
+    if (!db) {
+      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
+
+    // Check duplicate email
+    const existing = await db
+      .prepare('SELECT id FROM portal_users WHERE LOWER(email) = ? LIMIT 1')
+      .bind(cleanEmail)
+      .first();
+
     if (existing) {
       return NextResponse.json(
-        { success: false, error: `An account with email ${email} already exists.` },
+        { success: false, error: `An account with email ${cleanEmail} already exists.` },
         { status: 400 }
       );
     }
 
-    const { user, temporaryPassword } = rbacStore.createUser({
-      role,
-      name,
-      businessOrAgencyName,
-      email,
-      phone,
-      territory: territory || 'Mumbai MMR',
-      categoryOrRera,
-      officialIdOrGst,
-      customSecureId,
-      password,
-      requirePasswordChange,
-    });
+    const userId = `usr_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+    const secureId = customSecureId?.trim() || `${role.slice(0, 3)}-${Math.floor(10000 + Math.random() * 90000)}`;
+    const temporaryPassword =
+      password?.trim() || `${role.toLowerCase()}@${Math.floor(1000 + Math.random() * 9000)}`;
+
+    await db
+      .prepare(`
+        INSERT INTO portal_users (
+          id,
+          secure_id,
+          username,
+          email,
+          password_hash,
+          name,
+          phone,
+          role,
+          status,
+          business_or_agency_name,
+          territory,
+          category_or_rera,
+          official_id_or_gst,
+          require_password_change,
+          created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, datetime('now'))
+      `)
+      .bind(
+        userId,
+        secureId,
+        cleanEmail,
+        cleanEmail,
+        temporaryPassword,
+        cleanName,
+        cleanPhone,
+        role,
+        businessOrAgencyName.trim(),
+        territory?.trim() || 'Mumbai MMR',
+        categoryOrRera?.trim() || '',
+        officialIdOrGst?.trim() || '',
+        requirePasswordChange ? 1 : 0
+      )
+      .run();
 
     const loginUrl = role === 'VENDOR' ? '/vendor/login' : '/agent/login';
 
-    return NextResponse.json({
-      success: true,
-      message: `${role} account provisioned successfully!`,
-      user: {
-        id: user.id,
-        secureId: user.secureId,
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        status: user.status,
-        loginUrl,
+    return NextResponse.json(
+      {
+        success: true,
+        message: `${role} account provisioned successfully!`,
+        user: {
+          id: userId,
+          secureId,
+          username: cleanEmail,
+          email: cleanEmail,
+          name: cleanName,
+          role,
+          status: 'ACTIVE',
+          loginUrl,
+        },
+        temporaryPassword,
       },
-      temporaryPassword,
-    });
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
+    console.error('Provision User Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
@@ -121,59 +218,107 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const user = rbacStore.getUserById(userId);
-    if (!user) {
+    const db = getD1Database();
+    if (!db) {
+      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
+    }
+
+    const existingUser = (await db
+      .prepare('SELECT * FROM portal_users WHERE id = ? LIMIT 1')
+      .bind(userId)
+      .first()) as any;
+
+    if (!existingUser) {
       return NextResponse.json({ success: false, error: 'User not found.' }, { status: 404 });
     }
 
     if (action === 'toggle_status') {
-      const targetStatus: AccountStatus = status || (user.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE');
-      rbacStore.updateStatus(user.id, targetStatus);
-      return NextResponse.json({
-        success: true,
-        message: `Account status updated to ${targetStatus}`,
-        status: targetStatus,
-      });
+      const currentStatus = existingUser.status || 'ACTIVE';
+      const targetStatus = status || (currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE');
+
+      await db
+        .prepare('UPDATE portal_users SET status = ? WHERE id = ?')
+        .bind(targetStatus, userId)
+        .run();
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Account status updated to ${targetStatus}`,
+          status: targetStatus,
+        },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
 
     if (action === 'reset_password') {
       const generatedPass =
         newPassword?.trim() ||
-        `${user.role.slice(0, 3)}#${Math.floor(1000 + Math.random() * 9000)}!Reset`;
-      rbacStore.updatePassword(user.id, generatedPass);
-      user.requirePasswordChangeOnFirstLogin = true;
-      user.status = 'PENDING_FIRST_LOGIN';
+        `${existingUser.role.slice(0, 3)}#${Math.floor(1000 + Math.random() * 9000)}!Reset`;
 
-      return NextResponse.json({
-        success: true,
-        message: 'Password successfully reset.',
-        temporaryPassword: generatedPass,
-      });
+      await db
+        .prepare('UPDATE portal_users SET password_hash = ?, require_password_change = 1, status = ? WHERE id = ?')
+        .bind(generatedPass, 'PENDING_FIRST_LOGIN', userId)
+        .run();
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Password successfully reset.',
+          temporaryPassword: generatedPass,
+        },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
 
     if (action === 'edit_profile' && profileUpdates) {
-      if (profileUpdates.name) user.name = profileUpdates.name;
-      if (profileUpdates.phone) user.phone = profileUpdates.phone;
-      if (profileUpdates.email) user.email = profileUpdates.email;
+      const updates: string[] = [];
+      const params: any[] = [];
 
-      if (user.role === 'VENDOR' && user.vendorProfile) {
-        if (profileUpdates.businessName) user.vendorProfile.businessName = profileUpdates.businessName;
-        if (profileUpdates.gstNumber) user.vendorProfile.gstNumber = profileUpdates.gstNumber;
-        if (profileUpdates.territory) user.vendorProfile.territory = profileUpdates.territory;
-        if (profileUpdates.category) user.vendorProfile.category = profileUpdates.category;
+      if (profileUpdates.name) {
+        updates.push('name = ?');
+        params.push(profileUpdates.name.trim());
+      }
+      if (profileUpdates.phone) {
+        updates.push('phone = ?');
+        params.push(profileUpdates.phone.trim());
+      }
+      if (profileUpdates.email) {
+        updates.push('email = ?');
+        params.push(profileUpdates.email.trim().toLowerCase());
+      }
+      if (profileUpdates.businessName || profileUpdates.agencyName) {
+        updates.push('business_or_agency_name = ?');
+        params.push((profileUpdates.businessName || profileUpdates.agencyName).trim());
+      }
+      if (profileUpdates.territory) {
+        updates.push('territory = ?');
+        params.push(profileUpdates.territory.trim());
+      }
+      if (profileUpdates.category || profileUpdates.reraNumber) {
+        updates.push('category_or_rera = ?');
+        params.push((profileUpdates.category || profileUpdates.reraNumber).trim());
+      }
+      if (profileUpdates.gstNumber || profileUpdates.officialId) {
+        updates.push('official_id_or_gst = ?');
+        params.push((profileUpdates.gstNumber || profileUpdates.officialId).trim());
       }
 
-      if (user.role === 'AGENT' && user.agentProfile) {
-        if (profileUpdates.agencyName) user.agentProfile.agencyName = profileUpdates.agencyName;
-        if (profileUpdates.reraNumber) user.agentProfile.reraNumber = profileUpdates.reraNumber;
-        if (profileUpdates.territory) user.agentProfile.territory = profileUpdates.territory;
+      if (updates.length > 0) {
+        params.push(userId);
+        await db
+          .prepare(`UPDATE portal_users SET ${updates.join(', ')} WHERE id = ?`)
+          .bind(...params)
+          .run();
       }
 
-      return NextResponse.json({
-        success: true,
-        message: 'Profile details updated successfully.',
-        user,
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Profile details updated successfully.',
+        },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
 
     return NextResponse.json({ success: false, error: 'Unsupported action' }, { status: 400 });
@@ -191,12 +336,17 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
     }
 
-    const deleted = rbacStore.deleteUser(userId);
-    if (!deleted) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    const db = getD1Database();
+    if (!db) {
+      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
     }
 
-    return NextResponse.json({ success: true, message: 'Account deleted successfully' });
+    await db.prepare('DELETE FROM portal_users WHERE id = ?').bind(userId).run();
+
+    return NextResponse.json(
+      { success: true, message: 'Account deleted successfully' },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
