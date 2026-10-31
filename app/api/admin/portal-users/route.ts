@@ -14,7 +14,32 @@ function getD1Database(): any {
   return null;
 }
 
-// 1. Naya Department User Banane ke liye (POST)
+// 1. GET: Page load / refresh par D1 se users fetch karne ke liye
+export async function GET() {
+  try {
+    const db = getD1Database();
+    if (!db) {
+      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
+    }
+
+    const { results } = await db
+      .prepare('SELECT id, name, email, department, role, status, created_at AS createdAt FROM department_users ORDER BY created_at DESC')
+      .all();
+
+    return NextResponse.json(
+      {
+        success: true,
+        users: results || [],
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
+  } catch (error: any) {
+    console.error('Fetch Portal Users Error:', error);
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Failed to fetch department users', 500);
+  }
+}
+
+// 2. POST: Admin panel se naya ID/Password D1 me permanently save karne ke liye
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -30,82 +55,54 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    const cleanDept = department.trim().toLowerCase();
+    const cleanRole = (role || 'STAFF').toUpperCase();
     const userId = `dept_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Existing check
+    // Check duplicate email
     const existing = await db
       .prepare('SELECT id FROM department_users WHERE LOWER(email) = ? LIMIT 1')
       .bind(cleanEmail)
       .first();
 
     if (existing) {
-      return createErrorResponse('CONFLICT', 'User with this email already exists in department.', 409);
+      return createErrorResponse('CONFLICT', 'User with this email already exists.', 409);
     }
 
-    // Direct D1 Database me insert
+    // Insert into D1 SQL
     await db
       .prepare(`
         INSERT INTO department_users (
           id, name, email, password_hash, department, role, status, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, 'active', datetime('now'))
       `)
-      .bind(
-        userId,
-        name.trim(),
-        cleanEmail,
-        password.trim(),
-        department.trim().toLowerCase(),
-        (role || 'STAFF').toUpperCase()
-      )
+      .bind(userId, cleanName, cleanEmail, password.trim(), cleanDept, cleanRole)
       .run();
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Department user provisioned successfully in D1 database!',
+        message: 'Department user created successfully in D1 database!',
         user: {
           id: userId,
-          name: name.trim(),
+          name: cleanName,
           email: cleanEmail,
-          department: department.trim().toLowerCase(),
-          role: (role || 'STAFF').toUpperCase(),
+          department: cleanDept,
+          role: cleanRole,
           status: 'active',
+          createdAt: new Date().toISOString(),
         },
       },
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error: any) {
-    console.error('Provision Department User Error:', error);
-    return createErrorResponse('INTERNAL_ERROR', error.message || 'Failed to provision user', 500);
+    console.error('Create Portal User Error:', error);
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Failed to create user', 500);
   }
 }
 
-// 2. Refresh karne par list show karne ke liye (GET)
-export async function GET(req: NextRequest) {
-  try {
-    const db = getD1Database();
-    if (!db) {
-      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
-    }
-
-    const { results } = await db
-      .prepare('SELECT id, name, email, department, role, status, created_at FROM department_users ORDER BY created_at DESC')
-      .all();
-
-    return NextResponse.json(
-      {
-        success: true,
-        users: results || [],
-      },
-      { headers: NO_CACHE_HEADERS }
-    );
-  } catch (error: any) {
-    console.error('Get Department Users Error:', error);
-    return createErrorResponse('INTERNAL_ERROR', error.message || 'Failed to fetch department users', 500);
-  }
-}
-
-// 3. User Delete / Revoke karne ke liye (DELETE)
+// 3. DELETE: User access delete/revoke karne ke liye
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -123,7 +120,7 @@ export async function DELETE(req: NextRequest) {
     await db.prepare('DELETE FROM department_users WHERE id = ?').bind(userId).run();
 
     return NextResponse.json(
-      { success: true, message: 'User access revoked successfully' },
+      { success: true, message: 'User removed successfully.' },
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error: any) {
