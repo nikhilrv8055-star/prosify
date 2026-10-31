@@ -108,6 +108,22 @@ export async function POST(req: NextRequest) {
       console.warn('[D1 Auth Sync] Non-blocking fallback to session state:', d1Err);
     }
 
+    if (assignedRole === 'AFFILIATE') {
+      try {
+        const { serverAffiliateDb } = await import('@/lib/data/serverAffiliateDb');
+        let aff = serverAffiliateDb.getAffiliateByEmail(cleanEmail);
+        if (!aff) {
+          serverAffiliateDb.registerAffiliate({
+            name: userName,
+            email: cleanEmail,
+            isGoogle: true,
+          });
+        }
+      } catch (err) {
+        console.warn('Affiliate auto-provision failed:', err);
+      }
+    }
+
     const authUser: AuthUser = {
       id: userId,
       name: userName,

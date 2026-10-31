@@ -160,7 +160,7 @@ export function PropertyEnquiryForm({
         {affiliateRef && (
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium mb-5">
             <Sparkles className="w-3.5 h-3.5" />
-            Attributed to Awas Mitra Partner ID: <span className="font-mono font-bold">{affiliateRef}</span>
+            Attributed to Affiliate Partner ID: <span className="font-mono font-bold">{affiliateRef}</span>
           </div>
         )}
 

@@ -2735,6 +2735,13 @@ class RealEstateStore {
     return true;
   }
 
+  public deleteAffiliate(id: string): boolean {
+    const index = this.affiliates.findIndex((a) => a.id === id || a.email.toLowerCase() === id.toLowerCase());
+    if (index === -1) return false;
+    this.affiliates.splice(index, 1);
+    return true;
+  }
+
   public getAffiliateConversions(affiliateId?: string): AffiliateConversion[] {
     if (affiliateId) {
       return this.affiliateConversions.filter((c) => c.affiliateId === affiliateId);

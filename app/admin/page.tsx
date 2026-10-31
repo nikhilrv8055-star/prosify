@@ -57,7 +57,7 @@ import { SettingsTab } from '@/components/admin/SettingsTab';
 import { AuditLogsTab } from '@/components/admin/AuditLogsTab';
 import { PortalAccessTab } from '@/components/admin/PortalAccessTab';
 import { DeveloperApiTab } from '@/components/admin/DeveloperApiTab';
-import { AdminSidebarAccordion } from '@/components/admin/AdminSidebarAccordion';
+import { AdminSidebarAccordion, ADMIN_NAV_GROUPS } from '@/components/admin/AdminSidebarAccordion';
 import { AdminMenuKey } from '@/components/admin/adminMenuTypes';
 import { PropertySpecificationsView } from '@/components/admin/views/PropertySpecificationsView';
 import { PropertyPricingRequestsView } from '@/components/admin/views/PropertyPricingRequestsView';
@@ -78,12 +78,56 @@ import { AffiliateProgramView } from '@/components/admin/views/AffiliateProgramV
 import { FestivalThemesAdminView } from '@/components/admin/views/FestivalThemesAdminView';
 import { ShieldCheck, Bot, KeyRound, Webhook } from 'lucide-react';
 
+function getGroupIdForTab(tabKey: string): string | null {
+  for (const group of ADMIN_NAV_GROUPS) {
+    if (group.items?.some((item) => item.id === tabKey)) {
+      return group.id;
+    }
+  }
+  if (tabKey.startsWith('spec-')) return 'grp-specs';
+  if (tabKey.startsWith('prop-') || tabKey === 'properties') return 'grp-props';
+  if (tabKey.startsWith('proj-') || tabKey === 'projects') return 'grp-projects';
+  if (tabKey.startsWith('pkg-')) return 'grp-packages';
+  if (tabKey.startsWith('users-')) return 'grp-users';
+  if (tabKey.startsWith('vendors-')) return 'grp-vendors';
+  if (tabKey.startsWith('agents-')) return 'grp-agents';
+  if (tabKey.startsWith('tickets-')) return 'grp-tickets';
+  if (tabKey.startsWith('home-')) return 'grp-home-cms';
+  if (tabKey.startsWith('footer-')) return 'grp-footer-cms';
+  if (tabKey.startsWith('blog-')) return 'grp-blog';
+  if (tabKey.startsWith('faq-')) return 'grp-faq';
+  if (tabKey.startsWith('ads-')) return 'grp-ads';
+  if (tabKey.startsWith('festival-')) return 'grp-festival';
+  if (tabKey.startsWith('settings-')) return 'grp-settings';
+  if (tabKey.startsWith('gateway-')) return 'grp-gateways';
+  if (tabKey.startsWith('admin-')) return 'grp-admin';
+  if (tabKey.startsWith('affiliate-')) return 'grp-affiliate';
+  if (tabKey === 'payment-logs') return 'grp-payments';
+  if (tabKey === 'dashboard' || tabKey === 'portal-access' || tabKey === 'developer-api') return 'grp-dashboard';
+  if (tabKey === 'leads' || tabKey === 'crm') return 'grp-crm';
+  if (tabKey === 'reports') return 'grp-reports';
+  return null;
+}
+
+function getFirstPermittedTab(allowedGroups: string[]): string {
+  if (!allowedGroups || allowedGroups.length === 0 || allowedGroups.includes('*')) return 'dashboard';
+  for (const group of ADMIN_NAV_GROUPS) {
+    if (allowedGroups.includes(group.id) && group.items && group.items.length > 0) {
+      return group.items[0].id;
+    }
+  }
+  return 'dashboard';
+}
+
 export default function AdminAppPage() {
-  // Authentication State
+  // Authentication & RBAC State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string>('admin@prosify.in');
+  const [displayName, setDisplayName] = useState<string>('Super Administrator');
   const [currentRole, setCurrentRole] = useState<AdminRole>('SUPER_ADMIN');
+  const [roleTitle, setRoleTitle] = useState<string>('Super Administrator');
+  const [allowedGroups, setAllowedGroups] = useState<string[]>(['*']);
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -107,9 +151,25 @@ export default function AdminAppPage() {
       try {
         const token = sessionStorage.getItem('prosify_admin_secure_token') || sessionStorage.getItem('eni_admin_secure_token');
         const user = sessionStorage.getItem('prosify_admin_user') || sessionStorage.getItem('eni_admin_user');
+        const savedRole = sessionStorage.getItem('prosify_admin_role');
+        const savedRoleTitle = sessionStorage.getItem('prosify_admin_role_title');
+        const savedName = sessionStorage.getItem('prosify_admin_name');
+        const savedGroups = sessionStorage.getItem('prosify_admin_allowed_groups');
+
         if (token && user) {
           setIsAuthenticated(true);
           setCurrentUser(user);
+          if (savedRole) setCurrentRole(savedRole as AdminRole);
+          if (savedRoleTitle) setRoleTitle(savedRoleTitle);
+          if (savedName) setDisplayName(savedName);
+          if (savedGroups) {
+            try {
+              const parsed = JSON.parse(savedGroups);
+              if (Array.isArray(parsed)) {
+                setAllowedGroups(parsed);
+              }
+            } catch {}
+          }
         }
       } catch (e) {
         console.warn('Session check fallback', e);
@@ -150,14 +210,43 @@ export default function AdminAppPage() {
     };
   }, []);
 
-  const handleAuthenticated = (token: string, username: string) => {
+  const handleAuthenticated = (
+    token: string,
+    username: string,
+    role?: AdminRole | string,
+    userAllowedGroups?: string[],
+    userRoleTitle?: string,
+    userDisplayName?: string
+  ) => {
     setIsAuthenticated(true);
     setCurrentUser(username);
+    if (role) setCurrentRole(role as AdminRole);
+    if (userRoleTitle) setRoleTitle(userRoleTitle);
+    if (userDisplayName) setDisplayName(userDisplayName);
+
+    if (userAllowedGroups && Array.isArray(userAllowedGroups)) {
+      setAllowedGroups(userAllowedGroups);
+      const isTabPermitted =
+        userAllowedGroups.includes('*') ||
+        (getGroupIdForTab(activeTab) && userAllowedGroups.includes(getGroupIdForTab(activeTab)!));
+      if (!isTabPermitted) {
+        const fallback = getFirstPermittedTab(userAllowedGroups);
+        setActiveTab(fallback);
+      }
+    } else {
+      setAllowedGroups(['*']);
+    }
+
     store.addAuditLog({
       action: 'ADMIN_AUTHENTICATED',
       entity: 'AuthSession',
       user: username,
-      details: { host: 'admin.prosify.in', method: 'PROSIFY_ADMIN_AUTH' },
+      details: {
+        host: 'admin.prosify.in',
+        method: 'PROSIFY_ADMIN_AUTH',
+        role: role || 'SUPER_ADMIN',
+        roleTitle: userRoleTitle,
+      },
     });
     refreshAllData();
   };
@@ -166,6 +255,12 @@ export default function AdminAppPage() {
     try {
       sessionStorage.removeItem('prosify_admin_secure_token');
       sessionStorage.removeItem('prosify_admin_user');
+      sessionStorage.removeItem('prosify_admin_username');
+      sessionStorage.removeItem('prosify_admin_name');
+      sessionStorage.removeItem('prosify_admin_role');
+      sessionStorage.removeItem('prosify_admin_role_title');
+      sessionStorage.removeItem('prosify_admin_allowed_groups');
+      sessionStorage.removeItem('prosify_admin_is_root');
       sessionStorage.removeItem('prosify_admin_auth_time');
       sessionStorage.removeItem('eni_admin_secure_token');
       sessionStorage.removeItem('eni_admin_user');
@@ -179,6 +274,10 @@ export default function AdminAppPage() {
       user: currentUser,
       details: { host: 'admin.prosify.in' },
     });
+    setAllowedGroups(['*']);
+    setRoleTitle('Super Administrator');
+    setDisplayName('Super Administrator');
+    setCurrentRole('SUPER_ADMIN');
     setIsAuthenticated(false);
   };
 
@@ -194,77 +293,14 @@ export default function AdminAppPage() {
   };
 
   // RBAC Permission Checker
-  const rolePermissions: Record<AdminRole, string[]> = {
-    SUPER_ADMIN: [
-      'dashboard',
-      'portal-access',
-      'properties',
-      'projects',
-      'developers',
-      'inventory',
-      'leads',
-      'crm',
-      'partners',
-      'commissions',
-      'payouts',
-      'developer-api',
-      'sync-center',
-      'integrations',
-      'reports',
-      'notifications',
-      'settings',
-      'audit-logs',
-    ],
-    ADMIN: [
-      'dashboard',
-      'portal-access',
-      'properties',
-      'projects',
-      'developers',
-      'developer-api',
-      'inventory',
-      'leads',
-      'crm',
-      'partners',
-      'sync-center',
-      'reports',
-      'notifications',
-    ],
-    SALES_MANAGER: ['dashboard', 'leads', 'crm', 'inventory', 'properties', 'partners', 'reports', 'notifications'],
-    FINANCE_OFFICER: ['dashboard', 'commissions', 'payouts', 'partners', 'reports', 'notifications', 'audit-logs'],
-    COMPLIANCE_OFFICER: [
-      'dashboard',
-      'portal-access',
-      'properties',
-      'projects',
-      'developers',
-      'reports',
-      'notifications',
-      'audit-logs',
-    ],
-  };
+  const isSuperAdmin = allowedGroups.includes('*') || currentRole === 'SUPER_ADMIN';
 
-  const isTabAllowed =
-    currentRole === 'SUPER_ADMIN' ||
-    rolePermissions[currentRole]?.includes(activeTab) ||
-    activeTab.startsWith('spec-') ||
-    activeTab.startsWith('prop-') ||
-    activeTab.startsWith('proj-') ||
-    activeTab.startsWith('pkg-') ||
-    activeTab.startsWith('users-') ||
-    activeTab.startsWith('vendors-') ||
-    activeTab.startsWith('agents-') ||
-    activeTab.startsWith('tickets-') ||
-    activeTab.startsWith('home-') ||
-    activeTab.startsWith('footer-') ||
-    activeTab.startsWith('blog-') ||
-    activeTab.startsWith('faq-') ||
-    activeTab.startsWith('ads-') ||
-    activeTab.startsWith('festival-') ||
-    activeTab.startsWith('settings-') ||
-    activeTab.startsWith('gateway-') ||
-    activeTab.startsWith('admin-') ||
-    activeTab === 'payment-logs';
+  const isTabAllowed = useMemo(() => {
+    if (isSuperAdmin) return true;
+    const groupId = getGroupIdForTab(activeTab);
+    if (!groupId) return false;
+    return allowedGroups.includes(groupId);
+  }, [isSuperAdmin, activeTab, allowedGroups]);
 
   const tabsConfig = [
     { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard, badge: null },
@@ -329,6 +365,11 @@ export default function AdminAppPage() {
       {/* Top Secure Navbar */}
       <AdminNavbar
         currentRole={currentRole}
+        roleTitle={roleTitle}
+        displayName={displayName}
+        currentUser={currentUser}
+        allowedGroups={allowedGroups}
+        isSuperAdmin={isSuperAdmin}
         onRoleChange={(role) => setCurrentRole(role)}
         onLogout={handleLogout}
         notifications={notifications}
@@ -365,10 +406,12 @@ export default function AdminAppPage() {
               setMobileSidebarOpen(false);
             }}
             currentUser={currentUser}
+            allowedGroups={allowedGroups}
+            roleTitle={roleTitle}
           />
         </div>
 
-        {/* Desktop Left Sidebar ("ek ke niche ek" with All 17 Modules & Collapsible Groups) */}
+        {/* Desktop Left Sidebar ("ek ke niche ek" with Assigned Modules & Collapsible Groups) */}
         <div className="hidden md:block shrink-0">
           <AdminSidebarAccordion
             activeMenu={activeTab as AdminMenuKey}
@@ -376,6 +419,8 @@ export default function AdminAppPage() {
               setActiveTab(menu);
             }}
             currentUser={currentUser}
+            allowedGroups={allowedGroups}
+            roleTitle={roleTitle}
           />
         </div>
 
@@ -383,24 +428,35 @@ export default function AdminAppPage() {
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6 overflow-x-hidden">
         {/* RBAC Access Denied Guard */}
         {!isTabAllowed ? (
-          <div className="p-8 rounded-2xl bg-[#1E293B]/80 backdrop-blur-md border border-slate-700 text-center space-y-3 shadow-2xl">
+          <div className="p-8 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-center space-y-3 shadow-2xl">
             <div className="w-12 h-12 mx-auto rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
               <Lock className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-white">
               Restricted Administrative Domain
             </h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
-              Your active role (<strong>{currentRole}</strong>) does not have authorization to view the{' '}
-              <span className="text-[#0EA5E9] font-semibold">{activeTab.toUpperCase()}</span> module.
+            <p className="text-xs text-neutral-400 max-w-md mx-auto leading-relaxed">
+              Your active staff account (<strong>{displayName}</strong> - <span className="text-amber-400 font-semibold">{roleTitle}</span>) is assigned limited access by the Main Super Administrator. You do not have permissions to access the{' '}
+              <span className="text-[#0EA5E9] font-mono font-bold">{activeTab.toUpperCase()}</span> module.
             </p>
-            <div className="pt-2">
+            <div className="pt-2 flex items-center justify-center gap-3">
               <button
-                onClick={() => setCurrentRole('SUPER_ADMIN')}
-                className="px-4 py-2 rounded-xl bg-[#10B981] hover:bg-[#059669] text-slate-950 font-bold text-xs shadow-md transition-colors cursor-pointer"
+                onClick={() => {
+                  const fallback = getFirstPermittedTab(allowedGroups);
+                  setActiveTab(fallback);
+                }}
+                className="px-4 py-2 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-xs shadow-md transition-colors cursor-pointer"
               >
-                Elevate to Super Admin (Root)
+                Go to My Assigned Workspace
               </button>
+              {isSuperAdmin && (
+                <button
+                  onClick={() => setCurrentRole('SUPER_ADMIN')}
+                  className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs border border-neutral-700 transition-colors cursor-pointer"
+                >
+                  Elevate to Super Admin
+                </button>
+              )}
             </div>
           </div>
         ) : (

@@ -286,18 +286,30 @@ interface AdminSidebarAccordionProps {
   activeMenu: AdminMenuKey;
   onSelectMenu: (menu: AdminMenuKey) => void;
   currentUser: string;
+  allowedGroups?: string[];
+  roleTitle?: string;
 }
 
 export function AdminSidebarAccordion({
   activeMenu,
   onSelectMenu,
   currentUser,
+  allowedGroups,
+  roleTitle,
 }: AdminSidebarAccordionProps) {
+  const isSuperAdmin = !allowedGroups || allowedGroups.includes('*');
+
+  // Filter groups according to RBAC allowedGroups assigned by Super Admin
+  const visibleGroups = ADMIN_NAV_GROUPS.filter((group) => {
+    if (isSuperAdmin) return true;
+    return allowedGroups.includes(group.id);
+  });
+
   // Keep track of which groups are expanded
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     // Open the group that contains activeMenu by default
     const initial: Record<string, boolean> = { 'grp-dashboard': true };
-    for (const group of ADMIN_NAV_GROUPS) {
+    for (const group of visibleGroups) {
       if (group.items?.some((item) => item.id === activeMenu)) {
         initial[group.id] = true;
       }
@@ -323,13 +335,26 @@ export function AdminSidebarAccordion({
 
   return (
     <aside className="w-72 bg-[#121824] border-r border-slate-800 flex flex-col h-[calc(100vh-57px)] sticky top-[57px] shrink-0 text-slate-300">
+      {/* Role Scope Banner for Non-Super-Admins */}
+      {!isSuperAdmin && (
+        <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between text-[11px]">
+          <div className="flex items-center gap-1.5 text-amber-300 font-bold truncate">
+            <Shield className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+            <span className="truncate">{roleTitle || 'Limited Access Role'}</span>
+          </div>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-mono font-bold uppercase shrink-0">
+            {visibleGroups.length} Modules
+          </span>
+        </div>
+      )}
+
       {/* Search Header */}
       <div className="p-3 border-b border-slate-800/80 bg-slate-950/40">
         <div className="relative">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
           <input
             type="text"
-            placeholder="Search all admin modules..."
+            placeholder="Search allowed modules..."
             value={filterSearch}
             onChange={(e) => setFilterSearch(e.target.value)}
             className="w-full pl-8 pr-2.5 py-1.5 bg-slate-900 rounded-xl border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
@@ -339,7 +364,7 @@ export function AdminSidebarAccordion({
 
       {/* Accordion Menu List */}
       <nav className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin">
-        {ADMIN_NAV_GROUPS.map((group) => {
+        {visibleGroups.map((group) => {
           const Icon = group.icon;
           const isGroupOpen = openGroups[group.id] || isSearchActive;
 

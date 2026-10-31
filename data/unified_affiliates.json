@@ -19,7 +19,7 @@
       "totalClicks": 0,
       "totalConversions": 0,
       "status": "ACTIVE",
-      "emailVerified": false,
+      "emailVerified": true,
       "verificationCode": "885834",
       "bankDetails": {
         "accountHolderName": "Nikhil Verma",
@@ -29,7 +29,7 @@
         "upiId": ""
       },
       "createdAt": "2026-10-30T11:13:05.563Z",
-      "updatedAt": "2026-10-30T11:13:05.563Z"
+      "updatedAt": "2026-10-31T09:50:30.517Z"
     }
   ],
   "clicks": [],

@@ -22,6 +22,30 @@ export async function POST(req: NextRequest) {
         isGoogle: true,
       });
       affiliate = registered.affiliate;
+    } else {
+      // If logging in via Google, mark email as verified and persist
+      affiliate.emailVerified = true;
+      serverAffiliateDb.updateAffiliate(affiliate.id, { emailVerified: true });
+    }
+
+    // Synchronize to in-memory store so all panels instantly see the newly registered affiliate
+    try {
+      const { store } = await import('@/lib/data/store');
+      store.registerAffiliate({
+        name: affiliate.name,
+        email: affiliate.email,
+        phone: affiliate.phone || '+91 98000 00000',
+        city: affiliate.city || 'Mumbai',
+        agencyName: affiliate.agencyName || 'Independent Partner',
+      });
+      store.addAuditLog({
+        action: 'AFFILIATE_GOOGLE_LOGIN',
+        entity: 'AffiliateProfile',
+        user: affiliate.email,
+        details: { affiliateId: affiliate.id, referralCode: affiliate.referralCode },
+      });
+    } catch (storeErr) {
+      console.warn('[Google Affiliate Sync Notice]:', storeErr);
     }
 
     if (affiliate.status === 'SUSPENDED') {

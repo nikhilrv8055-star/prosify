@@ -201,6 +201,23 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
   useEffect(() => {
     fetchLiveMembers();
     fetchLivePayouts();
+
+    // Auto-poll every 5s so any new Google sign-in or affiliate registration reflects immediately
+    const interval = setInterval(() => {
+      fetchLiveMembers();
+      fetchLivePayouts();
+    }, 5000);
+
+    const handleFocus = () => {
+      fetchLiveMembers();
+      fetchLivePayouts();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // Calculations
@@ -523,12 +540,19 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
 
   // Filtered & Paginated lists
   const filteredMembers = members.filter((m) => {
+    const q = memberSearch.trim().toLowerCase();
     const matchesSearch =
-      m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-      m.email.toLowerCase().includes(memberSearch.toLowerCase()) ||
-      m.referralCode.toLowerCase().includes(memberSearch.toLowerCase());
-    const matchesTier = memberTierFilter === 'ALL' || m.tier === memberTierFilter;
-    const matchesStatus = memberStatusFilter === 'ALL' || m.status === memberStatusFilter;
+      !q ||
+      (m.name || '').toLowerCase().includes(q) ||
+      (m.email || '').toLowerCase().includes(q) ||
+      (m.referralCode || '').toLowerCase().includes(q) ||
+      (m.phone || '').toLowerCase().includes(q);
+    const matchesTier =
+      memberTierFilter === 'ALL' ||
+      (m.tier && m.tier.toLowerCase() === memberTierFilter.toLowerCase());
+    const matchesStatus =
+      memberStatusFilter === 'ALL' ||
+      (m.status && m.status.toLowerCase() === memberStatusFilter.toLowerCase());
     return matchesSearch && matchesTier && matchesStatus;
   });
 
@@ -576,6 +600,24 @@ export function AffiliateProgramView({ subview = 'affiliate-members' }: Affiliat
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                await fetchLiveMembers();
+                await fetchLivePayouts();
+                toast({
+                  title: 'Refreshed Affiliates',
+                  description: 'Live members & payouts synchronized from server database.',
+                  type: 'info',
+                });
+              }}
+              className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-neutral-700 cursor-pointer"
+              title="Refresh live affiliate records from server database"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
+              <span>Refresh Live</span>
+            </button>
+
             <a
               href="/affiliate"
               target="_blank"

@@ -107,32 +107,30 @@ let cachedDb: AffiliateDatabase | null = null;
 const isDemoAffiliate = (a: any): boolean => {
   if (!a) return true;
   const id = String(a.id || '');
-  const email = String(a.email || '').toLowerCase();
-  const code = String(a.referralCode || '').toUpperCase();
+  const email = String(a.email || '').toLowerCase().trim();
+
+  // Any real user email registered via Google or signup must NEVER be treated as demo
+  if (
+    email.includes('@') &&
+    !email.includes('realtyaffiliates.in') &&
+    email !== 'rohan.realty@gmail.com' &&
+    email !== 'propadvisor@gmail.com' &&
+    email !== 'techprop@outlook.com' &&
+    email !== 'puneinvestors.com'
+  ) {
+    return false;
+  }
+
   return (
     id.startsWith('aff_siddharth') ||
     id.startsWith('aff_rohan') ||
-    id.startsWith('aff-1') ||
-    id.startsWith('aff-2') ||
-    id.startsWith('aff-3') ||
-    id.startsWith('aff-4') ||
     email.includes('realtyaffiliates.in') ||
-    email.includes('rohan.realty@gmail.com') ||
-    email.includes('propadvisor@gmail.com') ||
-    email.includes('puneinvestors.com') ||
-    email.includes('techprop@outlook.com') ||
-    code.includes('8055') ||
-    code.includes('4210') ||
-    code.includes('9942') ||
-    code.includes('2041') ||
-    code.includes('8819') ||
-    code.includes('5502')
+    email === 'rohan.realty@gmail.com' ||
+    email === 'propadvisor@gmail.com'
   );
 };
 
 function loadDb(): AffiliateDatabase {
-  if (cachedDb) return cachedDb;
-
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -164,7 +162,6 @@ function loadDb(): AffiliateDatabase {
           commissions: cleanCommissions,
           payouts: cleanPayouts,
         };
-        saveDb(cachedDb);
         return cachedDb;
       }
     }
@@ -179,6 +176,7 @@ function loadDb(): AffiliateDatabase {
     return cachedDb;
   } catch (err) {
     console.warn('[ServerAffiliateDb] Error reading affiliate db, initializing default:', err);
+    if (cachedDb) return cachedDb;
     cachedDb = {
       affiliates: [],
       clicks: [],
@@ -208,45 +206,10 @@ export const serverAffiliateDb = {
     const db = loadDb();
     let list = db.affiliates.filter((a) => !isDemoAffiliate(a));
 
-    // Also harmonize with any real affiliate added to in-memory store
-    try {
-      const existingEmails = new Set(list.map((a) => a.email.toLowerCase()));
-      const storeAffiliates = store.getAffiliates();
-      for (const sa of storeAffiliates) {
-        if (sa && sa.email && !existingEmails.has(sa.email.toLowerCase()) && !isDemoAffiliate(sa)) {
-          list.push({
-            id: sa.id,
-            name: sa.name,
-            email: sa.email,
-            phone: sa.phone || '',
-            referralCode: sa.referralCode || sa.affiliateCode || 'PRO-MUM',
-            city: sa.city || 'Mumbai',
-            agencyName: sa.agencyName || 'Independent Partner',
-            tier: ((sa.tier ? sa.tier.charAt(0).toUpperCase() + sa.tier.slice(1).toLowerCase() : 'Bronze') as any),
-            commissionRatePercent: sa.commissionRatePercent || 2.5,
-            availableBalance: sa.payableBalance || 0,
-            pendingBalance: 0,
-            lifetimeEarnings: sa.totalEarnings || sa.totalEarned || 0,
-            totalClicks: sa.totalClicks || 0,
-            totalConversions: sa.totalDealsClosed || 0,
-            status: sa.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE',
-            emailVerified: true,
-            bankDetails: {
-              accountHolderName: sa.payoutDetails?.accountHolderName || sa.name,
-              accountNumber: sa.payoutDetails?.accountNumber || sa.bankAccountNumber || '',
-              ifscCode: sa.payoutDetails?.ifscCode || sa.bankIfsc || '',
-              bankName: sa.payoutDetails?.bankName || '',
-              upiId: sa.payoutDetails?.upiId || sa.upiId || '',
-            },
-            createdAt: sa.joinedAt ? new Date(sa.joinedAt).toISOString() : new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-        }
-      }
-    } catch {}
 
-    if (statusFilter && statusFilter !== 'ALL') {
-      list = list.filter((a) => a.status === statusFilter);
+
+    if (statusFilter && statusFilter.toUpperCase() !== 'ALL') {
+      list = list.filter((a) => a.status.toUpperCase() === statusFilter.toUpperCase());
     }
 
     if (searchQuery && searchQuery.trim()) {
@@ -399,11 +362,18 @@ export const serverAffiliateDb = {
    */
   deleteAffiliate(id: string): boolean {
     const db = loadDb();
-    const idx = db.affiliates.findIndex((a) => a.id === id);
-    if (idx === -1) return false;
-    db.affiliates.splice(idx, 1);
-    saveDb(db);
-    return true;
+    const idx = db.affiliates.findIndex((a) => a.id === id || a.email.toLowerCase() === id.toLowerCase());
+    let deleted = false;
+    if (idx !== -1) {
+      db.affiliates.splice(idx, 1);
+      saveDb(db);
+      deleted = true;
+    }
+    try {
+      const storeDeleted = store.deleteAffiliate(id);
+      if (storeDeleted) deleted = true;
+    } catch {}
+    return deleted;
   },
 
   /**

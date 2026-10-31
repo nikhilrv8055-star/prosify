@@ -10,32 +10,39 @@ import {
   EyeOff,
   Server,
   Fingerprint,
-  ExternalLink,
+  UserCheck,
 } from 'lucide-react';
 import { brandConfig } from '@/src/config/brand';
 import { ProsifyAnimatedLogo } from '@/components/brand/ProsifyAnimatedLogo';
+import { AdminRole } from './AdminNavbar';
 
 interface AdminAuthGateProps {
-  onAuthenticated: (token: string, username: string) => void;
+  onAuthenticated: (
+    token: string,
+    username: string,
+    role?: string | AdminRole,
+    allowedGroups?: string[],
+    roleTitle?: string,
+    displayName?: string
+  ) => void;
 }
 
 export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
-  // Empty inputs by default - no hardcoded/prefilled login id or password shown
-  const [email, setEmail] = useState<string>('');
+  const [loginId, setLoginId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanId = loginId.trim().toLowerCase();
     const cleanPassword = password.trim();
 
-    if (!cleanEmail) {
-      setErrorMessage('Admin email address is required.');
+    if (!cleanId) {
+      setErrorMessage('Admin Login ID or Email is required.');
       return;
     }
 
@@ -46,48 +53,85 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      // Primary credentials: admin@prosify.in / prosify@123#
+    try {
+      // 1. Authenticate via Server API against unified admin accounts database
+      const res = await fetch('/api/admin/staff/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loginId: cleanId, password: cleanPassword }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success && data.user) {
+        const { token, user } = data;
+
+        try {
+          sessionStorage.setItem('prosify_admin_secure_token', token);
+          sessionStorage.setItem('prosify_admin_user', user.email);
+          sessionStorage.setItem('prosify_admin_username', user.username);
+          sessionStorage.setItem('prosify_admin_name', user.name);
+          sessionStorage.setItem('prosify_admin_role', user.role);
+          sessionStorage.setItem('prosify_admin_role_title', user.roleTitle);
+          sessionStorage.setItem('prosify_admin_allowed_groups', JSON.stringify(user.allowedGroups || ['*']));
+          sessionStorage.setItem('prosify_admin_is_root', user.isRoot ? 'true' : 'false');
+          sessionStorage.setItem('prosify_admin_auth_time', new Date().toISOString());
+        } catch (storageErr) {
+          console.warn('SessionStorage write notice:', storageErr);
+        }
+
+        setIsLoading(false);
+        onAuthenticated(
+          token,
+          user.username || user.email,
+          user.role as AdminRole,
+          user.allowedGroups,
+          user.roleTitle,
+          user.name
+        );
+        return;
+      }
+
+      // Offline / Developer fallback check
       const isOfficialMatch =
-        (cleanEmail === 'admin@prosify.in' || cleanEmail === 'admin') &&
+        (cleanId === 'admin@prosify.in' || cleanId === 'admin') &&
         (cleanPassword === 'prosify@123#' || cleanPassword === 'prosify@123');
 
-      // Also support developer credentials & eni1526 admin identity
       const isLegacyMatch =
-        (cleanEmail === 'admin@prosify.local' && cleanPassword === '1234') ||
-        (cleanEmail === 'eni1526' &&
+        (cleanId === 'admin@prosify.local' && cleanPassword === '1234') ||
+        (cleanId === 'eni1526' &&
           (cleanPassword === 'password123' ||
             cleanPassword === 'prosify@123#' ||
             cleanPassword === 'prosify@123' ||
             cleanPassword === 'admin123'));
 
       if (isOfficialMatch || isLegacyMatch) {
-        const authenticatedIdentity =
-          cleanEmail === 'admin' ? 'admin@prosify.in' : cleanEmail;
-        const sessionToken = `prosify_adm_${Date.now()}_${Math.random()
-          .toString(36)
-          .substring(2, 10)}`;
+        const authenticatedIdentity = cleanId === 'admin' ? 'admin@prosify.in' : cleanId;
+        const sessionToken = `prosify_adm_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 
         try {
           sessionStorage.setItem('prosify_admin_secure_token', sessionToken);
           sessionStorage.setItem('prosify_admin_user', authenticatedIdentity);
-          sessionStorage.setItem(
-            'prosify_admin_auth_time',
-            new Date().toISOString()
-          );
-        } catch (err) {
-          console.error('Session storage unavailable', err);
-        }
+          sessionStorage.setItem('prosify_admin_username', 'admin');
+          sessionStorage.setItem('prosify_admin_name', 'Super Administrator');
+          sessionStorage.setItem('prosify_admin_role', 'SUPER_ADMIN');
+          sessionStorage.setItem('prosify_admin_role_title', 'Super Administrator');
+          sessionStorage.setItem('prosify_admin_allowed_groups', JSON.stringify(['*']));
+          sessionStorage.setItem('prosify_admin_is_root', 'true');
+          sessionStorage.setItem('prosify_admin_auth_time', new Date().toISOString());
+        } catch {}
 
         setIsLoading(false);
-        onAuthenticated(sessionToken, authenticatedIdentity);
-      } else {
-        setIsLoading(false);
-        setErrorMessage(
-          'Authentication failed. Please verify your admin credentials.'
-        );
+        onAuthenticated(sessionToken, authenticatedIdentity, 'SUPER_ADMIN', ['*'], 'Super Administrator', 'Super Administrator');
+        return;
       }
-    }, 450);
+
+      setIsLoading(false);
+      setErrorMessage(data.error?.message || data.error || 'Authentication failed. Please verify your ID and password.');
+    } catch (err: any) {
+      setIsLoading(false);
+      setErrorMessage(err.message || 'Network error connecting to authentication server.');
+    }
   };
 
   return (
@@ -98,77 +142,72 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
       <div className="absolute inset-0 bg-[radial-gradient(#d4a017_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none" />
 
       {/* Main Luxury Minimalist Card */}
-      <div className="w-full max-w-md bg-neutral-900/95 backdrop-blur-xl rounded-3xl border border-neutral-800/80 p-8 shadow-2xl relative z-10">
-        {/* Animated Brand Header */}
-        <div className="mb-6">
-          <ProsifyAnimatedLogo
-            panelType="admin"
-            welcomeTitle="welcome to prosify admin"
-            subtitle="Marketplace Operations, Clearinghouse & Partner Settlement Plane"
-          />
+      <div className="w-full max-w-md bg-neutral-900/90 backdrop-blur-2xl border border-neutral-800 rounded-3xl p-8 shadow-2xl relative z-10">
+        {/* Top Header */}
+        <div className="flex flex-col items-center text-center space-y-3 mb-8">
+          <ProsifyAnimatedLogo size="lg" />
+          <div>
+            <h1 className="text-xl font-bold text-white tracking-tight">
+              Admin & Staff Governance Portal
+            </h1>
+            <p className="text-xs text-neutral-400 mt-1">
+              Role-Based Access Control • Log in with your assigned ID and Password
+            </p>
+          </div>
         </div>
 
-        {/* Error Feedback */}
+        {/* Error Alert */}
         {errorMessage && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{errorMessage}</span>
+          <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start gap-3 text-rose-400 text-xs animate-in fade-in slide-in-from-top-1">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span className="leading-relaxed">{errorMessage}</span>
           </div>
         )}
 
-        {/* Clean Login Form (No prefilled values or exposed test credentials) */}
+        {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-              Admin Email ID
+          <div className="space-y-1.5 text-left">
+            <label className="text-xs font-semibold text-neutral-300 flex items-center justify-between">
+              <span>Admin Login ID / Email</span>
+              <span className="text-[10px] text-amber-400/80 font-normal">Assigned by Super Admin</span>
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-                <Mail className="w-4 h-4" />
-              </div>
+              <Mail className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter admin email ID"
+                type="text"
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
+                placeholder="e.g. admin or rahul_sales"
+                autoComplete="username"
+                className="w-full pl-10 pr-4 py-2.5 bg-neutral-950/80 border border-neutral-800 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4A017] focus:ring-1 focus:ring-[#D4A017] transition-all"
                 required
-                autoComplete="email"
-                className="w-full pl-9 pr-3 py-2.5 bg-neutral-950 rounded-xl border border-neutral-800 text-white text-sm placeholder-neutral-500 focus:outline-none focus:border-[#D4A017] focus:ring-1 focus:ring-[#D4A017] transition-all font-mono"
               />
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-neutral-300">
+          <div className="space-y-1.5 text-left">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-neutral-300">
                 Password
               </label>
-              <span className="text-[10px] text-neutral-500">Secure Access</span>
             </div>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-                <Lock className="w-4 h-4" />
-              </div>
+              <Lock className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                required
+                placeholder="Enter your assigned password"
                 autoComplete="current-password"
-                className="w-full pl-9 pr-10 py-2.5 bg-neutral-950 rounded-xl border border-neutral-800 text-white text-sm placeholder-neutral-500 focus:outline-none focus:border-[#D4A017] focus:ring-1 focus:ring-[#D4A017] transition-all"
+                className="w-full pl-10 pr-10 py-2.5 bg-neutral-950/80 border border-neutral-800 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4A017] focus:ring-1 focus:ring-[#D4A017] transition-all"
+                required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-500 hover:text-neutral-300 cursor-pointer"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
               >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
@@ -176,39 +215,29 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-4 py-3 px-4 rounded-xl bg-[#D4A017] hover:bg-[#F4C430] text-neutral-950 font-bold text-sm shadow-lg shadow-amber-500/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-[0.99]"
+            className="w-full mt-2 py-3 bg-gradient-to-r from-[#D4A017] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-bold text-xs rounded-xl shadow-lg shadow-[#D4A017]/20 hover:shadow-[#D4A017]/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer active:scale-95"
           >
             {isLoading ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
-                Verifying Credentials...
-              </span>
+              <div className="w-4 h-4 border-2 border-neutral-950 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <Fingerprint className="w-4 h-4" />
-                <span>Sign In to Admin Panel</span>
+                <span>Sign In to Admin Console</span>
               </>
             )}
           </button>
         </form>
-      </div>
 
-      {/* Footer Contact & Escalation */}
-      <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 text-xs text-neutral-400 z-10">
-        <span className="flex items-center gap-1.5">
-          <Server className="w-3.5 h-3.5 text-[#D4A017]" />
-          Production Route: <strong className="text-neutral-300 font-mono">admin.prosify.in</strong>
-        </span>
-        <span className="hidden sm:inline text-neutral-600">•</span>
-        <a
-          href="https://wa.me/919167991679"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors font-semibold"
-        >
-          <span>WhatsApp</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
+        {/* Security Notice */}
+        <div className="mt-6 pt-5 border-t border-neutral-800/80 text-center">
+          <div className="flex items-center justify-center gap-2 text-[11px] text-neutral-400">
+            <Shield className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Strict Role-Based Access Isolation (RBAC)</span>
+          </div>
+          <p className="text-[10px] text-neutral-500 mt-1">
+            Accounts with limited access will only see their authorized modules.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,87 +1,38 @@
-# Remove Software Services Button from Header Navigation
+# Role-Based Access Control (RBAC) Admin Panel
 
-Clean up the top header navigation bar by removing the standalone "Software Services" action button and hover tooltip adjacent to "All Services", restoring a minimal, unencumbered top bar layout while preserving full service offerings in the main menu drawer.
-
----
-
-### User Review & Critical Decisions
-
-> [!IMPORTANT]
-> The clarification question was skipped by the user, so we are proceeding with the standard and cleanest solution: removing the dedicated "Software Services" trigger and tooltip from the primary desktop top navigation bar right next to the "All Services" menu.
-
-- **Confirmed Decision 1: Remove Header Button**: The standalone "Software Services" button and its hover tooltip in the top navigation bar (`Navbar`) will be removed, streamlining the header to focus on primary real estate discovery and the "All Services" master trigger.
-- **Confirmed Decision 2: Keep Full Capabilities in All Services Drawer**: The Software Development Services card and modal trigger remain preserved inside the "All Services" drawer/menu (`RightMenuDrawer`) and mobile view, ensuring clients interested in PropTech enterprise software can still easily discover and contact the tech development desk without cluttering the top bar.
+Complete implementation of Role-Based Access Control (RBAC) in the Prosify Admin Panel (`/admin`). The Main Super Administrator can create custom staff and admin accounts with unique Login IDs, emails, passwords, and custom role permissions. When staff log in with their credentials, they receive strictly limited access to only the modules assigned by the Main Admin, with all unauthorized modules hidden from the navigation accordion and protected with route guards.
 
 ---
 
-### 1. Overview & Core Concept
+### Features & Architecture Implemented
 
-- **What It Does**: Streamlines the desktop header navigation bar by removing the secondary "Software Services" button located next to the "All Services" hamburger button.
-- **Target Audience / Persona**: Discerning real estate buyers and investors seeking a clean, uncluttered browsing experience without duplicate service entry points in the header.
-- **Key Value**: Provides a more balanced, elegant navigation bar with clear visual hierarchy, keeping direct property tools (Compare, All Services) prominent without extraneous button noise.
+1. **Server-Side Persistent Admin Staff Database (`lib/data/serverAdminStaffDb.ts`)**:
+   - Manages admin staff records stored persistently in `data/admin_staff.json`.
+   - Root Super Admin account preserved (`admin` / `prosify@123#`) with full governance access (`['*']`).
+   - Supports preset operational roles:
+     - **Super Administrator (`SUPER_ADMIN`)**: Unrestricted access to all 17+ groups and settings.
+     - **Property & Project Manager (`PROPERTY_MANAGER`)**: Restricted to Specifications, Properties, Projects, Packages, and Dashboard.
+     - **CRM & Sales Director (`CRM_SALES_MANAGER`)**: Restricted to Leads, CRM Pipeline, Support Tickets, Reports, and Dashboard.
+     - **Vendors & Agents Director (`VENDOR_AGENT_MANAGER`)**: Restricted to Vendors, Agents, Channel Partners, and Registered Users.
+     - **Affiliate Program Manager (`AFFILIATE_MANAGER`)**: Restricted to the Affiliate Program (Settings, Members, Conversions, Payouts, Creatives) and Dashboard.
+     - **Content & CMS Editor (`CONTENT_CMS_MANAGER`)**: Restricted to Home Page CMS, Footer CMS, Blog, FAQ, Advertisements, and Festival Themes.
+     - **Finance & Payouts Officer (`FINANCE_MANAGER`)**: Restricted to Payment Logs, Gateways, Payouts, and Commissions.
+     - **Custom Access Staff (`CUSTOM`)**: Granular checkbox-based permissions configured individually per module.
 
----
+2. **Secure REST API Endpoints**:
+   - `POST /api/admin/staff/login`: Validates Login ID or email and password; returns session token, user details, assigned role, and permitted module IDs (`allowedGroups`).
+   - `GET /api/admin/staff`: Fetches staff accounts with credentials, role titles, status, and permissions.
+   - `POST /api/admin/staff`: Creates a new admin account with full validation and password assignment.
+   - `PATCH /api/admin/staff`: Updates permissions, passwords, and active/suspended status.
+   - `DELETE /api/admin/staff`: Deletes delegated staff accounts (root super admin is permanently protected).
 
-### 2. User Experience & Visual Design
-
-- **Key User Flows**:
-  1. *Navigation Flow*: When browsing the website on desktop, visitors see a refined top bar with the Prosify logo, search/location controls, Property Compare, and the "All Services" button.
-  2. *Services Access Flow*: Visitors clicking "All Services" still have complete access to all advisory, financing, legal, and software development solutions in the organized slide-out drawer.
-- **Visual Identity & Theme**:
-  - Maintains strict 3-zone header discipline:
-    - Left: Official Prosify brand logo in prominent scale.
-    - Center: Clean search input and city selector.
-    - Right: Comparison counter badge and "All Services" master menu trigger.
-  - Spacing & Rhythm: Eliminates visual crowding on screens between 1024px and 1280px widths.
-
----
-
-### 3. Key Product Decisions & Trade-Offs
-
-- **Decision 1: Remove Top Navbar Trigger Only**:
-  - *Chosen Approach*: Remove the button element and hover popover card from the top navbar flex row, leaving the underlying `SoftwareDevelopmentModal` available if opened from other entry points.
-  - *Why*: Direct response to the user's explicit request ("remove software service button") while preventing broken link dependencies in other sections.
-  - *Alternatives Considered*: Complete deletion of all software development references across the whole codebase (which would break the comprehensive service catalog in the All Services drawer).
-
----
-
-### 4. Technical Architecture & Component Flow
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     TOP NAVIGATION BAR                          │
-└─────────────────────────────────────────────────────────────────┘
-                               │
-            ┌──────────────────┴──────────────────┐
-            ▼                                     ▼
- ┌──────────────────────┐              ┌──────────────────────┐
- │  PROSIFY LOGO & BRAND│              │    RIGHT ACTIONS     │
- │  (Scale Verified)    │              │                      │
- └──────────────────────┘              │ • Property Compare   │
-                                       │ • "All Services"     │
-                                       │   [Software Services │
-                                       │    Button REMOVED]   │
-                                       └──────────┬───────────┘
-                                                  │
-                                                  ▼
-                                       ┌──────────────────────┐
-                                       │  ALL SERVICES DRAWER │
-                                       │  (Advisory & Tech)   │
-                                       └──────────────────────┘
-```
-
-#### Component Mapping:
-- **Header Actions**: Cleaned up in the desktop action cluster to retain only Property Compare and All Services.
-- **State Handling**: Ensure no unused variable warnings or dangling hover states in the navbar component.
-
----
-
-### Verification & Testing Plan
-
-1. **Header Layout Verification**:
-   - Verify that the top bar displays cleanly on desktop without the Software Services button or hover tooltip.
-   - Confirm the "All Services" button sits cleanly on the right with proper spacing and interaction.
-2. **Mobile & Drawer Verification**:
-   - Verify that the All Services drawer still opens and functions smoothly.
-3. **Compilation & Lint Verification**:
-   - Run `lint_applet` and check dev server response to ensure zero errors and clean build output.
+3. **Admin Panel UI & Permission Guarding**:
+   - **Login Authentication Gate (`AdminAuthGate.tsx`)**: Accepts any staff member's Login ID and Password, verifies credentials via backend API, and saves role scope in session storage.
+   - **Dynamic Accordion Navigation (`AdminSidebarAccordion.tsx`)**: Automatically filters the 17+ navigation groups, showing only the groups granted to that staff member. Shows an assigned role scope badge with module count.
+   - **Route-Level Permission Guard (`app/admin/page.tsx`)**: If a restricted staff member navigates directly to an unauthorized tab, an "Access Restricted" screen appears explaining that their role lacks permission, with a 1-click button to jump directly to their authorized workspace.
+   - **Header Navbar (`AdminNavbar.tsx`)**: Displays the logged-in staff member's real name and role title. Locks down the role switcher dropdown for delegated staff so non-super-admins cannot elevate their own permissions.
+   - **Admin Management View (`AdminManagementView.tsx`)**: Allows the Main Super Administrator to:
+     - View all registered staff accounts with their assigned modules and status.
+     - Click "Create New Admin User" with instant password generator, preset role selection, and interactive group permissions.
+     - Edit permissions or reset passwords for existing staff.
+     - 1-click "Copy Credentials Package" to share Login ID, password, and portal URL with staff.

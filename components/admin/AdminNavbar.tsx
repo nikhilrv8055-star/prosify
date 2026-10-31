@@ -24,10 +24,23 @@ export type AdminRole =
   | 'ADMIN'
   | 'SALES_MANAGER'
   | 'FINANCE_OFFICER'
-  | 'COMPLIANCE_OFFICER';
+  | 'COMPLIANCE_OFFICER'
+  | 'PROPERTY_MANAGER'
+  | 'CRM_SALES_MANAGER'
+  | 'VENDOR_AGENT_MANAGER'
+  | 'AFFILIATE_MANAGER'
+  | 'CONTENT_CMS_MANAGER'
+  | 'FINANCE_MANAGER'
+  | 'CUSTOM'
+  | string;
 
 interface AdminNavbarProps {
   currentRole: AdminRole;
+  roleTitle?: string;
+  displayName?: string;
+  currentUser?: string;
+  allowedGroups?: string[];
+  isSuperAdmin?: boolean;
   onRoleChange: (role: AdminRole) => void;
   onLogout: () => void;
   notifications: AdminNotification[];
@@ -40,6 +53,11 @@ interface AdminNavbarProps {
 
 export function AdminNavbar({
   currentRole,
+  roleTitle,
+  displayName,
+  currentUser,
+  allowedGroups,
+  isSuperAdmin = true,
   onRoleChange,
   onLogout,
   notifications,
@@ -54,7 +72,7 @@ export function AdminNavbar({
 
   const unreadNotifications = notifications.filter((n) => !n.isRead);
 
-  const roleMeta: Record<AdminRole, { title: string; color: string; desc: string }> = {
+  const roleMeta: Record<string, { title: string; color: string; desc: string }> = {
     SUPER_ADMIN: {
       title: 'Super Administrator',
       color: 'bg-amber-500/20 text-[#F4C430] border-amber-500/40',
@@ -120,58 +138,72 @@ export function AdminNavbar({
 
         {/* Right: RBAC selector, Notifications, WhatsApp, User profile */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* RBAC Role Selector Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-700 hover:border-neutral-600 text-xs text-neutral-200 transition-all cursor-pointer"
-            >
+          {/* RBAC Role Indicator / Selector */}
+          {isSuperAdmin ? (
+            <div className="relative">
+              <button
+                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-700 hover:border-neutral-600 text-xs text-neutral-200 transition-all cursor-pointer"
+                title="Super Admin: Switch simulated access or view roles"
+              >
+                <Shield className="w-3.5 h-3.5 text-[#D4A017]" />
+                <span className="hidden sm:inline font-mono font-medium text-neutral-400">Role:</span>
+                <span className="font-bold text-white">{roleTitle || roleMeta[currentRole]?.title || currentRole}</span>
+                <ChevronDown className="w-3 h-3 text-neutral-400" />
+              </button>
+
+              {roleDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-neutral-900 border border-neutral-700 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95">
+                  <div className="px-3 py-2 border-b border-neutral-800 mb-1">
+                    <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block">
+                      Super Admin Role View
+                    </span>
+                    <span className="text-xs text-neutral-200">
+                      Simulate delegated staff perspective:
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    {(Object.keys(roleMeta) as AdminRole[]).map((role) => (
+                      <button
+                        key={role}
+                        onClick={() => {
+                          onRoleChange(role);
+                          setRoleDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs flex flex-col transition-colors cursor-pointer ${
+                          currentRole === role
+                            ? 'bg-[#D4A017]/20 border border-[#D4A017]/40 text-white font-bold'
+                            : 'hover:bg-neutral-800 text-neutral-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{roleMeta[role].title}</span>
+                          {currentRole === role && (
+                            <UserCheck className="w-3.5 h-3.5 text-[#D4A017]" />
+                          )}
+                        </div>
+                        <span className="text-[10px] text-neutral-400 mt-0.5">
+                          {roleMeta[role].desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300">
               <Shield className="w-3.5 h-3.5 text-[#D4A017]" />
-              <span className="hidden sm:inline font-mono font-medium">Role:</span>
-              <span className="font-bold text-white">{roleMeta[currentRole].title}</span>
-              <ChevronDown className="w-3 h-3 text-neutral-400" />
-            </button>
-
-            {roleDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-neutral-900 border border-neutral-700 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95">
-                <div className="px-3 py-2 border-b border-neutral-800 mb-1">
-                  <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block">
-                    Simulate RBAC Access Role
-                  </span>
-                  <span className="text-xs text-neutral-200">
-                    Switch administrative view & permissions:
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  {(Object.keys(roleMeta) as AdminRole[]).map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => {
-                        onRoleChange(role);
-                        setRoleDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs flex flex-col transition-colors cursor-pointer ${
-                        currentRole === role
-                          ? 'bg-[#D4A017]/20 border border-[#D4A017]/40 text-white font-bold'
-                          : 'hover:bg-neutral-800 text-neutral-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{roleMeta[role].title}</span>
-                        {currentRole === role && (
-                          <UserCheck className="w-3.5 h-3.5 text-[#D4A017]" />
-                        )}
-                      </div>
-                      <span className="text-[10px] text-neutral-400 mt-0.5">
-                        {roleMeta[role].desc}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+              <span className="hidden sm:inline font-mono font-medium text-neutral-400">Assigned:</span>
+              <span className="font-bold text-white max-w-[150px] truncate">{roleTitle || currentRole}</span>
+              {allowedGroups && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-[#F4C430] font-mono">
+                  {allowedGroups.length} modules
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Notifications Dropdown */}
           <div className="relative">
@@ -262,8 +294,12 @@ export function AdminNavbar({
           {/* User Profile & Logout */}
           <div className="flex items-center gap-2 pl-2 border-l border-neutral-800">
             <div className="hidden sm:block text-right">
-              <span className="block text-xs font-bold text-white font-mono">admin@prosify.local</span>
-              <span className="block text-[10px] text-[#D4A017]">Super Admin</span>
+              <span className="block text-xs font-bold text-white font-mono truncate max-w-[140px]">
+                {displayName || currentUser || 'Super Admin'}
+              </span>
+              <span className="block text-[10px] text-[#D4A017] truncate max-w-[140px]">
+                {roleTitle || (isSuperAdmin ? 'Super Administrator' : 'Staff Admin')}
+              </span>
             </div>
             <button
               onClick={onLogout}

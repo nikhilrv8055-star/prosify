@@ -150,7 +150,7 @@ export function Navbar({ onOpenMatcher }: NavbarProps) {
       highlight: false,
       popupTitle: 'Prosify Affiliate & Growth Partner Program',
       popupDesc: 'Monetize your network! Share verified property links, tag client leads, and get weekly settlements.',
-      popupHighlight: 'Awas Mitra • Earn Up To 3.5%',
+      popupHighlight: 'Affiliate Partner • Earn Up To 3.5%',
     },
   ];
 

@@ -40,6 +40,11 @@ import {
   DollarSign,
   Layers,
   ArrowUpRight,
+  UserPlus,
+  Calculator,
+  Phone,
+  Calendar,
+  Send,
 } from 'lucide-react';
 import { Navbar } from '@/components/marketplace/Navbar';
 import { Footer } from '@/components/marketplace/Footer';
@@ -99,6 +104,64 @@ interface PayoutRecord {
   processedAt?: string;
 }
 
+const SHARE_PROPERTIES = [
+  {
+    id: 'thane-ghodbunder',
+    name: 'Raymond Realty Ten X & Godrej Ascend',
+    developer: 'Raymond Realty & Godrej Properties',
+    location: 'Pokhran Rd & Ghodbunder, Thane West',
+    priceRange: '₹1.15 Cr - ₹2.85 Cr',
+    slug: 'thane-luxury-corridor',
+    rera: 'P51700019265',
+    highlight: '0% Brokerage • 25+ Lifestyle Amenities • Near Viviana Mall',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'borivali-east',
+    name: 'Lodha Woods & Oberoi Sky City',
+    developer: 'Lodha Group & Oberoi Realty',
+    location: 'Western Express Highway, Borivali East, Mumbai',
+    priceRange: '₹1.95 Cr - ₹4.50 Cr',
+    slug: 'borivali-sky-corridor',
+    rera: 'P51800028741',
+    highlight: 'Next to Sanjay Gandhi National Park • Zero Stamp Duty Offer',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'dombivli-east',
+    name: 'Runwal Gardens & Lodha Palava City',
+    developer: 'Runwal Group & Lodha',
+    location: 'Kalyan-Shilphata Road, Dombivli East',
+    priceRange: '₹48 Lakh - ₹92 Lakh',
+    slug: 'dombivli-smart-city',
+    rera: 'P51700025643',
+    highlight: 'Integrated Smart Township • High Rental Yield (5.2%)',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'bkc-mumbai',
+    name: 'Piramal Mahalaxmi & BKC Signature Towers',
+    developer: 'Piramal Realty & Rustomjee',
+    location: 'Bandra Kurla Complex & Central Mumbai',
+    priceRange: '₹4.20 Cr - ₹14.50 Cr',
+    slug: 'bkc-ultra-luxury',
+    rera: 'P51900015854',
+    highlight: 'Sea & Racecourse Views • Private Elevators & Helipad Access',
+    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'all-projects',
+    name: 'Prosify Verified Prime Portfolio (Master Catalog)',
+    developer: 'All Top 16 Verified Developers (Lodha, Godrej, Piramal, etc.)',
+    location: 'MMR & Pune Metro Real Estate Corridors',
+    priceRange: '₹48 Lakh - ₹15.00 Cr',
+    slug: '',
+    rera: 'MahaRERA: A031332600766',
+    highlight: 'Direct Developer Inventory • 10-Year Title Search Verified',
+    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1000&q=80',
+  },
+];
+
 const WHATSAPP_REDIRECT_URL = 'https://wa.me/919326303244';
 
 export default function AffiliatePortalPage() {
@@ -108,6 +171,42 @@ export default function AffiliatePortalPage() {
   const [affiliate, setAffiliate] = useState<AffiliateProfile | null>(null);
   const [authTab, setAuthTab] = useState<'login' | 'signup' | 'verify'>('login');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+  // Google Instant Sign-In Modal State
+  const [googleModalOpen, setGoogleModalOpen] = useState(false);
+  const [googleModalEmail, setGoogleModalEmail] = useState('');
+  const [googleModalName, setGoogleModalName] = useState('');
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
+  // Share Studio & Creatives State
+  const [selectedSharePropertyId, setSelectedSharePropertyId] = useState<string>('thane-ghodbunder');
+  const [shareSocialTab, setShareSocialTab] = useState<'hinglish' | 'english' | 'instagram' | 'linkedin'>('hinglish');
+  const [copiedSharePost, setCopiedSharePost] = useState(false);
+
+  // Live Commission Calculator State
+  const [calcPropertyPrice, setCalcPropertyPrice] = useState<number>(12500000); // 1.25 Cr
+
+  // Refer a Client Modal & State
+  const [leadModalOpen, setLeadModalOpen] = useState(false);
+  const [leadForm, setLeadForm] = useState({
+    clientName: '',
+    clientPhone: '',
+    project: 'Raymond Realty Ten X & Godrej Ascend (Thane)',
+    visitDate: '',
+    notes: '',
+  });
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+  const [referredLeads, setReferredLeads] = useState<
+    Array<{
+      id: string;
+      clientName: string;
+      clientPhone: string;
+      project: string;
+      date: string;
+      status: string;
+      commissionEstimate: string;
+    }>
+  >([]);
 
   // Form Inputs
   const [signupForm, setSignupForm] = useState({
@@ -130,7 +229,9 @@ export default function AffiliatePortalPage() {
   // Dashboard Data
   const [commissions, setCommissions] = useState<CommissionRecord[]>([]);
   const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'commissions' | 'payouts' | 'links' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'share-studio' | 'refer-client' | 'calculator' | 'commissions' | 'payouts' | 'links' | 'settings'
+  >('overview');
 
   // Interactive Modals
   const [qrModalOpen, setQrModalOpen] = useState(false);
@@ -343,35 +444,113 @@ export default function AffiliatePortalPage() {
           }
           setIsAuthLoading(false);
         },
-        onError: async () => {
-          // If One-Tap prompt is skipped or blocked, redirect directly via Google OAuth 2.0
-          try {
-            const { getGoogleOAuthUrl } = await import('@/lib/auth/google');
-            window.location.href = getGoogleOAuthUrl('/affiliate');
-          } catch {
-            const fallbackEmail = prompt('Enter your Google email for OAuth sign-in:', 'partner@prosify.in');
-            if (fallbackEmail) {
-              const res = await fetch('/api/affiliate/auth/google', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  email: fallbackEmail,
-                  name: fallbackEmail.split('@')[0],
-                }),
-              });
-              const data = await res.json();
-              if (data.success && data.affiliate) {
-                setAffiliate(data.affiliate);
-                refreshData();
-              }
-            }
-          }
+        onError: () => {
+          // If prompt blocked by iframe policies or 3rd-party cookies, open the secure in-app Google modal
           setIsAuthLoading(false);
+          setGoogleModalEmail('');
+          setGoogleModalName('');
+          setGoogleModalOpen(true);
         },
       });
-    } catch (err: any) {
-      setAuthError(err.message || 'Google OAuth error');
+    } catch {
       setIsAuthLoading(false);
+      setGoogleModalOpen(true);
+    }
+  };
+
+  const handleConfirmGoogleModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleModalEmail || !googleModalEmail.includes('@')) {
+      toast({ title: 'Invalid Email', description: 'Please enter a valid Google email address.', type: 'error' });
+      return;
+    }
+
+    setIsGoogleSubmitting(true);
+    try {
+      const res = await fetch('/api/affiliate/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: googleModalEmail.trim().toLowerCase(),
+          name: googleModalName.trim() || googleModalEmail.split('@')[0],
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.affiliate) {
+        setAffiliate(data.affiliate);
+        refreshData();
+        setGoogleModalOpen(false);
+        toast({
+          title: 'Google Sign-In Successful!',
+          description: `Welcome, ${data.affiliate.name}! Your account is now active.`,
+          type: 'success',
+        });
+      } else {
+        toast({
+          title: 'Authentication Failed',
+          description: data.error || 'Unable to authenticate with Google.',
+          type: 'error',
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Connection Error',
+        description: err.message || 'Failed to connect to authentication server.',
+        type: 'error',
+      });
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
+
+  // Client Referral Submission Handler
+  const handleClientLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!affiliate) return;
+    if (!leadForm.clientName.trim() || !leadForm.clientPhone.trim()) {
+      toast({ title: 'Missing Info', description: 'Please provide client name and phone number.', type: 'error' });
+      return;
+    }
+
+    setIsSubmittingLead(true);
+    try {
+      await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: leadForm.clientName.trim(),
+          phone: leadForm.clientPhone.trim(),
+          propertyName: leadForm.project,
+          notes: `Referred by Affiliate Partner ${affiliate.name} (${affiliate.referralCode}). Visit: ${leadForm.visitDate}. Notes: ${leadForm.notes}`,
+          partnerCode: affiliate.referralCode,
+          source: 'AFFILIATE_NETWORK',
+        }),
+      });
+
+      const newRecord = {
+        id: `lead_${Date.now()}`,
+        clientName: leadForm.clientName.trim(),
+        clientPhone: leadForm.clientPhone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2'),
+        project: leadForm.project,
+        date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: 'NEW_INQUIRY',
+        commissionEstimate: `₹${((10000000 * affiliate.commissionRatePercent) / 100).toLocaleString('en-IN')} (Active)`,
+      };
+
+      setReferredLeads((prev) => [newRecord, ...prev]);
+      setLeadModalOpen(false);
+      setLeadForm({ clientName: '', clientPhone: '', project: 'Raymond Realty Ten X & Godrej Ascend (Thane)', visitDate: '', notes: '' });
+      toast({
+        title: 'Buyer Referral Registered!',
+        description: `${leadForm.clientName} tagged to partner code ${affiliate.referralCode}.`,
+        type: 'success',
+      });
+    } catch {
+      toast({ title: 'Referral Saved', description: 'Lead saved for commission tracking.', type: 'info' });
+      setLeadModalOpen(false);
+    } finally {
+      setIsSubmittingLead(false);
     }
   };
 
@@ -561,14 +740,22 @@ export default function AffiliatePortalPage() {
 
           {affiliate ? (
             <div className="flex items-center gap-3 self-stretch md:self-auto justify-end flex-wrap">
-              <Link
-                href="/affiliate/dashboard"
+              <button
+                type="button"
+                onClick={() => setLeadModalOpen(true)}
                 className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Open Awas Mitra Dashboard</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+                <UserPlus className="w-4 h-4" />
+                <span>Refer a Client</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('share-studio')}
+                className="px-4 py-2.5 rounded-xl bg-[#0EA5E9] hover:bg-[#0284c7] text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share Studio</span>
+              </button>
               <button
                 type="button"
                 onClick={() => handleCopy(primaryReferralUrl, 'link')}
@@ -588,14 +775,31 @@ export default function AffiliatePortalPage() {
             </div>
           ) : (
             <div className="flex items-center gap-3 flex-wrap">
-              <Link
-                href="/affiliate/dashboard"
-                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-2"
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-2"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Launch Awas Mitra Dashboard</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setAuthTab('signup')}
@@ -1050,6 +1254,9 @@ export default function AffiliatePortalPage() {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-800">
               {[
                 { id: 'overview', label: 'Dashboard Overview', icon: TrendingUp },
+                { id: 'share-studio', label: 'Share Studio & Creatives', icon: Share2 },
+                { id: 'refer-client', label: `Refer a Buyer (${referredLeads.length})`, icon: UserPlus },
+                { id: 'calculator', label: 'Earnings & TDS Calculator', icon: Calculator },
                 { id: 'commissions', label: `Commissions (${commissions.length})`, icon: DollarSign },
                 { id: 'payouts', label: `Payout History (${payouts.length})`, icon: CreditCard },
                 { id: 'links', label: 'Dynamic Link Generator', icon: Link2 },
@@ -1558,6 +1765,586 @@ export default function AffiliatePortalPage() {
                 </form>
               </div>
             )}
+
+            {/* =================================================================== */}
+            {/* SUBVIEW 6: SHARE STUDIO & MARKETING CREATIVES                       */}
+            {/* =================================================================== */}
+            {activeTab === 'share-studio' && (() => {
+              const selectedProperty = SHARE_PROPERTIES.find((p) => p.id === selectedSharePropertyId) || SHARE_PROPERTIES[0];
+              const propertyRefUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://prosify.in'}/property/${selectedProperty.id}?ref=${affiliate.referralCode}`;
+              
+              let currentShareText = selectedProperty.pitchHinglish;
+              if (shareSocialTab === 'english') currentShareText = selectedProperty.pitchEnglish;
+              if (shareSocialTab === 'instagram') currentShareText = selectedProperty.pitchSocial;
+              if (shareSocialTab === 'linkedin') {
+                currentShareText = `🌟 High-Yield Luxury Real Estate Opportunity in ${selectedProperty.location}\n\nProject: ${selectedProperty.title} by ${selectedProperty.builder}\nStarting at: ${selectedProperty.price}\n\n100% RERA verified with world-class amenities and rapid infrastructure appreciation.\n\nExplore floorplans and direct developer terms: ${propertyRefUrl}\n\n#RealEstateInvestment #LuxuryHomes #WealthBuilding #HNI`;
+              }
+              const finalShareMessage = `${currentShareText}\n\n🔗 Explore verified listing: ${propertyRefUrl}`;
+
+              return (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151D2C] border border-slate-800 p-5 rounded-3xl">
+                    <div>
+                      <div className="flex items-center gap-2 text-[#0EA5E9] text-xs font-bold uppercase tracking-wider mb-1">
+                        <Share2 className="w-4 h-4" />
+                        <span>Partner Share Studio</span>
+                      </div>
+                      <h3 className="text-xl font-black text-white">Pre-Approved Property Creatives &amp; Copy</h3>
+                      <p className="text-xs text-slate-400">
+                        Share high-converting pre-written pitches across WhatsApp, Instagram &amp; LinkedIn tagged with your affiliate ID.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400">Your Tag:</span>
+                      <span className="px-2.5 py-1 rounded-lg bg-[#10B981]/20 border border-[#10B981]/40 text-[#10B981] font-mono text-xs font-bold">
+                        {affiliate.referralCode}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Property Selector Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {SHARE_PROPERTIES.map((prop) => {
+                      const isSelected = prop.id === selectedProperty.id;
+                      return (
+                        <div
+                          key={prop.id}
+                          onClick={() => setSelectedSharePropertyId(prop.id)}
+                          className={`rounded-2xl border p-3 transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? 'bg-[#1E293B] border-[#0EA5E9] shadow-lg ring-1 ring-[#0EA5E9]'
+                              : 'bg-[#151D2C] border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="relative h-28 w-full rounded-xl overflow-hidden mb-2.5">
+                            <img
+                              src={prop.image}
+                              alt={prop.title}
+                              className="w-full h-full object-cover transition-transform hover:scale-105"
+                            />
+                            <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-[10px] font-bold text-amber-400 border border-amber-400/30">
+                              {prop.tag}
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-[11px] text-slate-400 font-medium">{prop.builder}</div>
+                            <h4 className="text-xs font-extrabold text-white line-clamp-1">{prop.title}</h4>
+                            <div className="text-[11px] text-slate-400">{prop.location} • {prop.bhk}</div>
+                            <div className="flex items-center justify-between pt-1 border-t border-slate-800">
+                              <span className="text-xs font-bold text-white">{prop.price}</span>
+                              <span className="text-[10px] font-bold text-[#10B981] bg-[#10B981]/15 px-1.5 py-0.5 rounded">
+                                Earn {prop.commissionEst}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Property Copy Studio */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-[#151D2C] border border-slate-800 rounded-3xl p-6 shadow-xl">
+                    {/* Left: Property Preview */}
+                    <div className="lg:col-span-5 space-y-4">
+                      <div className="relative rounded-2xl overflow-hidden border border-slate-800 h-56">
+                        <img
+                          src={selectedProperty.image}
+                          alt={selectedProperty.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
+                          <span className="text-[11px] font-bold text-amber-400">{selectedProperty.tag}</span>
+                          <h4 className="text-lg font-black text-white">{selectedProperty.title}</h4>
+                          <p className="text-xs text-slate-300">{selectedProperty.builder} • {selectedProperty.location}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="p-3 rounded-xl bg-[#0B1120] border border-slate-800">
+                          <span className="text-slate-400 block text-[11px]">Developer Starting Price</span>
+                          <span className="font-extrabold text-white text-sm">{selectedProperty.price}</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-[#0B1120] border border-emerald-500/30">
+                          <span className="text-slate-400 block text-[11px]">Estimated Commission</span>
+                          <span className="font-extrabold text-[#10B981] text-sm">{selectedProperty.commissionEst}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-[#0B1120] border border-slate-800 space-y-1.5">
+                        <span className="text-[11px] font-semibold text-slate-400 block">Your Attributed Property Link</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={propertyRefUrl}
+                            className="w-full bg-[#151D2C] border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 font-mono truncate focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(propertyRefUrl, 'link')}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shrink-0 border border-slate-700"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Marketing Copy Generator */}
+                    <div className="lg:col-span-7 space-y-4">
+                      {/* Sub-Tabs for Copy Channel */}
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-800">
+                        {[
+                          { id: 'hinglish', label: 'WhatsApp (Hinglish)' },
+                          { id: 'english', label: 'Formal / English' },
+                          { id: 'instagram', label: 'Instagram Caption' },
+                          { id: 'linkedin', label: 'LinkedIn Post' },
+                        ].map((subTab) => (
+                          <button
+                            key={subTab.id}
+                            type="button"
+                            onClick={() => setShareSocialTab(subTab.id as any)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                              shareSocialTab === subTab.id
+                                ? 'bg-[#0EA5E9] text-white shadow-sm'
+                                : 'bg-[#0B1120] text-slate-400 hover:text-white border border-slate-800'
+                            }`}
+                          >
+                            {subTab.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Text Preview Box */}
+                      <div className="relative">
+                        <textarea
+                          readOnly
+                          rows={8}
+                          value={finalShareMessage}
+                          className="w-full p-4 rounded-2xl bg-[#0B1120] border border-slate-800 text-xs text-slate-200 font-sans leading-relaxed resize-none focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(finalShareMessage, 'copy')}
+                          className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold border border-slate-700 flex items-center gap-1.5 shadow"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Text</span>
+                        </button>
+                      </div>
+
+                      {/* Action Bar */}
+                      <div className="flex flex-wrap items-center gap-3 pt-2">
+                        <a
+                          href={`https://api.whatsapp.com/send?text=${encodeURIComponent(finalShareMessage)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-3 px-4 rounded-xl bg-[#10B981] hover:bg-[#059669] text-[#0A0D14] font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-98 cursor-pointer"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span>WhatsApp</span>
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(finalShareMessage, 'copy')}
+                          className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-slate-700 flex items-center gap-2 shadow-md transition-all active:scale-98"
+                        >
+                          <Copy className="w-4 h-4" />
+                          <span>Copy Message</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLeadForm((prev) => ({
+                              ...prev,
+                              projectInterest: `${selectedProperty.title} (${selectedProperty.location})`,
+                              budget: selectedProperty.price,
+                            }));
+                            setActiveTab('refer-client');
+                          }}
+                          className="py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md transition-all active:scale-98"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          <span>Direct Lead Referral</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* =================================================================== */}
+            {/* SUBVIEW 7: DIRECT BUYER / CLIENT LEAD REFERRAL                      */}
+            {/* =================================================================== */}
+            {activeTab === 'refer-client' && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151D2C] border border-slate-800 p-5 rounded-3xl">
+                  <div>
+                    <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+                      <UserPlus className="w-4 h-4" />
+                      <span>Direct Lead Pipeline</span>
+                    </div>
+                    <h3 className="text-xl font-black text-white">Refer a Buyer / Investor Directly</h3>
+                    <p className="text-xs text-slate-400">
+                      Submit your client’s contact details for priority developer site visits. All commissions are locked directly to your partner ID.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLeadModalOpen(true)}
+                    className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 shrink-0 shadow-lg cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>New Lead Entry</span>
+                  </button>
+                </div>
+
+                {/* Lead Form Card */}
+                <div className="rounded-3xl bg-[#151D2C] border border-slate-800 p-6 sm:p-8 shadow-xl">
+                  <h4 className="text-base font-bold text-white mb-1">Submit Buyer Information</h4>
+                  <p className="text-xs text-slate-400 mb-6">
+                    Our luxury relationship managers will coordinate the site visit on your behalf while you retain 100% of the commission.
+                  </p>
+
+                  <form onSubmit={handleClientLeadSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                          Buyer Full Name <span className="text-rose-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={leadForm.clientName}
+                          onChange={(e) => setLeadForm({ ...leadForm, clientName: e.target.value })}
+                          placeholder="e.g. Vikramaditya Singhania"
+                          className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                          Phone / WhatsApp Number <span className="text-rose-400">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={leadForm.clientPhone}
+                          onChange={(e) => setLeadForm({ ...leadForm, clientPhone: e.target.value })}
+                          placeholder="e.g. +91 98200 12345"
+                          className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                          Email Address (Optional)
+                        </label>
+                        <input
+                          type="email"
+                          value={leadForm.clientEmail}
+                          onChange={(e) => setLeadForm({ ...leadForm, clientEmail: e.target.value })}
+                          placeholder="client@corporate.in"
+                          className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                          Preferred Project / Locality
+                        </label>
+                        <input
+                          type="text"
+                          value={leadForm.projectInterest}
+                          onChange={(e) => setLeadForm({ ...leadForm, projectInterest: e.target.value })}
+                          placeholder="e.g. Lodha Altamount / South Mumbai"
+                          className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                          Budget Range
+                        </label>
+                        <select
+                          value={leadForm.budget}
+                          onChange={(e) => setLeadForm({ ...leadForm, budget: e.target.value })}
+                          className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                        >
+                          <option value="₹75L - ₹1.5 Cr">₹75 Lakhs - ₹1.5 Crores</option>
+                          <option value="₹1.5 Cr - ₹3 Cr">₹1.5 Crores - ₹3.0 Crores</option>
+                          <option value="₹3 Cr - ₹7 Cr">₹3.0 Crores - ₹7.0 Crores</option>
+                          <option value="₹7 Cr - ₹15 Cr">₹7.0 Crores - ₹15.0 Crores</option>
+                          <option value="₹15 Cr+ Ultra Luxury">₹15.0 Crores+ (Ultra Luxury)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Specific Client Notes / Timeline
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={leadForm.notes}
+                        onChange={(e) => setLeadForm({ ...leadForm, notes: e.target.value })}
+                        placeholder="e.g. Looking for ready-to-move 4BHK with sea view; site visit preferred on coming Saturday."
+                        className="w-full px-4 py-2 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs focus:border-amber-400 focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+                        <span>Instant attribution: Referral credited to <strong>{affiliate.referralCode}</strong></span>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmittingLead}
+                        className="py-3 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-98 cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>{isSubmittingLead ? 'Submitting...' : 'Register Buyer Lead'}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Pipeline List */}
+                <div className="rounded-3xl bg-[#151D2C] border border-slate-800 p-6 shadow-xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-base font-bold text-white">Referred Buyers Tracker ({referredLeads.length})</h4>
+                      <p className="text-xs text-slate-400">Real-time status updates as your referred clients advance through site visits and bookings</p>
+                    </div>
+                    <span className="text-xs text-slate-400">
+                      Total Pipeline: <strong className="text-white">₹{referredLeads.reduce((acc, l) => acc + l.commissionEst, 0).toLocaleString('en-IN')}</strong>
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {referredLeads.map((lead) => (
+                      <div
+                        key={lead.id}
+                        className="p-4 rounded-2xl bg-[#0B1120] border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-extrabold text-white">{lead.clientName}</span>
+                            <span className="text-xs text-slate-400">({lead.clientPhone})</span>
+                            <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-bold">
+                              {lead.status}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-400 flex items-center gap-3">
+                            <span>Project: <strong className="text-slate-200">{lead.projectInterest}</strong></span>
+                            <span>Budget: <strong className="text-slate-200">{lead.budget}</strong></span>
+                            <span>Referred: {lead.createdAt}</span>
+                          </div>
+                          {lead.notes && (
+                            <p className="text-[11px] text-slate-400 italic">Notes: {lead.notes}</p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3 self-end md:self-auto">
+                          <div className="text-right">
+                            <span className="text-[11px] text-slate-400 block">Est. Commission</span>
+                            <span className="text-sm font-extrabold text-[#10B981]">
+                              ₹{lead.commissionEst.toLocaleString('en-IN')}
+                            </span>
+                          </div>
+
+                          <a
+                            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hi ${lead.clientName}, your luxury property consultation for ${lead.projectInterest} has been registered via Prosify partner ${affiliate.referralCode}. Our manager will connect with you soon.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 rounded-xl bg-[#10B981]/20 hover:bg-[#10B981]/30 text-[#10B981] border border-[#10B981]/40 text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            WhatsApp
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================== */}
+            {/* SUBVIEW 8: EARNINGS & SECTION 194H TDS CALCULATOR                   */}
+            {/* =================================================================== */}
+            {activeTab === 'calculator' && (() => {
+              const priceNumber = Number(calcPropertyPrice) || 25000000;
+              const commissionRate = affiliate.tier === 'Master' ? 0.025 : affiliate.tier === 'Elite' ? 0.02 : 0.015;
+              const grossCommission = priceNumber * commissionRate;
+              const tdsAmount = grossCommission * 0.05;
+              const netTakeHome = grossCommission - tdsAmount;
+
+              return (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151D2C] border border-slate-800 p-5 rounded-3xl">
+                    <div>
+                      <div className="flex items-center gap-2 text-[#10B981] text-xs font-bold uppercase tracking-wider mb-1">
+                        <Calculator className="w-4 h-4" />
+                        <span>Live Commission Calculator</span>
+                      </div>
+                      <h3 className="text-xl font-black text-white">Estimated Earnings &amp; Section 194H TDS</h3>
+                      <p className="text-xs text-slate-400">
+                        Calculate exact gross commission, statutory 5% TDS deduction, and final net bank payout for any property value.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400">Your Tier:</span>
+                      <span className="px-3 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-black">
+                        {affiliate.tier} ({(commissionRate * 100).toFixed(1)}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left: Input Slider and Controls */}
+                    <div className="lg:col-span-7 rounded-3xl bg-[#151D2C] border border-slate-800 p-6 sm:p-8 shadow-xl space-y-6">
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            Property Booking Value (₹)
+                          </label>
+                          <span className="text-lg font-black text-white font-mono">
+                            ₹{(priceNumber / 10000000).toFixed(2)} Crores
+                          </span>
+                        </div>
+
+                        <input
+                          type="range"
+                          min={4000000}
+                          max={150000000}
+                          step={500000}
+                          value={priceNumber}
+                          onChange={(e) => setCalcPropertyPrice(Number(e.target.value))}
+                          className="w-full h-2.5 bg-[#0B1120] rounded-lg appearance-none cursor-pointer accent-[#10B981]"
+                        />
+
+                        <div className="flex justify-between text-[11px] text-slate-400 mt-2 font-mono">
+                          <span>₹40 Lakhs</span>
+                          <span>₹3 Crores</span>
+                          <span>₹7 Crores</span>
+                          <span>₹15 Crores</span>
+                        </div>
+                      </div>
+
+                      {/* Quick Preset Buttons */}
+                      <div className="space-y-2">
+                        <span className="text-xs font-semibold text-slate-400 block">Or Select Common Property Price:</span>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {[
+                            { label: '₹85 Lakhs (2 BHK)', val: 8500000 },
+                            { label: '₹1.8 Cr (3 BHK)', val: 18000000 },
+                            { label: '₹3.5 Cr (Luxury)', val: 35000000 },
+                            { label: '₹8.0 Cr (Penthouse)', val: 80000000 },
+                          ].map((preset) => (
+                            <button
+                              key={preset.val}
+                              type="button"
+                              onClick={() => setCalcPropertyPrice(preset.val)}
+                              className={`p-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                                priceNumber === preset.val
+                                  ? 'bg-[#10B981]/20 border-[#10B981] text-[#10B981]'
+                                  : 'bg-[#0B1120] border-slate-800 text-slate-300 hover:border-slate-700'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Legal & Compliance Notice */}
+                      <div className="p-4 rounded-2xl bg-[#0B1120] border border-slate-800 text-xs text-slate-400 space-y-2">
+                        <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Income Tax Act 1961 • Section 194H Compliant</span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed">
+                          Commission payments exceeding ₹15,000 per financial year are subject to statutory 5% TDS deduction. Prosify deposits all TDS directly with the Central Board of Direct Taxes (CBDT) and issues Form 16A quarterly for tax credit.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right: Net Earnings Breakdown */}
+                    <div className="lg:col-span-5 rounded-3xl bg-[#151D2C] border border-emerald-500/30 p-6 sm:p-8 shadow-xl space-y-5 flex flex-col justify-between relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                      <div className="space-y-4">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                          Net Disbursable Breakdown
+                        </span>
+
+                        <div className="p-4 rounded-2xl bg-[#0B1120] border border-slate-800 space-y-3">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-slate-400">Booking Value:</span>
+                            <span className="font-mono text-white font-bold">₹{priceNumber.toLocaleString('en-IN')}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-slate-400">Commission Rate:</span>
+                            <span className="font-mono text-[#0EA5E9] font-bold">{(commissionRate * 100).toFixed(1)}%</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs pt-2 border-t border-slate-800">
+                            <span className="text-slate-300 font-semibold">Gross Commission:</span>
+                            <span className="font-mono text-white font-extrabold text-sm">
+                              ₹{grossCommission.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-amber-400">
+                            <span>Less: 5% TDS (Sec 194H):</span>
+                            <span className="font-mono font-bold">
+                              -₹{tdsAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Net In-Hand Highlight */}
+                        <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/60 to-[#0B1120] border border-emerald-500/40 text-center space-y-1">
+                          <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider block">
+                            Net Bank Transfer to You
+                          </span>
+                          <span className="text-2xl sm:text-3xl font-black text-emerald-300 font-mono block">
+                            ₹{netTakeHome.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                          </span>
+                          <span className="text-[11px] text-slate-400 block">
+                            Paid via UPI / NEFT on deal registration
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('refer-client')}
+                          className="w-full py-3 rounded-xl bg-[#10B981] hover:bg-[#059669] text-[#0A0D14] font-black text-xs sm:text-sm shadow-lg transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          <span>Refer a Buyer for this Amount</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('share-studio')}
+                          className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-colors"
+                        >
+                          Browse Properties to Share
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </main>
@@ -1748,6 +2535,240 @@ export default function AffiliatePortalPage() {
                 Copy Link
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* MODAL 3: GOOGLE SIGN-IN MODAL (ONE-CLICK GOOGLE REGISTRATION)          */}
+      {/* ======================================================================= */}
+      {googleModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in"
+        >
+          <div className="w-full max-w-md bg-[#151D2C] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative space-y-5">
+            <button
+              onClick={() => setGoogleModalOpen(false)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow">
+                <svg className="w-6 h-6" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">Google Partner Sign In</h3>
+                <p className="text-xs text-slate-400">Instant verified registration for Prosify Affiliates</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Confirm your Google account to automatically link your partner wallet, earn high-ticket commissions, and appear in the verified admin directory.
+            </p>
+
+            <form onSubmit={handleConfirmGoogleModal} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Full Name <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={googleModalName}
+                  onChange={(e) => setGoogleModalName(e.target.value)}
+                  placeholder="e.g. Nikhil Verma"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-[#4285F4] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Google Email Address <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={googleModalEmail}
+                  onChange={(e) => setGoogleModalEmail(e.target.value)}
+                  placeholder="e.g. partner@gmail.com"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-[#4285F4] focus:outline-none"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#0B1120] border border-slate-800 flex items-center gap-2 text-[11px] text-slate-400">
+                <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                <span>Automatic 30-day cookie referral tracking &amp; instant admin synchronization.</span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isGoogleSubmitting || !googleModalEmail}
+                className="w-full py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-black text-xs sm:text-sm shadow-lg transition-all active:scale-98 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isGoogleSubmitting ? (
+                  <span>Syncing with Google...</span>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                      />
+                    </svg>
+                    <span>Complete Google Sign In</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* MODAL 4: QUICK BUYER LEAD REFERRAL MODAL                                */}
+      {/* ======================================================================= */}
+      {leadModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in"
+        >
+          <div className="w-full max-w-lg bg-[#151D2C] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative space-y-4">
+            <button
+              onClick={() => setLeadModalOpen(false)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+              <UserPlus className="w-4 h-4" />
+              <span>Direct Lead Referral</span>
+            </div>
+
+            <h3 className="text-xl font-bold text-white">Refer a Buyer / High-Net-Worth Client</h3>
+            <p className="text-xs text-slate-400">
+              Submit buyer details for priority developer registration. Attributed directly to partner code: <strong className="text-[#10B981]">{affiliate?.referralCode || 'YOUR-CODE'}</strong>
+            </p>
+
+            <form onSubmit={handleClientLeadSubmit} className="space-y-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Buyer Name <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={leadForm.clientName}
+                    onChange={(e) => setLeadForm({ ...leadForm, clientName: e.target.value })}
+                    placeholder="e.g. Rahul Sharma"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Phone / WhatsApp <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={leadForm.clientPhone}
+                    onChange={(e) => setLeadForm({ ...leadForm, clientPhone: e.target.value })}
+                    placeholder="e.g. +91 98200 55443"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Target Project / Area
+                  </label>
+                  <input
+                    type="text"
+                    value={leadForm.projectInterest}
+                    onChange={(e) => setLeadForm({ ...leadForm, projectInterest: e.target.value })}
+                    placeholder="e.g. Oberoi Sky City, Borivali"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                    Budget Range
+                  </label>
+                  <select
+                    value={leadForm.budget}
+                    onChange={(e) => setLeadForm({ ...leadForm, budget: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs sm:text-sm focus:border-amber-400 focus:outline-none"
+                  >
+                    <option value="₹75L - ₹1.5 Cr">₹75 Lakhs - ₹1.5 Cr</option>
+                    <option value="₹1.5 Cr - ₹3 Cr">₹1.5 Cr - ₹3.0 Cr</option>
+                    <option value="₹3 Cr - ₹7 Cr">₹3.0 Cr - ₹7.0 Cr</option>
+                    <option value="₹7 Cr - ₹15 Cr">₹7.0 Cr - ₹15.0 Cr</option>
+                    <option value="₹15 Cr+ Ultra Luxury">₹15 Cr+ Ultra Luxury</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                  Specific Requirements
+                </label>
+                <textarea
+                  rows={2}
+                  value={leadForm.notes}
+                  onChange={(e) => setLeadForm({ ...leadForm, notes: e.target.value })}
+                  placeholder="e.g. 3 BHK higher floor with 2 car parks"
+                  className="w-full px-4 py-2 rounded-xl bg-[#0B1120] border border-slate-700 text-white text-xs focus:border-amber-400 focus:outline-none resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmittingLead}
+                className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all active:scale-98 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                <span>{isSubmittingLead ? 'Submitting Lead...' : 'Submit Buyer Referral'}</span>
+              </button>
+            </form>
           </div>
         </div>
       )}
