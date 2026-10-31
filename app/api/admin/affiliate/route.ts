@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
-export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 function verifyAdminRole(req: NextRequest): boolean {
   const authHeader = req.headers.get('authorization') || req.headers.get('x-admin-token');
