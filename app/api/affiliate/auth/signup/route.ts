@@ -4,14 +4,22 @@ import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 export const dynamic = 'force-dynamic';
 export const AFFILIATE_COOKIE_NAME = 'prosify_affiliate_session';
 
-function getD1Database(): any {
+async function getD1(): Promise<any> {
   try {
-    const globalContext = (globalThis as any).__cloudflare_context__?.env?.DB;
-    if (globalContext) return globalContext;
-  } catch (e) {}
+    // 1. OpenNext runtime binding
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+    const ctx = await getCloudflareContext({ async: true });
+    if (ctx?.env?.DB) return ctx.env.DB;
+  } catch (e) {
+    // Fallback for direct edge worker context
+  }
 
   if ((process.env as any)?.DB) return (process.env as any).DB;
+  if ((globalThis as any)?.__cloudflare_context__?.env?.DB) {
+    return (globalThis as any).__cloudflare_context__.env.DB;
+  }
   if ((globalThis as any)?.DB) return (globalThis as any).DB;
+
   return null;
 }
 
@@ -28,13 +36,10 @@ export async function POST(req: NextRequest) {
       return createErrorResponse('BAD_REQUEST', 'Email address is required.', 400);
     }
 
-    if (!password || password.length < 6) {
-      return createErrorResponse('BAD_REQUEST', 'Password must be at least 6 characters long.', 400);
-    }
-
-    const db = getD1Database();
+    const db = await getD1();
     if (!db) {
-      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
+      console.error('CRITICAL: Cloudflare D1 binding DB is undefined');
+      return createErrorResponse('INTERNAL_ERROR', 'Database binding not active. Check Cloudflare Pages D1 settings.', 500);
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -45,7 +50,7 @@ export async function POST(req: NextRequest) {
     const cleanPan = panCard?.trim() || '';
     const cleanRera = reraNumber?.trim() || '';
 
-    // Check duplicate affiliate email in D1
+    // Check duplicate
     const existing = await db
       .prepare('SELECT id FROM affiliates WHERE LOWER(email) = ? LIMIT 1')
       .bind(cleanEmail)
@@ -55,37 +60,23 @@ export async function POST(req: NextRequest) {
       return createErrorResponse('CONFLICT', 'An affiliate account with this email already exists.', 409);
     }
 
-    // Generate tracking codes
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const referralCode = `PRO-${randomSuffix}`;
     const affiliateId = `aff_${Date.now()}_${randomSuffix}`;
-    const verificationCode = String(Math.floor(100000 + Math.random() * 900000));
+    const defaultPassword = password?.trim() || 'prosify@123';
 
-    // Save record to Cloudflare D1
     await db
       .prepare(`
         INSERT INTO affiliates (
-          id, 
-          user_name, 
-          email, 
-          phone, 
-          password_hash, 
-          city, 
-          agency_name, 
-          pan_card, 
-          rera_number, 
-          ref_code, 
-          tier, 
-          status, 
-          created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Bronze (2.5%)', 'active', datetime('now'))
+          id, user_name, email, phone, password_hash, city, agency_name, pan_card, rera_number, ref_code, tier, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Bronze (2.5%)', 'active')
       `)
       .bind(
         affiliateId,
         cleanName,
         cleanEmail,
         cleanPhone,
-        password.trim(),
+        defaultPassword,
         cleanCity,
         cleanAgency,
         cleanPan,
@@ -105,27 +96,22 @@ export async function POST(req: NextRequest) {
     };
     const sessionToken = Buffer.from(JSON.stringify(sessionPayload)).toString('base64');
 
-    const affiliateData = {
-      id: affiliateId,
-      name: cleanName,
-      email: cleanEmail,
-      phone: cleanPhone,
-      city: cleanCity,
-      agencyName: cleanAgency,
-      panCard: cleanPan,
-      reraNumber: cleanRera,
-      referralCode,
-      tier: 'Bronze (2.5%)',
-      status: 'active',
-      referralUrl,
-    };
-
     const response = NextResponse.json(
       {
         success: true,
-        message: 'Affiliate account created successfully!',
-        affiliate: affiliateData,
-        verificationCode,
+        message: 'Affiliate registered successfully in D1 database!',
+        affiliate: {
+          id: affiliateId,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          city: cleanCity,
+          agencyName: cleanAgency,
+          referralCode,
+          tier: 'Bronze (2.5%)',
+          status: 'active',
+          referralUrl,
+        },
       },
       { headers: NO_CACHE_HEADERS }
     );
@@ -134,12 +120,12 @@ export async function POST(req: NextRequest) {
       path: '/',
       httpOnly: false,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
     });
 
     return response;
   } catch (error: any) {
-    console.error('Affiliate D1 Signup Error:', error);
+    console.error('Affiliate Signup Error Details:', error);
     return createErrorResponse('INTERNAL_ERROR', error.message || 'Signup failed', 500);
   }
 }
