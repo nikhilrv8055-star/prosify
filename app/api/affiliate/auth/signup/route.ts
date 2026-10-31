@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
-export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 export const AFFILIATE_COOKIE_NAME = 'prosify_affiliate_session';
 
 function getD1Database(): any {
   try {
-    // OpenNext / Cloudflare global context
     const globalContext = (globalThis as any).__cloudflare_context__?.env?.DB;
     if (globalContext) return globalContext;
   } catch (e) {}
@@ -46,7 +45,7 @@ export async function POST(req: NextRequest) {
     const cleanPan = panCard?.trim() || '';
     const cleanRera = reraNumber?.trim() || '';
 
-    // Check duplicate email
+    // Check duplicate affiliate email in D1
     const existing = await db
       .prepare('SELECT id FROM affiliates WHERE LOWER(email) = ? LIMIT 1')
       .bind(cleanEmail)
@@ -56,11 +55,13 @@ export async function POST(req: NextRequest) {
       return createErrorResponse('CONFLICT', 'An affiliate account with this email already exists.', 409);
     }
 
+    // Generate tracking codes
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const referralCode = `PRO-${randomSuffix}`;
     const affiliateId = `aff_${Date.now()}_${randomSuffix}`;
     const verificationCode = String(Math.floor(100000 + Math.random() * 900000));
 
+    // Save record to Cloudflare D1
     await db
       .prepare(`
         INSERT INTO affiliates (
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
       path: '/',
       httpOnly: false,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: 60 * 60 * 24 * 30, // 30 days
     });
 
     return response;
