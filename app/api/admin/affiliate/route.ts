@@ -3,51 +3,30 @@ import { NO_CACHE_HEADERS, createErrorResponse } from '@/lib/db/d1';
 
 export const dynamic = 'force-dynamic';
 
-function verifyAdminRole(req: NextRequest): boolean {
-  const authHeader = req.headers.get('authorization') || req.headers.get('x-admin-token');
-  const sessionUser = req.headers.get('x-admin-user');
-
-  if (
-    authHeader?.includes('adm') ||
-    authHeader?.includes('eni') ||
-    authHeader === 'Bearer eni1526' ||
-    sessionUser === 'eni1526' ||
-    sessionUser === 'admin@prosify.in' ||
-    sessionUser === 'admin'
-  ) {
-    return true;
-  }
-  return true;
-}
-
-function getD1Database(): any {
+async function getD1(): Promise<any> {
   try {
-    const globalContext = (globalThis as any).__cloudflare_context__?.env?.DB;
-    if (globalContext) return globalContext;
+    const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+    const ctx = await getCloudflareContext({ async: true });
+    if (ctx?.env?.DB) return ctx.env.DB;
   } catch (e) {}
 
   if ((process.env as any)?.DB) return (process.env as any).DB;
+  if ((globalThis as any)?.__cloudflare_context__?.env?.DB) {
+    return (globalThis as any).__cloudflare_context__.env.DB;
+  }
   if ((globalThis as any)?.DB) return (globalThis as any).DB;
+
   return null;
 }
 
 export async function GET(req: NextRequest) {
   try {
-    if (!verifyAdminRole(req)) {
-      return createErrorResponse('BAD_REQUEST', 'Unauthorized. Admin role required.', 403);
-    }
-
-    const db = getD1Database();
+    const db = await getD1();
     if (!db) {
       return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
     }
 
-    const { searchParams } = new URL(req.url);
-    const search = searchParams.get('search')?.toLowerCase() || '';
-    const statusFilter = searchParams.get('status')?.toUpperCase() || 'ALL';
-    const sortBy = searchParams.get('sortBy') || 'joinedAt';
-
-    let query = `
+    const { results } = await db.prepare(`
       SELECT 
         id,
         user_name AS name,
@@ -62,35 +41,12 @@ export async function GET(req: NextRequest) {
         status,
         created_at AS createdAt
       FROM affiliates
-    `;
+      ORDER BY id DESC
+    `).all();
 
-    const conditions: string[] = [];
-    const params: any[] = [];
+    const rawList = (results as any[]) || [];
 
-    if (statusFilter !== 'ALL') {
-      conditions.push('UPPER(status) = ?');
-      params.push(statusFilter);
-    }
-
-    if (search) {
-      conditions.push('(LOWER(user_name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(ref_code) LIKE ?)');
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
-
-    if (conditions.length > 0) {
-      query += ` WHERE ${conditions.join(' AND ')}`;
-    }
-
-    if (sortBy === 'joinedAt') {
-      query += ` ORDER BY created_at DESC`;
-    } else {
-      query += ` ORDER BY id DESC`;
-    }
-
-    const { results } = await db.prepare(query).bind(...params).all();
-    const rawAffiliates = (results as any[]) || [];
-
-    const affiliates = rawAffiliates.map((item) => ({
+    const affiliates = rawList.map((item) => ({
       id: item.id || `aff_${item.referralCode}`,
       name: item.name || 'Partner',
       email: item.email || '',
@@ -111,15 +67,13 @@ export async function GET(req: NextRequest) {
       conversions: 0,
     }));
 
-    const activeAffiliatesCount = affiliates.filter((a) => a.status === 'ACTIVE').length;
-
     return NextResponse.json(
       {
         success: true,
         metrics: {
           totalPayoutsDisbursed: 0,
           platformRevenueFromAffiliates: 0,
-          activeAffiliates: activeAffiliatesCount,
+          activeAffiliates: affiliates.filter((a) => a.status === 'ACTIVE').length,
           pendingPayoutRequests: 0,
           totalAffiliates: affiliates.length,
         },
@@ -129,65 +83,6 @@ export async function GET(req: NextRequest) {
     );
   } catch (error: any) {
     console.error('Admin Affiliate GET Error:', error);
-    return createErrorResponse('INTERNAL_ERROR', error.message || 'Error in admin affiliate API', 500);
-  }
-}
-
-export async function PATCH(req: NextRequest) {
-  try {
-    if (!verifyAdminRole(req)) {
-      return createErrorResponse('BAD_REQUEST', 'Unauthorized. Admin role required.', 403);
-    }
-
-    const db = getD1Database();
-    if (!db) {
-      return createErrorResponse('INTERNAL_ERROR', 'Cloudflare D1 binding (DB) not found in runtime.', 500);
-    }
-
-    const body = await req.json();
-    const { affiliateId, status, tier } = body;
-
-    if (!affiliateId) {
-      return createErrorResponse('BAD_REQUEST', 'Affiliate ID is required', 400);
-    }
-
-    const updates: string[] = [];
-    const params: any[] = [];
-
-    if (status) {
-      updates.push('status = ?');
-      params.push(status.toUpperCase());
-    }
-
-    if (tier) {
-      updates.push('tier = ?');
-      params.push(tier);
-    }
-
-    if (updates.length === 0) {
-      return createErrorResponse('BAD_REQUEST', 'No valid update fields provided', 400);
-    }
-
-    params.push(affiliateId);
-
-    const result = await db
-      .prepare(`UPDATE affiliates SET ${updates.join(', ')} WHERE id = ? OR ref_code = ?`)
-      .bind(...params, affiliateId)
-      .run();
-
-    if (!result.success) {
-      return createErrorResponse('NOT_FOUND', 'Affiliate profile not found in D1', 404);
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: `Affiliate #${affiliateId} successfully updated in D1 database.`,
-      },
-      { headers: NO_CACHE_HEADERS }
-    );
-  } catch (error: any) {
-    console.error('Admin Affiliate PATCH Error:', error);
-    return createErrorResponse('INTERNAL_ERROR', error.message || 'Error updating affiliate', 500);
+    return createErrorResponse('INTERNAL_ERROR', error.message || 'Error fetching affiliates', 500);
   }
 }
