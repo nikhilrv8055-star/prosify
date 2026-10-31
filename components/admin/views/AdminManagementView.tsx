@@ -7,19 +7,15 @@ import {
   Languages,
   Plus,
   Trash2,
-  Lock,
   Key,
   CheckCircle2,
   Search,
-  BadgeCheck,
   Copy,
   Eye,
   EyeOff,
   RefreshCw,
   Sliders,
-  Check,
   AlertCircle,
-  ExternalLink,
   Sparkles,
 } from 'lucide-react';
 import {
@@ -46,7 +42,7 @@ const INITIAL_LANGUAGES: LanguageItem[] = [
 
 export function AdminManagementView({ subview = 'admin-roles' }: { subview?: string }) {
   const [accounts, setAccounts] = useState<AdminAccount[]>([]);
-  const [languages, setLanguages] = useState<LanguageItem[]>(INITIAL_LANGUAGES);
+  const [languages] = useState<LanguageItem[]>(INITIAL_LANGUAGES);
   const [activeTab, setActiveTab] = useState<'admins' | 'roles' | 'languages'>(
     subview === 'admin-users' ? 'admins' : subview === 'admin-languages' ? 'languages' : 'admins'
   );
@@ -118,7 +114,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
     fetchAccounts();
   }, []);
 
-  // Update role presets when role changes in Create Form
   const handleRoleChange = (role: AdminRoleType) => {
     const preset = ROLE_PRESET_MODULES[role] || ROLE_PRESET_MODULES.CUSTOM;
     setNewAdmin((prev) => ({
@@ -129,7 +124,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
     }));
   };
 
-  // Toggle group checkbox for custom access
   const handleToggleGroupCheckbox = (groupId: string) => {
     setNewAdmin((prev) => {
       let updated: string[];
@@ -322,7 +316,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
       )}
 
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-3xl bg-linear-to-r from-neutral-900 via-neutral-900 to-amber-950/30 border border-neutral-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-3xl bg-gradient-to-r from-neutral-900 via-neutral-900 to-amber-950/30 border border-neutral-800 shadow-xl">
         <div className="space-y-1">
           <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
@@ -347,7 +341,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
           <button
             type="button"
             onClick={() => setIsAddAdminOpen(true)}
-            className="px-4 py-2 rounded-xl bg-linear-to-r from-[#D4A017] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-bold text-xs shadow-lg shadow-[#D4A017]/20 flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4A017] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-bold text-xs shadow-lg shadow-[#D4A017]/20 flex items-center gap-2 cursor-pointer transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>Create Admin User / Staff ID</span>
@@ -392,9 +386,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
         </button>
       </div>
 
-      {/* ========================================================================= */}
-      {/* TAB 1: ADMIN STAFF DIRECTORY & PASSWORDS                                  */}
-      {/* ========================================================================= */}
+      {/* TAB 1: ADMIN STAFF DIRECTORY & PASSWORDS */}
       {activeTab === 'admins' && (
         <div className="space-y-4">
           {/* Filter & Search Bar */}
@@ -451,7 +443,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
 
                     return (
                       <tr key={account.id} className="hover:bg-neutral-800/30 transition-colors">
-                        {/* Name */}
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-amber-400 text-xs shrink-0">
@@ -473,7 +464,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                           </div>
                         </td>
 
-                        {/* Login ID & Email */}
                         <td className="py-4 px-4">
                           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-neutral-950 border border-neutral-800 font-mono text-amber-400 font-bold text-xs">
                             <span>{account.username}</span>
@@ -489,7 +479,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                           <div className="text-[11px] text-neutral-400 mt-1">{account.email}</div>
                         </td>
 
-                        {/* Assigned Role */}
                         <td className="py-4 px-4">
                           <span
                             className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold border ${
@@ -508,7 +497,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                           </span>
                         </td>
 
-                        {/* Access Scope */}
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-1.5">
                             <span className="font-bold text-white text-xs">
@@ -524,7 +512,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                           </div>
                         </td>
 
-                        {/* Password */}
                         <td className="py-4 px-4">
                           <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-neutral-950 border border-neutral-800 font-mono text-xs text-neutral-300">
                             <span>••••••••</span>
@@ -539,7 +526,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                           </div>
                         </td>
 
-                        {/* Status */}
                         <td className="py-4 px-4 text-center">
                           <span
                             className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
@@ -552,7 +538,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                           </span>
                         </td>
 
-                        {/* Actions */}
                         <td className="py-4 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
@@ -620,9 +605,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* TAB 2: ROLE DEFINITIONS & SCOPE REFERENCE                                */}
-      {/* ========================================================================= */}
+      {/* TAB 2: ROLE DEFINITIONS & SCOPE REFERENCE */}
       {activeTab === 'roles' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(Object.keys(ROLE_PRESET_MODULES) as AdminRoleType[]).map((roleKey) => {
@@ -684,9 +667,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* TAB 3: LANGUAGES LOCALIZATION                                            */}
-      {/* ========================================================================= */}
+      {/* TAB 3: LANGUAGES LOCALIZATION */}
       {activeTab === 'languages' && (
         <div className="bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden shadow-xl">
           <div className="p-4 border-b border-neutral-800 flex items-center justify-between">
@@ -722,9 +703,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL 1: CREATE NEW ADMIN USER / STAFF ID WITH RBAC                        */}
-      {/* ========================================================================= */}
+      {/* MODAL 1: CREATE NEW ADMIN USER */}
       {isAddAdminOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs">
           <div className="w-full max-w-xl bg-neutral-900 rounded-3xl border border-neutral-800 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
@@ -748,7 +727,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
             </div>
 
             <form onSubmit={handleCreateAdmin} className="space-y-4 text-xs">
-              {/* Full Name & Login ID */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-semibold text-neutral-300 block">Staff Full Name *</label>
@@ -774,7 +752,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                 </div>
               </div>
 
-              {/* Email Address */}
               <div className="space-y-1">
                 <label className="font-semibold text-neutral-300 block">Official Email Address *</label>
                 <input
@@ -787,7 +764,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                 />
               </div>
 
-              {/* Password with Generator */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-neutral-300">Password *</label>
@@ -819,7 +795,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                 </div>
               </div>
 
-              {/* Role Selection */}
               <div className="space-y-1">
                 <label className="font-semibold text-neutral-300 block">Assign Role Preset</label>
                 <select
@@ -841,7 +816,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                 </p>
               </div>
 
-              {/* Module Checkbox Permissions Grid */}
               <div className="space-y-2 p-3.5 rounded-2xl bg-neutral-950 border border-neutral-800">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-amber-400 uppercase">
@@ -898,9 +872,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL 2: EDIT ADMIN ACCESS & CHANGE PASSWORD                               */}
-      {/* ========================================================================= */}
+      {/* MODAL 2: EDIT ADMIN ACCESS */}
       {editingAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs">
           <div className="w-full max-w-lg bg-neutral-900 rounded-3xl border border-neutral-800 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
@@ -961,7 +933,6 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
                 />
               </div>
 
-              {/* Module Checkbox Permissions Grid */}
               <div className="space-y-2 p-3.5 rounded-2xl bg-neutral-950 border border-neutral-800">
                 <span className="text-[11px] font-bold text-amber-400 uppercase block">
                   Authorized Modules ({editingAdmin.allowedGroups.includes('*') ? 'All' : editingAdmin.allowedGroups.length})
@@ -1022,9 +993,7 @@ export function AdminManagementView({ subview = 'admin-roles' }: { subview?: str
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL 3: CREDENTIALS CREATED CELEBRATION MODAL                             */}
-      {/* ========================================================================= */}
+      {/* MODAL 3: CREDENTIALS CREATED CELEBRATION MODAL */}
       {createdCredentials && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs">
           <div className="w-full max-w-md bg-neutral-900 rounded-3xl border border-neutral-800 shadow-2xl p-6 relative text-center space-y-4">
